@@ -1,0 +1,60 @@
+.unclickable {
+    pointer-events: none;
+}
+
+.icons {
+    color: grey;
+    height: 28px;
+    width: 28px;
+}
+
+.chat-icons {
+    height: 28px;
+    width: 28px;
+    cursor: pointer;
+}
+
+@media screen and (max-width: 767px) {
+    .icons {
+        height: 32px;
+        width: 32px;
+    }
+
+    .chat-icons {
+        height: 32px;
+        width: 32px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+
+    .custom-scrollbar {
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            border-radius: 4px;
+        }
+
+        &:hover {
+
+            &::-webkit-scrollbar-thumb {
+                background-color: #4a5568;
+            }
+
+        }
+    }
+}
+
+.textarea-scrollbar{
+    &::-webkit-scrollbar {
+        overflow: hidden;
+    }
+}
