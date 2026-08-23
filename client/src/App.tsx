@@ -14,8 +14,11 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RoomPage = lazy(() => import("./pages/RoomPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
+import ProtectedRoute from "./components/Routes/ProtectedRoute";
+import PublicOnlyRoute from "./components/Routes/PublicOnlyRoute";
+
 const PageFallback = () => (
-  <div className="flex justify-center items-center h-screen w-full">
+  <div className="flex justify-center items-center h-screen w-full bg-slate-900 text-white">
     <LoadingIndicator />
   </div>
 );
@@ -39,11 +42,20 @@ const App = () => {
           />
           <Suspense fallback={<PageFallback />}>
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/people" element={<PeoplePage />} />
-              <Route path="/chats/:id" element={<ChatPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/room/:roomId" element={<RoomPage />} />
+              {/* Public-only authentication route */}
+              <Route element={<PublicOnlyRoute />}>
+                <Route path="/login" element={<LoginPage />} />
+              </Route>
+
+              {/* Protected app routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/people" element={<PeoplePage />} />
+                <Route path="/chats/:id" element={<ChatPage />} />
+                <Route path="/room/:roomId" element={<RoomPage />} />
+              </Route>
+
+              {/* Fallback 404 route */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
