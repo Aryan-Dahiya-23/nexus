@@ -36,17 +36,11 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
     const { userConnected, setUserConnected } = useContext(AuthContext);
     const { setConnectedUsers } = useContext(AuthContext);
 
-    const { data, isSuccess, isError, error } = useQuery<User>({
+    const { data, isSuccess } = useQuery<User>({
         queryKey: ['user'],
         queryFn: () => verify(),
-        staleTime: 10000,
+        staleTime: 30000,
     });
-
-    useEffect(() => {
-        if (isError && error !== null) {
-            navigate("/login");
-        }
-    }, [isError, error, navigate]);
 
     useEffect(() => {
         if (isSuccess && data && data.conversations.length < 1) {
