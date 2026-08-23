@@ -24,7 +24,7 @@ const ChatDeleteModal: React.FC = () => {
             await queryClient.invalidateQueries({ queryKey: ['user'] });
             toast.success("Conversation removed");
             handleDeleteModal();
-            navigate("/");
+            navigate("/chats");
         }
     });
 

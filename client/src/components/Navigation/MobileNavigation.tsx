@@ -44,9 +44,9 @@ const MobileNavigation = () => {
     }
 
     const navigateHome = () => {
-        if (window.location.pathname === '/')
+        if (window.location.pathname === '/chats')
             scrollToTop();
-        navigate("/");
+        navigate("/chats");
     }
 
     const navigatePeople = () => {
@@ -69,7 +69,7 @@ const MobileNavigation = () => {
         });
     };
 
-    const isHomeActive = window.location.pathname === '/' || window.location.pathname.startsWith('/chats');
+    const isHomeActive = window.location.pathname.startsWith('/chats');
     const isPeopleActive = window.location.pathname === '/people';
 
     return (

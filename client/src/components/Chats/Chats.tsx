@@ -77,7 +77,7 @@ const Chats: React.FC = () => {
 
     useEffect(() => {
         if (isError) {
-            navigate("/");
+            navigate("/chats");
         }
     }, [isError, navigate]);
 
