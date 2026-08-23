@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { FaArrowDownLong } from "react-icons/fa6";
 import ChatHeader from "./ChatHeader";
-import ChatBubble from "./ChatBubbe";
+import ChatBubble from "./ChatBubble";
 import ChatInput from "./ChatInput";
 import { AuthContext } from "../../contexts/AuthContext";
 import { queryClient, verify } from "../../api/auth";
@@ -60,12 +60,40 @@ const Chats = () => {
         mutationFn: () => readMessage(userId, id),
         onMutate: () => {
             setMessageSeenStatus('pending');
-            const newUser = { ...contextUser }
-            const conversationIndex = newUser.conversations.findIndex(conv => conv.conversation._id === id);
-            if (conversationIndex !== -1) {
-                newUser.conversations[conversationIndex].conversation.lastMessage.seenBy.push(contextUser._id);
-                setContextUser(newUser);
-            }
+            setContextUser((prevUser: any) => {
+                if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
+                const conversationIndex = prevUser.conversations.findIndex(
+                    (conv: any) => conv?.conversation?._id === id
+                );
+                if (conversationIndex === -1) return prevUser;
+
+                const targetConv = prevUser.conversations[conversationIndex];
+                const lastMsg = targetConv?.conversation?.lastMessage;
+                if (!lastMsg) return prevUser;
+
+                const updatedSeenBy = lastMsg.seenBy?.includes(prevUser._id)
+                    ? lastMsg.seenBy
+                    : [...(lastMsg.seenBy || []), prevUser._id];
+
+                const updatedConv = {
+                    ...targetConv,
+                    conversation: {
+                        ...targetConv.conversation,
+                        lastMessage: {
+                            ...lastMsg,
+                            seenBy: updatedSeenBy
+                        }
+                    }
+                };
+
+                const newConvs = [...prevUser.conversations];
+                newConvs[conversationIndex] = updatedConv;
+
+                return {
+                    ...prevUser,
+                    conversations: newConvs
+                };
+            });
         },
         onSuccess: () => {
             socket.emit('seen message', id);

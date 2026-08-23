@@ -1,17 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// AuthContext.tsx
 import React, { createContext, useState, ReactNode, Dispatch, SetStateAction } from 'react';
+import { User } from '../types';
 
 interface AuthContextProps {
     loggedIn: boolean;
     setLoggedIn: Dispatch<SetStateAction<boolean>>;
-    user: any;
-    setUser: Dispatch<SetStateAction<any>>;
+    user: User | undefined;
+    setUser: Dispatch<SetStateAction<User | undefined>>;
     userEmail: string;
     setUserEmail: Dispatch<SetStateAction<string>>;
     userId: number | null;
     setUserId: Dispatch<SetStateAction<number | null>>;
-    receiverId: string
+    receiverId: string;
     setReceiverId: Dispatch<SetStateAction<string>>;
     connectedUsers: string[];
     setConnectedUsers: Dispatch<SetStateAction<string[]>>;
@@ -52,7 +51,7 @@ export const AuthContext = createContext<AuthContextProps>(defaultAuthContext);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
-    const [user, setUser] = useState<any>(undefined);
+    const [user, setUser] = useState<User | undefined>(undefined);
     const [userEmail, setUserEmail] = useState<string>("");
     const [userId, setUserId] = useState<number | null>(null);
     const [receiverId, setReceiverId] = useState<string>("");

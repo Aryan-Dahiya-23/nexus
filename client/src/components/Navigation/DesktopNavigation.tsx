@@ -61,12 +61,13 @@ const DesktopNavigation = () => {
     };
 
     const prefetch = () => {
+        if (!user?._id) return;
         queryClient.prefetchQuery({
             queryKey: ['people'],
             queryFn: () => fetchPeople(user._id),
             staleTime: 60000,
-        })
-    }
+        });
+    };
 
     useEffect(() => {
         const path = location.pathname;
@@ -100,7 +101,7 @@ const DesktopNavigation = () => {
 
             <div className="cursor-pointer p-2">
                 <RingAvatar
-                    imgSrc={user && user.picture}
+                    imgSrc={user?.picture || ""}
                     type="navigation"
                 />
             </div>
