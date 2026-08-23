@@ -33,7 +33,7 @@ interface ThemeContextProps {
 }
 
 const defaultThemeContext: ThemeContextProps = {
-    theme: "",
+    theme: "light",
     setTheme: () => { },
     chatHeight: false,
     setChatHeight: () => { },
@@ -73,13 +73,10 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             if (savedTheme === "dark" || savedTheme === "light") {
                 return savedTheme;
             }
-            if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches) {
-                return "light";
-            }
         } catch (e) {
             console.error("Error loading theme preference:", e);
         }
-        return "dark";
+        return "light";
     });
     const [chatHeight, setChatHeight] = useState<boolean>(false);
     const [groupChatWidget, setGroupChatWidget] = useState<boolean>(false);

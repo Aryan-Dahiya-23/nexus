@@ -1,147 +1,182 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Lock, ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Zap, Video, Lock } from "lucide-react";
 import ThemeToggle from "../UI/ThemeToggle";
 import NexusLogo from "../UI/NexusLogo";
 
 const Login: React.FC = () => {
+    const navigate = useNavigate();
     const url = import.meta.env.VITE_URL || 'http://localhost:4000';
 
-    const googleAuth = () => {
+    const googleAuth = useCallback(() => {
         window.open(`${url}/auth/google`, "_self");
-    };
+    }, [url]);
 
-    const facebookAuth = () => {
+    const facebookAuth = useCallback(() => {
         window.open(`${url}/auth/facebook`, "_self");
-    };
+    }, [url]);
+
+    // Keyboard Shortcuts: G for Google, F for Facebook, Esc for Home
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                navigate('/');
+            } else if (e.key === 'g' || e.key === 'G') {
+                e.preventDefault();
+                googleAuth();
+            } else if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                facebookAuth();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [googleAuth, facebookAuth, navigate]);
 
     return (
-        <div className="relative min-h-[100dvh] w-full bg-background text-foreground flex flex-col justify-between items-center px-4 py-8 overflow-hidden font-sans transition-colors duration-300">
-            {/* Ambient Animated Gradient Orbs */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-blue-600/20 via-indigo-600/15 to-purple-600/10 blur-[130px] pointer-events-none rounded-full dark:opacity-100 opacity-60" />
-            <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-cyan-500/10 blur-[120px] pointer-events-none rounded-full dark:opacity-100 opacity-60" />
+        <div className="relative min-h-[100dvh] w-full bg-background text-foreground flex flex-col justify-between items-center px-4 py-6 sm:py-8 font-sans selection:bg-primary/20 selection:text-primary transition-colors duration-300 overflow-x-hidden">
+            {/* Subtle Dot Grid Background */}
+            <div className="absolute inset-0 bg-dot-grid pointer-events-none opacity-50 dark:opacity-30 -z-10" />
 
-            {/* Top Navigation */}
-            <div className="w-full max-w-5xl flex items-center justify-between z-10">
+            {/* Top Navigation Bar */}
+            <div className="w-full max-w-4xl flex items-center justify-between z-10">
                 <Link
                     to="/"
-                    className="inline-flex items-center space-x-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-accent"
+                    className="inline-flex items-center space-x-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors p-2 rounded-xl hover:bg-muted"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back to Home</span>
+                    <span className="hidden sm:inline text-[10px] text-muted-foreground/60 font-mono ml-1 px-1.5 py-0.5 rounded bg-muted">ESC</span>
                 </Link>
 
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
                     <ThemeToggle />
-                    <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-card/80 border border-border shadow-sm">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[11px] text-foreground font-medium">Encrypted</span>
-                    </div>
+                    <a
+                        href="https://github.com/Aryan-Dahiya-23/nexus"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-xl hover:bg-muted"
+                        aria-label="GitHub Repository"
+                    >
+                        <svg className="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24">
+                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                        </svg>
+                    </a>
                 </div>
             </div>
 
-            {/* Main Auth Card */}
+            {/* Central Auth Container */}
             <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
                 className="w-full max-w-md my-auto z-10"
             >
-                <div className="rounded-3xl border border-border bg-card/90 p-8 shadow-2xl backdrop-blur-2xl text-center relative overflow-hidden text-card-foreground">
-                    {/* Top Glow Accent Bar */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
-
-                    {/* Logo & Header */}
-                    <div className="flex flex-col items-center">
-                        <NexusLogo className="h-16 w-16 mb-4" />
-
+                <div className="rounded-3xl border border-border bg-card/90 backdrop-blur-2xl p-7 sm:p-9 shadow-2xl text-center">
+                    {/* Brand Logo & Header */}
+                    <div className="flex flex-col items-center mb-6">
+                        <NexusLogo className="h-14 w-14 mb-3" size={56} />
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-                            Welcome to Nexus
+                            Sign in to Nexus
                         </h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-xs">
-                            Select your sign-in provider to access real-time messaging, video rooms, and team channels.
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 max-w-xs">
+                            Direct, passwordless access to your conversations.
                         </p>
                     </div>
 
-                    {/* SSO Action Buttons */}
-                    <div className="mt-8 space-y-3.5">
+                    {/* SSO Providers */}
+                    <div className="space-y-3 mt-6">
                         {/* Google Button */}
-                        <motion.button
-                            whileHover={{ scale: 1.012 }}
-                            whileTap={{ scale: 0.988 }}
+                        <button
+                            type="button"
                             onClick={googleAuth}
-                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-card hover:bg-muted text-foreground font-semibold text-sm shadow-sm transition-all border border-input hover:border-primary/40 cursor-pointer"
+                            className="w-full flex items-center justify-between h-12 px-4 rounded-2xl bg-background hover:bg-muted text-foreground font-semibold text-sm border border-input hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
                         >
-                            {/* Official Google SVG Icon */}
-                            <svg className="h-5 w-5" viewBox="0 0 24 24">
-                                <path
-                                    fill="#4285F4"
-                                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                                />
-                                <path
-                                    fill="#34A853"
-                                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
-                                />
-                                <path
-                                    fill="#FBBC05"
-                                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.99 0 12c0 2.01.46 3.84 1.26 5.42l4.02-3.15z"
-                                />
-                                <path
-                                    fill="#EA4335"
-                                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                                />
-                            </svg>
-                            <span>Continue with Google</span>
-                        </motion.button>
+                            <div className="flex items-center space-x-3 min-w-0">
+                                <svg
+                                    className="w-5 h-5 shrink-0"
+                                    viewBox="0 0 24 24"
+                                    style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
+                                >
+                                    <path
+                                        fill="#4285F4"
+                                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                                    />
+                                    <path
+                                        fill="#34A853"
+                                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
+                                    />
+                                    <path
+                                        fill="#FBBC05"
+                                        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.99 0 12c0 2.01.46 3.84 1.26 5.42l4.02-3.15z"
+                                    />
+                                    <path
+                                        fill="#EA4335"
+                                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                                    />
+                                </svg>
+                                <span className="whitespace-nowrap">Continue with Google</span>
+                            </div>
+                            <span className="hidden sm:inline text-[10px] text-muted-foreground font-mono px-1.5 py-0.5 rounded bg-muted group-hover:bg-muted/80 shrink-0">
+                                G
+                            </span>
+                        </button>
 
                         {/* Facebook / Meta Button */}
-                        <motion.button
-                            whileHover={{ scale: 1.012 }}
-                            whileTap={{ scale: 0.988 }}
+                        <button
+                            type="button"
                             onClick={facebookAuth}
-                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-md transition-all cursor-pointer"
+                            className="w-full flex items-center justify-between h-12 px-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-sm transition-all cursor-pointer group"
                         >
-                            {/* Facebook / Meta SVG Icon */}
-                            <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                            <span>Continue with Facebook</span>
-                        </motion.button>
+                            <div className="flex items-center space-x-3 min-w-0">
+                                <svg
+                                    className="w-5 h-5 fill-current shrink-0"
+                                    viewBox="0 0 24 24"
+                                    style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
+                                >
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                </svg>
+                                <span className="whitespace-nowrap">Continue with Facebook</span>
+                            </div>
+                            <span className="hidden sm:inline text-[10px] text-white/80 font-mono px-1.5 py-0.5 rounded bg-black/20 group-hover:bg-black/30 shrink-0">
+                                F
+                            </span>
+                        </button>
                     </div>
 
-                    {/* Divider */}
-                    <div className="mt-8 flex items-center">
-                        <div className="flex-1 h-px bg-border" />
-                        <span className="px-3 text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Protected Access</span>
-                        <div className="flex-1 h-px bg-border" />
+                    {/* Trust Footnote */}
+                    <div className="mt-6 pt-5 border-t border-border/80 flex items-center justify-center space-x-2 text-xs text-muted-foreground">
+                        <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <span>OAuth 2.0 • Encrypted HTTP-only cookies</span>
                     </div>
+                </div>
 
-                    {/* Trust Indicators */}
-                    <div className="mt-6 grid grid-cols-2 gap-3 text-left">
-                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border flex items-start space-x-2">
-                            <Lock className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                            <div>
-                                <div className="text-[11px] font-semibold text-foreground">256-Bit Session</div>
-                                <div className="text-[10px] text-muted-foreground">Encrypted cookies</div>
-                            </div>
-                        </div>
-
-                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border flex items-start space-x-2">
-                            <Shield className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                            <div>
-                                <div className="text-[11px] font-semibold text-foreground">Zero Password</div>
-                                <div className="text-[10px] text-muted-foreground">Direct OAuth token</div>
-                            </div>
-                        </div>
+                {/* Feature Highlights Pill Row */}
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                        <Zap className="h-3.5 w-3.5 text-cyan-500" />
+                        <span>WebSocket Sync</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <Video className="h-3.5 w-3.5 text-emerald-500" />
+                        <span>1080p Rooms</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <Lock className="h-3.5 w-3.5 text-blue-500" />
+                        <span>Passwordless</span>
                     </div>
                 </div>
             </motion.div>
 
             {/* Footer */}
             <div className="text-center z-10">
-                <p className="text-xs text-muted-foreground">
-                    By signing in, you agree to Nexus Terms of Service and Privacy Policy.
+                <p className="text-[11px] text-muted-foreground">
+                    By signing in, you agree to Nexus terms of service and privacy policy.
                 </p>
             </div>
         </div>

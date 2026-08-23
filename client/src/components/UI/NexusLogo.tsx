@@ -10,18 +10,24 @@ interface NexusLogoProps {
 
 export const NexusLogo: React.FC<NexusLogoProps> = ({
     className = 'h-9 w-9',
+    size,
     showText = false,
     textClassName = 'text-xl font-extrabold tracking-tight',
     animated = false,
 }) => {
+    const sizeStyle = size ? { width: size, height: size } : undefined;
+
     return (
-        <div className="inline-flex items-center space-x-2.5">
-            <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
+        <div className="inline-flex items-center space-x-2.5 shrink-0">
+            <div
+                style={sizeStyle}
+                className={`relative flex items-center justify-center shrink-0 ${className || 'h-9 w-9'}`}
+            >
                 <svg
                     viewBox="0 0 100 100"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="w-full h-full drop-shadow-md"
+                    className="w-full h-full max-w-full max-h-full drop-shadow-md shrink-0 block"
                 >
                     <defs>
                         <linearGradient id="nexusCompGrad" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
