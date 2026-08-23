@@ -12,6 +12,8 @@ import { queryClient } from "../../api/auth";
 import { logout } from "../../api/auth";
 import { fetchPeople } from "../../api/auth";
 
+import ThemeToggle from "../UI/ThemeToggle";
+
 const MobileNavigation = () => {
 
     const navigate = useNavigate()
@@ -76,6 +78,10 @@ const MobileNavigation = () => {
 
             <div className={`flex p-2 h-full items-center rounded-md`} onClick={navigatePeople} onTouchMove={prefetch}>
                 <MdPeopleAlt className="icons" />
+            </div>
+
+            <div className="flex p-2 h-full items-center">
+                <ThemeToggle />
             </div>
 
             <div className="flex p-2 h-full items-center" onClick={handleLogout}>

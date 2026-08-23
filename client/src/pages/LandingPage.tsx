@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
+import ThemeToggle from '@/components/UI/ThemeToggle';
 import { AuthContext } from '../contexts/AuthContext';
 
 export const LandingPage: React.FC = () => {
@@ -52,7 +53,8 @@ export const LandingPage: React.FC = () => {
                         </Badge>
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                        <ThemeToggle />
                         <a
                             href="https://github.com/Aryan-Dahiya-23/nexus"
                             target="_blank"

@@ -12,6 +12,8 @@ import { ThemeContext } from "../../contexts/ThemeContext";
 import { logout, fetchPeople } from "../../api/auth";
 
 
+import ThemeToggle from "../UI/ThemeToggle";
+
 const DesktopNavigation = () => {
 
     const navigate = useNavigate()
@@ -93,7 +95,11 @@ const DesktopNavigation = () => {
                     <MdPeopleAlt className="icons" />
                 </div>
 
-                <div className="hover:bg-gray-200 rounded-md p-2.5" onClick={handleLogout}>
+                <div className={`hover:bg-slate-800/40 rounded-md p-1 flex justify-center items-center`}>
+                    <ThemeToggle />
+                </div>
+
+                <div className="hover:bg-gray-200 dark:hover:bg-slate-800 rounded-md p-2.5" onClick={handleLogout}>
                     <IoLogOutOutline className="icons" />
                 </div>
 

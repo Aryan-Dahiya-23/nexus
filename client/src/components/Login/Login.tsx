@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, Shield, Lock, ArrowLeft } from "lucide-react";
+import ThemeToggle from "../UI/ThemeToggle";
 
 const Login: React.FC = () => {
     const url = import.meta.env.VITE_URL || 'http://localhost:4000';
@@ -30,9 +31,12 @@ const Login: React.FC = () => {
                     <span>Back to Home</span>
                 </Link>
 
-                <div className="flex items-center space-x-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs text-slate-400 font-medium">Encrypted Portal</span>
+                <div className="flex items-center space-x-3">
+                    <ThemeToggle />
+                    <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900/60 border border-slate-800">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-[11px] text-slate-300 font-medium">Encrypted</span>
+                    </div>
                 </div>
             </div>
 
