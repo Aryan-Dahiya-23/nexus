@@ -19,7 +19,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         gradient:
-          "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:from-blue-500 hover:to-indigo-500 hover:shadow-blue-500/25",
+          "bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-md hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 hover:shadow-cyan-500/25",
         glass:
           "bg-white/10 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 shadow-lg",
       },

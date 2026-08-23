@@ -15,8 +15,8 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
         online: "border-transparent bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-        unread: "border-transparent bg-blue-600 text-white font-bold shadow-md shadow-blue-500/25",
-        gradient: "border-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow",
+        unread: "border-transparent bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/25",
+        gradient: "border-transparent bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white font-semibold shadow",
       },
     },
     defaultVariants: {

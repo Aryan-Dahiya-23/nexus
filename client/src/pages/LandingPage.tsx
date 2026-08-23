@@ -35,14 +35,14 @@ export const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-blue-600 selection:text-white overflow-x-hidden font-sans relative transition-colors duration-300">
             {/* Ambient Background Aura */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-tr from-blue-600/20 via-indigo-500/15 to-purple-600/10 blur-[130px] pointer-events-none -z-10 rounded-full dark:opacity-100 opacity-60" />
-            <div className="absolute top-[800px] right-0 w-[600px] h-[400px] bg-cyan-500/10 blur-[120px] pointer-events-none -z-10 rounded-full dark:opacity-100 opacity-60" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-tr from-cyan-500/20 via-sky-500/15 to-blue-500/10 blur-[130px] pointer-events-none -z-10 rounded-full dark:opacity-100 opacity-60" />
+            <div className="absolute top-[800px] right-0 w-[600px] h-[400px] bg-cyan-400/10 blur-[120px] pointer-events-none -z-10 rounded-full dark:opacity-100 opacity-60" />
 
             {/* Navigation Header */}
             <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-background/80 border-b border-border transition-all">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/')}>
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
                             <Sparkles className="h-5 w-5 text-white" />
                         </div>
                         <span className="text-xl font-bold bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground bg-clip-text text-transparent tracking-tight">
@@ -93,14 +93,14 @@ export const LandingPage: React.FC = () => {
                     transition={{ duration: 0.5 }}
                     className="flex flex-col items-center"
                 >
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium mb-6 backdrop-blur-md">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-medium mb-6 backdrop-blur-md">
                         <Zap className="h-3.5 w-3.5" />
                         <span>Sub-50ms Real-Time WebSocket Engine</span>
                     </div>
 
                     <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight max-w-4xl text-foreground leading-[1.1]">
                         Real-Time Collaboration <br />
-                        <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 dark:from-blue-400 dark:via-indigo-400 dark:to-cyan-400 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 dark:from-cyan-400 dark:via-sky-400 dark:to-blue-400 bg-clip-text text-transparent">
                             Without the Clutter.
                         </span>
                     </h1>

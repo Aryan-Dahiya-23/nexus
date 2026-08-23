@@ -49,11 +49,11 @@ const Login: React.FC = () => {
             >
                 <div className="rounded-3xl border border-border bg-card/90 p-8 shadow-2xl backdrop-blur-2xl text-center relative overflow-hidden text-card-foreground">
                     {/* Top Glow Accent Bar */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
 
                     {/* Logo & Header */}
                     <div className="flex flex-col items-center">
-                        <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-xl shadow-blue-500/25 mb-4 ring-4 ring-blue-500/10">
+                        <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 flex items-center justify-center shadow-xl shadow-cyan-500/25 mb-4 ring-4 ring-cyan-500/10">
                             <Sparkles className="h-8 w-8 text-white" />
                         </div>
 
