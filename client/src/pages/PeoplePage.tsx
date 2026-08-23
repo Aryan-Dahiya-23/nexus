@@ -24,14 +24,14 @@ const PeoplePage = () => {
                 </div>
             }
 
-            <div className={`md:flex md:flex-row ${(groupChatWidget || logoutLoading) && "opacity-70"}`}>
+            <div className={`h-screen w-full bg-background text-foreground overflow-hidden md:flex md:flex-row transition-colors ${(groupChatWidget || logoutLoading) && "opacity-70"}`}>
                 <DesktopNavigation />
                 <MobileNavigation />
                 <People />
                 <EmptyModal />
             </div>
         </>
-    )
-}
+    );
+};
 
 export default PeoplePage;

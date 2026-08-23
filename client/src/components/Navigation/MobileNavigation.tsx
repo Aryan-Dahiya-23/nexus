@@ -12,6 +12,8 @@ import { queryClient } from "../../api/auth";
 import { logout } from "../../api/auth";
 import { fetchPeople } from "../../api/auth";
 
+import ThemeToggle from "../UI/ThemeToggle";
+
 const MobileNavigation = () => {
 
     const navigate = useNavigate()
@@ -67,29 +69,54 @@ const MobileNavigation = () => {
         });
     };
 
+    const isHomeActive = window.location.pathname === '/' || window.location.pathname.startsWith('/chats');
+    const isPeopleActive = window.location.pathname === '/people';
+
     return (
-        <div className="flex fixed bottom-0 h-16 bg-gray-50 z-50 px-3 border-t border-gray-400 flex-row justify-between w-full space-x-4 md:hidden">
-
-            <div className={`flex p-2 h-full items-center rounded-md`} onClick={navigateHome}>
-                <BsFillChatDotsFill className="icons" />
+        <div className="flex fixed bottom-0 h-16 bg-card/90 backdrop-blur-xl z-50 px-4 border-t border-border flex-row justify-around items-center w-full md:hidden transition-colors">
+            <div
+                className={`p-2.5 rounded-xl cursor-pointer transition-all ${
+                    isHomeActive
+                        ? 'bg-primary/15 text-primary scale-105'
+                        : 'text-muted-foreground hover:text-foreground'
+                }`}
+                onClick={navigateHome}
+            >
+                <BsFillChatDotsFill className="h-5 w-5" />
             </div>
 
-            <div className={`flex p-2 h-full items-center rounded-md`} onClick={navigatePeople} onTouchMove={prefetch}>
-                <MdPeopleAlt className="icons" />
+            <div
+                className={`p-2.5 rounded-xl cursor-pointer transition-all ${
+                    isPeopleActive
+                        ? 'bg-primary/15 text-primary scale-105'
+                        : 'text-muted-foreground hover:text-foreground'
+                }`}
+                onClick={navigatePeople}
+                onTouchMove={prefetch}
+            >
+                <MdPeopleAlt className="h-5 w-5" />
             </div>
 
-            <div className="flex p-2 h-full items-center" onClick={handleLogout}>
-                <IoLogOutOutline className="icons" />
+            <div className="p-1 flex items-center justify-center">
+                <ThemeToggle />
             </div>
 
-            <div className="flex p-2 h-full items-center ">
+            <div
+                className="p-2.5 rounded-xl cursor-pointer text-muted-foreground hover:text-rose-500 transition-colors"
+                onClick={handleLogout}
+                title="Log Out"
+            >
+                <IoLogOutOutline className="h-5 w-5" />
+            </div>
+
+            <div className="p-1 ring-2 ring-primary/30 rounded-full">
                 <RingAvatar
                     imgSrc={user?.picture || ""}
                     type="navigation"
                 />
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default MobileNavigation;

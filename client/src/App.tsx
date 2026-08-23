@@ -13,12 +13,14 @@ const ChatPage = lazy(() => import("./pages/ChatPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RoomPage = lazy(() => import("./pages/RoomPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 import ProtectedRoute from "./components/Routes/ProtectedRoute";
 import PublicOnlyRoute from "./components/Routes/PublicOnlyRoute";
+import HomeOrLanding from "./components/Routes/HomeOrLanding";
 
 const PageFallback = () => (
-  <div className="flex justify-center items-center h-screen w-full bg-slate-900 text-white">
+  <div className="flex justify-center items-center h-screen w-full bg-slate-950 text-white">
     <LoadingIndicator />
   </div>
 );
@@ -42,6 +44,10 @@ const App = () => {
           />
           <Suspense fallback={<PageFallback />}>
             <Routes>
+              {/* Dynamic entry point: Landing for guests, HomePage for authenticated users */}
+              <Route path="/" element={<HomeOrLanding />} />
+              <Route path="/landing" element={<LandingPage />} />
+
               {/* Public-only authentication route */}
               <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginPage />} />
@@ -49,7 +55,7 @@ const App = () => {
 
               {/* Protected app routes */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/chats" element={<HomePage />} />
                 <Route path="/people" element={<PeoplePage />} />
                 <Route path="/chats/:id" element={<ChatPage />} />
                 <Route path="/room/:roomId" element={<RoomPage />} />

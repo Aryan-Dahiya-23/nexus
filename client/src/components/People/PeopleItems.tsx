@@ -72,22 +72,19 @@ const PeopleItems: React.FC<PeopleItemsProps> = ({
 
     return (
         <div
-            className="flex flex-row items-center w-full px-3 lg:px-2 rounded-xl space-x-2 hover:bg-gray-100 cursor-pointer"
+            className="flex flex-row items-center w-full px-3 py-2.5 rounded-xl space-x-3 hover:bg-muted/70 cursor-pointer transition-colors"
             onClick={() => navigateToChat()}
         >
-            <div className="flex items-center h-16">
+            <div className="flex items-center h-14 shrink-0">
                 <OfflineAvatar height="12" width="12" imgSrc={avatarSrc} />
             </div>
 
-            <div className="flex flex-col justify-center w-5/6 h-16 border-b-2 border-gray-200">
-                <p
-                    className="lg:text-lg font-semibold lg:font-bold w-full max-w-[80%] md:max-w-[70%] whitespace-nowrap text-ellipsis overflow-hidden"
-                >
+            <div className="flex flex-col justify-center flex-1 min-w-0 h-14 border-b border-border/60">
+                <p className="text-sm lg:text-base font-semibold text-foreground truncate max-w-[85%]">
                     {username}
                 </p>
+                <p className="text-xs text-muted-foreground mt-0.5">Click to open chat</p>
             </div>
-
-
         </div>
     );
 };
