@@ -36,12 +36,13 @@ const UsersItems: React.FC<UsersItemsProps> = ({
     };
 
     const prefetch = () => {
+        if (!user?._id) return;
         queryClient.prefetchQuery({
             queryKey: ['chats', conversationId],
             queryFn: () => getConversation(user._id, conversationId),
             staleTime: 60000,
-        })
-    }
+        });
+    };
 
     return (
         <div

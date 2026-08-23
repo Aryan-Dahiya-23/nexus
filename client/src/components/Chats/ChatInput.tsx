@@ -86,34 +86,39 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                 messages: [...data.messages, newMessage],
             };
 
-            updateUser();
+            updateUser(newMessage);
 
             queryClient.setQueryData(['chats', conversationId], newData);
-            socket.emit('chat message', user._id, newMessage, conversationId);
+            if (user?._id) {
+                socket.emit('chat message', user._id, newMessage, conversationId);
+            }
             return { previousData: data };
         },
         onSuccess: () => {
-            socket.emit('message sent', user._id, conversationId);
+            if (user?._id) {
+                socket.emit('message sent', user._id, conversationId);
+            }
             queryClient.invalidateQueries({ queryKey: ['user'] });
             queryClient.invalidateQueries({ queryKey: ['chats', conversationId] });
             setMessage({});
         },
-        onError: (error, variables, context) => {
+        onError: (error, _variables, context) => {
             queryClient.setQueryData(['chats', conversationId], context?.previousData);
             console.error('Error creating chat:', error);
         },
     });
 
-    const updateUser = () => {
+    const updateUser = (msgToSend: any) => {
+        setUser((prevUser: any) => {
+            if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
+            const conversationIndex = prevUser.conversations.findIndex(
+                (conv: any) => conv?.conversation?._id === id
+            );
+            if (conversationIndex === -1) return prevUser;
 
-        const newUser = { ...user }
-
-        const conversationIndex = newUser.conversations.findIndex(conv => conv.conversation._id === id);
-
-        if (conversationIndex !== -1) {
             const currentDate = new Date();
-            const newMessage = {
-                ...message,
+            const formattedMessage = {
+                ...msgToSend,
                 createdAt: currentDate.toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "2-digit",
@@ -123,20 +128,29 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                     second: "2-digit",
                     timeZoneName: "short"
                 })
-            }
-            newUser.conversations[conversationIndex].conversation.lastMessage = newMessage;
-        }
+            };
 
-        const conversationToMove = newUser.conversations[conversationIndex];
-        newUser.conversations.splice(conversationIndex, 1);
-        newUser.conversations.unshift(conversationToMove);
+            const updatedConv = {
+                ...prevUser.conversations[conversationIndex],
+                conversation: {
+                    ...prevUser.conversations[conversationIndex].conversation,
+                    lastMessage: formattedMessage
+                }
+            };
 
-        setUser(newUser);
+            const remainingConvs = prevUser.conversations.filter(
+                (_: any, idx: number) => idx !== conversationIndex
+            );
+
+            return {
+                ...prevUser,
+                conversations: [updatedConv, ...remainingConvs]
+            };
+        });
     };
 
     const handleMessageSend = (content: string, type: string) => {
-
-        if (content === '' || type === '' || status === 'pending') return
+        if (!user || content === '' || type === '' || status === 'pending') return;
 
         setText('');
         setMessageUrl('');
@@ -147,7 +161,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
             content: content,
             type: type,
             seenBy: [],
-        }
+        };
 
         setMessage(newMessage);
     }
