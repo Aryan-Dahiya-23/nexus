@@ -1,7 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { IoTrashSharp } from "react-icons/io5";
-import OfflineAvatar from "../Avatar/OfflineAvatar";
+import { MoreVertical, Trash2, Users, X } from "lucide-react";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
 import { Conversation, Participant, User } from "../../types";
@@ -12,22 +11,13 @@ interface DrawerProps {
 }
 
 const Drawer: React.FC<DrawerProps> = ({ name, avatarSrc }) => {
-
     const { id } = useParams();
-
     const user = queryClient.getQueryData<User>(['user']);
     const conversation = queryClient.getQueryData<Conversation>(['chats', id]);
 
     const [participants, setParticipants] = useState<string>("");
     const { setDeleteModal } = useContext(ThemeContext);
-
-    const uncheckCheckbox = () => {
-        const checkbox = document.getElementById("my-drawer-4") as HTMLInputElement | null;
-
-        if (checkbox !== null) {
-            checkbox.checked = false;
-        }
-    }
+    const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
         const participantsList = conversation?.participants || [];
@@ -37,69 +27,78 @@ const Drawer: React.FC<DrawerProps> = ({ name, avatarSrc }) => {
     }, [conversation, user?.fullName]);
 
     return (
-        <div className="drawer drawer-end z-50">
-            <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-            <div className="drawer-content">
-                <label htmlFor="my-drawer-4" className="drawer-button">
-                    <div className="flex flex-row space-x-1 md:p-1 cursor-pointer  hover:opacity-75 drawer-button">
-                        <div className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full m-auto bg-sky-500"></div>
-                        <div className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full m-auto bg-sky-500"></div>
-                        <div className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full m-auto bg-sky-500"></div>
-                    </div>
-                </label>
-            </div>
+        <>
+            <button
+                type="button"
+                onClick={() => setIsOpen(true)}
+                className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                aria-label="Conversation details"
+            >
+                <MoreVertical className="h-5 w-5" />
+            </button>
 
-            <div className="drawer-side">
-                <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
-
-                <div className="flex flex-col justify-start pt-16 w-full md:w-1/2 lg:w-1/3 min-h-full bg-base-200 text-base-content">
-
-                    <div className="flex flex-col justify-center items-center space-y-3 md:space-y-2">
-
-                        {avatarSrc.length > 1 ?
-                            <div className="flex flex-col-reverse justify-end items-center">
-                                <div className="flex flex-row md:mt-1 space-x-1">
-                                    <OfflineAvatar height="10" width="10" imgSrc={avatarSrc[0]} />
-                                    <OfflineAvatar height="10" width="10" imgSrc={avatarSrc[1]} />
-                                </div>
-                                <OfflineAvatar height="10" width="10" imgSrc={avatarSrc[2]} />
-                            </div>
-                            :
-                            <OfflineAvatar
-                                imgSrc={avatarSrc[0]}
-                                height="10" width="10"
-                            />
-                        }
-
-                        <div className="flex flex-col justify-center items-center">
-                            <span className="text-xl font-semibold">{name}</span>
-                            <span className="text-gray-600 text-base">{avatarSrc.length === 1 ? 2 : avatarSrc.length} members</span>
-                        </div>
-
-                    </div>
-
-                    <div className="flex flex-col justify-center items-center space-y-1 mt-12">
-                        <button className="rounded-full h-12 w-12 bg-gray-200 hover:opacity-75" onClick={() => setDeleteModal(true)}>
-                            <IoTrashSharp className="m-auto h-7 w-7 text-gray-500" />
+            {isOpen && (
+                <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div
+                        className="w-full max-w-sm h-full bg-card text-card-foreground border-l border-border p-6 shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-250 relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            className="absolute right-4 top-4 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                            onClick={() => setIsOpen(false)}
+                            aria-label="Close details"
+                        >
+                            <X className="h-5 w-5" />
                         </button>
-                        <span>Delete</span>
-                    </div>
 
-                    {conversation &&
-                        <div className="flex flex-col pl-5 mt-12">
-                            <span className="text-gray-500">Members</span>
-                            <p className="font-semibold">{participants}</p>
+                        <div>
+                            {/* Avatar & Title Header */}
+                            <div className="flex flex-col items-center text-center mt-6">
+                                <div className="relative mb-3">
+                                    <img
+                                        src={avatarSrc[0] || "https://res.cloudinary.com/dgyocpgla/image/upload/v1711202863/nopathuser_lbf2om.png"}
+                                        alt={name}
+                                        className="h-20 w-20 rounded-3xl object-cover border border-border shadow-md"
+                                    />
+                                </div>
+                                <h3 className="text-xl font-extrabold text-foreground tracking-tight">{name}</h3>
+                                <span className="text-xs text-muted-foreground mt-0.5">
+                                    {avatarSrc.length > 1 ? `${avatarSrc.length} Group Members` : "Direct Conversation"}
+                                </span>
+                            </div>
+
+                            {/* Members Roster */}
+                            <div className="mt-8 bg-muted/40 border border-border/60 rounded-2xl p-4">
+                                <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                                    <Users className="h-4 w-4 text-primary" />
+                                    <span>Participants</span>
+                                </div>
+                                <p className="text-sm text-foreground font-medium leading-relaxed">
+                                    {participants || "Loading participants..."}
+                                </p>
+                            </div>
                         </div>
-                    }
 
-                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={uncheckCheckbox}>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+                        {/* Bottom Actions */}
+                        <div className="pt-6 border-t border-border mt-auto">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    setDeleteModal(true);
+                                }}
+                                className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 font-semibold text-sm transition-colors cursor-pointer"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                <span>Delete Conversation</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-
-            </div>
-        </div>
-    )
-}
+            )}
+        </>
+    );
+};
 
 export default Drawer;

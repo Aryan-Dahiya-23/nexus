@@ -410,3 +410,68 @@ export const deleteConversation = async (req, res) => {
         res.status(500).json({ error: true, message: 'Internal Server Error' });
     }
 };
+
+export const getConversationMessages = async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const currentUserId = req.user._id;
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 30, 1), 100);
+        const { before } = req.query;
+
+        if (!isValidObjectId(conversationId)) {
+            return res.status(400).json({ error: true, message: 'Invalid conversation ID' });
+        }
+
+        const conversation = await Conversation.findById(conversationId).select('participants messages');
+        if (!conversation) {
+            return res.status(404).json({ error: true, message: 'Conversation not found' });
+        }
+
+        const isParticipant = conversation.participants.some(
+            p => (p._id ? p._id.toString() : p.toString()) === currentUserId.toString()
+        );
+        if (!isParticipant) {
+            return res.status(403).json({
+                error: true,
+                message: 'Forbidden: You are not a participant in this conversation'
+            });
+        }
+
+        const query = { _id: { $in: conversation.messages } };
+        if (before) {
+            const beforeDate = new Date(before);
+            if (!isNaN(beforeDate.getTime())) {
+                query.createdAt = { $lt: beforeDate };
+            }
+        }
+
+        // Fetch limit + 1 to determine if there are more
+        const rawMessages = await Message.find(query)
+            .sort({ createdAt: -1 })
+            .limit(limit + 1)
+            .populate({
+                path: 'senderId',
+                model: 'User',
+                select: 'fullName picture'
+            })
+            .lean();
+
+        const hasMore = rawMessages.length > limit;
+        const messages = hasMore ? rawMessages.slice(0, limit) : rawMessages;
+
+        // Return in chronological order
+        messages.reverse();
+
+        const nextCursor = hasMore && messages.length > 0 ? messages[0].createdAt : null;
+
+        res.status(200).json({
+            error: false,
+            messages,
+            nextCursor,
+            hasMore
+        });
+    } catch (error) {
+        console.error('Error in getConversationMessages:', error);
+        res.status(500).json({ error: true, message: 'Internal Server Error' });
+    }
+};

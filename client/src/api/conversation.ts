@@ -47,3 +47,18 @@ export const deleteConversation = async (userId: string, conversationId: string 
     const response = await apiClient.put(`/conversation/user/${userId}/removeConversation/${conversationId}`);
     return response.data;
 };
+
+export const fetchConversationMessages = async (
+    conversationId: string | undefined,
+    before?: string | null,
+    limit: number = 30
+) => {
+    if (!conversationId) throw new Error("Conversation ID is required");
+    const response = await apiClient.get(`/conversation/${conversationId}/messages`, {
+        params: {
+            ...(before ? { before } : {}),
+            limit
+        }
+    });
+    return response.data;
+};
