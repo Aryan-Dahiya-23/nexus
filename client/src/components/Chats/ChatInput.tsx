@@ -1,13 +1,13 @@
-import { useState, ChangeEvent, useContext, useEffect, lazy, Suspense, useCallback } from "react";
+import React, { useState, ChangeEvent, useContext, useEffect, lazy, Suspense, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { HiPaperAirplane } from "react-icons/hi2";
-import { MdOutlineEmojiEmotions } from "react-icons/md";
+import { Send, Smile } from "lucide-react";
 import CloudinaryUploadWidget from "../Widgets/CloudinaryUploadWidget";
 import { queryClient } from "../../api/auth";
 import { createMessage } from "../../api/conversation";
 import { Message, User, UserConversationRef } from "../../types";
 
+import type { Theme as EmojiTheme } from 'emoji-picker-react';
 const EmojiPicker = lazy(() => import('emoji-picker-react'));
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
@@ -26,16 +26,14 @@ type ChatInputProps = {
 };
 
 const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
-
     const { id } = useParams();
     const { user, setUser } = useContext(AuthContext);
 
     const { messageUrl, setMessageUrl } = useContext(AuthContext);
     const { messageType, setMessageType } = useContext(AuthContext);
-    const { setChatHeight } = useContext(ThemeContext);
+    const { setChatHeight, theme } = useContext(ThemeContext);
 
     const [text, setText] = useState<string>('');
-    const [textareaHeight, setTextareaHeight] = useState<boolean>(false);
     const [message, setMessage] = useState<Record<string, unknown>>({});
     const [showEmojis, setShowEmojis] = useState<boolean>(false);
 
@@ -52,17 +50,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
     const handleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         const textarea = event.target;
-        const val = textarea.value;
-        setText(val);
+        setText(textarea.value);
 
         textarea.style.height = 'auto';
-        textarea.style.height = `${Math.min(textarea.scrollHeight, 75)}px`;
-
-        if (parseFloat(textarea.style.height.slice(0, -2)) > 60) {
-            setTextareaHeight(true);
-        } else {
-            setTextareaHeight(false);
-        }
+        textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
     };
 
     const updateUser = useCallback((msgToSend: Message) => {
@@ -154,7 +145,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
     });
 
     const handleMessageSend = useCallback((content: string, type: string) => {
-        if (!user || content === '' || type === '' || status === 'pending') return;
+        if (!user || content.trim() === '' || type === '' || status === 'pending') return;
 
         setText('');
         setMessageUrl('');
@@ -162,7 +153,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
         const newMessage = {
             senderId: user._id,
-            content: content,
+            content: content.trim(),
             type: type,
             seenBy: [],
         };
@@ -205,7 +196,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                 (emojisElement && !emojisElement.contains(e.target as Node)) &&
                 (emojiIconElement && !emojiIconElement.contains(e.target as Node))
             ) {
-                setShowEmojis(false)
+                setShowEmojis(false);
             }
         };
 
@@ -216,38 +207,68 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         };
     }, []);
 
+    const isDark = theme === 'dark';
+
     return (
-        <div
-            className={`flex flex-row justify-between w-full space-x-4 p-3 mt-auto lg:p-4 border-t-2 border-gray-200 ${textareaHeight ? "items-end" : "items-center"}`}>
-
-            <CloudinaryUploadWidget uwConfig={uwConfig} />
-
-            <MdOutlineEmojiEmotions className="hidden lg:inline chat-icons text-sky-500 hover:text-sky-600" id="emojiIcon" onClick={() => setShowEmojis(!showEmojis)} />
-
-            {showEmojis &&
-                <div className="fixed bottom-24 left-[30%]" id="emojis">
-                    <Suspense fallback={<div className="p-4 bg-base-100 rounded-lg shadow">Loading emojis...</div>}>
+        <div className="relative p-3 sm:p-4 border-t border-border bg-card/60 backdrop-blur-xl shrink-0 transition-colors z-20">
+            {/* Emoji Picker Popover */}
+            {showEmojis && (
+                <div
+                    className="absolute bottom-20 left-4 sm:left-12 z-50 shadow-2xl rounded-2xl overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200"
+                    id="emojis"
+                >
+                    <Suspense fallback={<div className="p-4 bg-card text-card-foreground text-xs">Loading emojis...</div>}>
                         <EmojiPicker
                             onEmojiClick={handleEmojiClick}
                             lazyLoadEmojis
+                            theme={isDark ? ('dark' as EmojiTheme) : ('light' as EmojiTheme)}
                         />
                     </Suspense>
                 </div>
-            }
+            )}
 
-            <textarea
-                placeholder="Write a message"
-                className="textarea textarea-bordered text-base textarea-sm w-11/12 resize-none leading-normal custom-scrollbar"
-                onChange={handleTextareaChange}
-                onKeyDown={handleKeyDown}
-                value={text}
-                onFocus={() => setChatHeight(true)}
-                onBlur={() => setChatHeight(false)}
-            ></textarea>
+            <div className="flex items-end space-x-2 bg-background/80 border border-input rounded-2xl p-1.5 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-ring transition-all">
+                {/* File / Media Attachment */}
+                <div className="p-1 text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center shrink-0">
+                    <CloudinaryUploadWidget uwConfig={uwConfig} />
+                </div>
 
-            <HiPaperAirplane className="chat-icons text-sky-500 hover:text-sky-600" onClick={() => handleMessageSend(text, 'text')} />
+                {/* Emoji Trigger */}
+                <button
+                    type="button"
+                    id="emojiIcon"
+                    onClick={() => setShowEmojis(!showEmojis)}
+                    className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0"
+                    aria-label="Toggle emoji picker"
+                >
+                    <Smile className="h-5 w-5" />
+                </button>
+
+                {/* Expanding Textarea */}
+                <textarea
+                    placeholder="Type a message (Shift+Enter for newline)..."
+                    className="flex-1 max-h-32 min-h-[38px] py-2 px-1 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none custom-scrollbar"
+                    onChange={handleTextareaChange}
+                    onKeyDown={handleKeyDown}
+                    value={text}
+                    rows={1}
+                    onFocus={() => setChatHeight(true)}
+                    onBlur={() => setChatHeight(false)}
+                />
+
+                {/* Send Button */}
+                <button
+                    type="button"
+                    disabled={!text.trim() || status === 'pending'}
+                    onClick={() => handleMessageSend(text, 'text')}
+                    className="p-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-md shadow-cyan-500/20 active:scale-95 transition-all shrink-0 cursor-pointer"
+                    aria-label="Send message"
+                >
+                    <Send className="h-4 w-4" />
+                </button>
+            </div>
         </div>
     );
-}
+};
 
 export default ChatInput;
