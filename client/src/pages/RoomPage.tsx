@@ -13,7 +13,7 @@ const RoomPage = () => {
         if (!user) {
             navigate("/");
         }
-    }, []);
+    }, [user, navigate]);
 
     return (
         <>

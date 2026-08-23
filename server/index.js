@@ -18,10 +18,15 @@ import authRouter from "./routes/auth.js";
 import conversationRouter from "./routes/conversation.js";
 
 const isProd = process.env.NODE_ENV === "production";
-const origin = process.env.CLIENT_URL || "http://localhost:5174";
+const allowedOrigins = Array.from(new Set([
+    process.env.CLIENT_URL,
+    "http://localhost:5174",
+    "https://nexus-aryan.vercel.app"
+].filter(Boolean)));
 
 // Environment variable validation on startup (OPS-05)
 function validateEnvironment() {
+    if (process.env.NODE_ENV === 'test') return;
     const required = ["MONGO_URL", "SECRET_KEY"];
     const missing = required.filter(key => !process.env[key]);
     if (missing.length > 0) {
@@ -61,13 +66,13 @@ const apiLimiter = rateLimit({
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: origin,
+        origin: allowedOrigins,
         credentials: true,
     },
 });
 
 // Middleware
-app.use(cors({ credentials: true, origin: origin }));
+app.use(cors({ credentials: true, origin: allowedOrigins }));
 app.use(express.json());
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -76,13 +81,21 @@ app.use(cookieParser());
 // Request Origin / Referer validation for state-changing requests (CSRF Defense - P1-04)
 app.use((req, res, next) => {
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-        const reqOrigin = req.headers.origin || req.headers.referer;
-        if (reqOrigin && isProd) {
-            const allowedOrigins = [process.env.CLIENT_URL, "https://nexus-aryan.vercel.app"];
-            const isAllowed = allowedOrigins.some(allowed => allowed && reqOrigin.startsWith(allowed));
-            if (!isAllowed) {
-                return res.status(403).json({ error: true, message: "Forbidden: Invalid request origin" });
-            }
+        const rawOrigin = req.headers.origin || req.headers.referer;
+        if (!rawOrigin) {
+            return res.status(403).json({ error: true, message: "Forbidden: Invalid or missing request origin" });
+        }
+
+        let parsedOrigin;
+        try {
+            parsedOrigin = new URL(rawOrigin).origin;
+        } catch {
+            return res.status(403).json({ error: true, message: "Forbidden: Invalid or missing request origin" });
+        }
+
+        const isAllowed = allowedOrigins.some(allowed => allowed === parsedOrigin);
+        if (!isAllowed) {
+            return res.status(403).json({ error: true, message: "Forbidden: Invalid or missing request origin" });
         }
     }
     next();
@@ -202,4 +215,8 @@ async function startServer() {
     }
 }
 
-startServer();
+if (process.env.NODE_ENV !== 'test') {
+    startServer();
+}
+
+export { app, server, io, startServer };

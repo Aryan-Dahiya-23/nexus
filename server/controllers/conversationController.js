@@ -12,14 +12,32 @@ export const getZegoToken = async (req, res) => {
         const currentUserId = req.user._id;
         const userName = req.user.fullName || "Nexus User";
 
-        const appID = parseInt(process.env.ZEGO_APP_ID || "667370382", 10);
-        const serverSecret = process.env.ZEGO_SERVER_SECRET || "";
-
-        if (!serverSecret) {
-            return res.status(500).json({ error: true, message: "ZEGOCLOUD server secret is not configured" });
+        if (!roomId || !isValidObjectId(roomId)) {
+            return res.status(400).json({ error: true, message: 'Invalid room ID' });
         }
 
-        const effectiveRoomId = roomId || "nexus_room";
+        const conversation = await Conversation.findById(roomId).select('participants');
+        if (!conversation) {
+            return res.status(404).json({ error: true, message: 'Conversation not found' });
+        }
+
+        const isParticipant = conversation.participants.some(
+            p => (p._id ? p._id.toString() : p.toString()) === currentUserId.toString()
+        );
+
+        if (!isParticipant) {
+            return res.status(403).json({
+                error: true,
+                message: 'Forbidden: You are not a participant in this conversation'
+            });
+        }
+
+        const appID = parseInt(process.env.ZEGO_APP_ID, 10);
+        const serverSecret = process.env.ZEGO_SERVER_SECRET || "";
+
+        if (!appID || !serverSecret) {
+            return res.status(500).json({ error: true, message: "ZEGOCLOUD credentials are not configured" });
+        }
 
         const token = generateToken04(
             appID,
@@ -32,7 +50,7 @@ export const getZegoToken = async (req, res) => {
             error: false,
             token,
             appID,
-            roomId: effectiveRoomId,
+            roomId,
             userId: currentUserId.toString(),
             userName
         });
@@ -201,6 +219,11 @@ export const createGroupConversation = async (req, res) => {
 
         if (!uniqueParticipantIds.every(isValidObjectId)) {
             return res.status(400).json({ error: true, message: 'Invalid participant ID provided' });
+        }
+
+        const existingUserCount = await User.countDocuments({ _id: { $in: uniqueParticipantIds } });
+        if (existingUserCount !== uniqueParticipantIds.length) {
+            return res.status(400).json({ error: true, message: 'One or more participants do not exist' });
         }
 
         const newChat = new Conversation({

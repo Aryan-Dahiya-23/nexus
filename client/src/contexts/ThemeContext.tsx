@@ -18,8 +18,8 @@ interface ThemeContextProps {
     setVideoCallName: Dispatch<SetStateAction<string>>;
     videoCallUserId: string;
     setVideoCallUserId: Dispatch<SetStateAction<string>>;
-    videoCallAvatarSrc: string;
-    setVideoCallAvatarSrc: Dispatch<SetStateAction<string>>;
+    videoCallAvatarSrc: string | string[];
+    setVideoCallAvatarSrc: Dispatch<SetStateAction<string | string[]>>;
     videoCallId: string;
     setVideoCallId: Dispatch<SetStateAction<string>>;
     outgoingCall: boolean;
@@ -78,7 +78,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [incomingVideoCall, setIncomingVideoCall] = useState(false);
     const [videoCallName, setVideoCallName] = useState<string>('');
     const [videoCallUserId, setVideoCallUserId] = useState<string>('');
-    const [videoCallAvatarSrc, setVideoCallAvatarSrc] = useState<string>('');
+    const [videoCallAvatarSrc, setVideoCallAvatarSrc] = useState<string | string[]>('');
     const [videoCallId, setVideoCallId] = useState<string>('');
     const [outgoingCall, setOutgoingCall] = useState<boolean>(false);
     const [ deleteModal, setDeleteModal ] = useState<boolean>(false);

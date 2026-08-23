@@ -47,6 +47,10 @@ jobs:
         working-directory: client
         run: npm ci
 
+      - name: Run ESLint checks
+        working-directory: client
+        run: npm run lint
+
       - name: Run TypeScript typecheck & production build
         working-directory: client
         run: npm run build

@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useContext, useEffect, lazy, Suspense } from "react";
+import { useState, ChangeEvent, useContext, useEffect, lazy, Suspense, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { HiPaperAirplane } from "react-icons/hi2";
@@ -6,6 +6,7 @@ import { MdOutlineEmojiEmotions } from "react-icons/md";
 import CloudinaryUploadWidget from "../Widgets/CloudinaryUploadWidget";
 import { queryClient } from "../../api/auth";
 import { createMessage } from "../../api/conversation";
+import { Message, User, UserConversationRef } from "../../types";
 
 const EmojiPicker = lazy(() => import('emoji-picker-react'));
 import { AuthContext } from "../../contexts/AuthContext";
@@ -19,7 +20,7 @@ type ChatInputProps = {
             fullName: string;
             picture: string;
         }[];
-        messages: any[];
+        messages: Message[];
     };
     conversationId: string | undefined;
 };
@@ -35,9 +36,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
     const [text, setText] = useState<string>('');
     const [textareaHeight, setTextareaHeight] = useState<boolean>(false);
-    const [message, setMessage] = useState<object>({});
+    const [message, setMessage] = useState<Record<string, unknown>>({});
     const [showEmojis, setShowEmojis] = useState<boolean>(false);
-    
+
     const [cloudName] = useState(import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
     const [uploadPreset] = useState(import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
     const [uwConfig] = useState({
@@ -64,6 +65,47 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         }
     };
 
+    const updateUser = useCallback((msgToSend: Message) => {
+        setUser((prevUser: User | undefined) => {
+            if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
+            const conversationIndex = prevUser.conversations.findIndex(
+                (conv: UserConversationRef) => conv?.conversation?._id === id
+            );
+            if (conversationIndex === -1) return prevUser;
+
+            const currentDate = new Date();
+            const formattedMessage = {
+                ...msgToSend,
+                createdAt: currentDate.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    timeZoneName: "short"
+                })
+            };
+
+            const updatedConv = {
+                ...prevUser.conversations[conversationIndex],
+                conversation: {
+                    ...prevUser.conversations[conversationIndex].conversation,
+                    lastMessage: formattedMessage
+                }
+            };
+
+            const remainingConvs = prevUser.conversations.filter(
+                (_: UserConversationRef, idx: number) => idx !== conversationIndex
+            );
+
+            return {
+                ...prevUser,
+                conversations: [updatedConv, ...remainingConvs]
+            };
+        });
+    }, [id, setUser]);
+
     const { mutate, status } = useMutation({
         mutationFn: async () => {
             const response = await createMessage(conversationId, message);
@@ -72,14 +114,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         onMutate: async () => {
             await queryClient.cancelQueries({ queryKey: ['chats', conversationId] });
 
-            const newMessage = {
+            const newMessage: Message = {
+                content: (message as { content?: string }).content || '',
+                type: ((message as { type?: 'text' | 'image' | 'video' }).type) || 'text',
+                seenBy: [],
                 ...message,
                 senderId: {
-                    _id: user?._id,
-                    fullName: user?.fullName,
-                    picture: user?.picture
+                    _id: user?._id || '',
+                    fullName: user?.fullName || '',
+                    picture: user?.picture || ''
                 },
-            }
+            };
 
             const newData = {
                 ...data,
@@ -108,48 +153,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         },
     });
 
-    const updateUser = (msgToSend: any) => {
-        setUser((prevUser: any) => {
-            if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
-            const conversationIndex = prevUser.conversations.findIndex(
-                (conv: any) => conv?.conversation?._id === id
-            );
-            if (conversationIndex === -1) return prevUser;
-
-            const currentDate = new Date();
-            const formattedMessage = {
-                ...msgToSend,
-                createdAt: currentDate.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    timeZoneName: "short"
-                })
-            };
-
-            const updatedConv = {
-                ...prevUser.conversations[conversationIndex],
-                conversation: {
-                    ...prevUser.conversations[conversationIndex].conversation,
-                    lastMessage: formattedMessage
-                }
-            };
-
-            const remainingConvs = prevUser.conversations.filter(
-                (_: any, idx: number) => idx !== conversationIndex
-            );
-
-            return {
-                ...prevUser,
-                conversations: [updatedConv, ...remainingConvs]
-            };
-        });
-    };
-
-    const handleMessageSend = (content: string, type: string) => {
+    const handleMessageSend = useCallback((content: string, type: string) => {
         if (!user || content === '' || type === '' || status === 'pending') return;
 
         setText('');
@@ -164,12 +168,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         };
 
         setMessage(newMessage);
-    }
+    }, [user, status, setMessageUrl, setMessageType]);
 
     useEffect(() => {
         if (message && Object.keys(message).length > 0)
             mutate();
-    }, [message]);
+    }, [message, mutate]);
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -182,13 +186,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         if (messageUrl !== '' && messageType !== '') {
             handleMessageSend(messageUrl, messageType);
         }
-    }, [messageUrl, messageType]);
+    }, [messageUrl, messageType, handleMessageSend]);
 
     useEffect(() => {
         setText('');
     }, [id]);
 
-    const handleEmojiClick = (emoji) => {
+    const handleEmojiClick = (emoji: { emoji: string }) => {
         setText((prevMessage) => prevMessage + emoji.emoji);
     };
 

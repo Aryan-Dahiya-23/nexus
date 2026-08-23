@@ -56,14 +56,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
             transcode: videoCodec(vp9())
         }];
 
-    let myImage;
-    let myVideo;
-
-    if (messageType === 'image') {
-        myImage = cld.image(message);
-    } else if (messageType === 'video') {
-        myVideo = cld.video(message);
-    }
+    const myImage = messageType === 'image' ? cld.image(message) : null;
+    const myVideo = messageType === 'video' ? cld.video(message) : null;
 
     const handleImageWidget = () => {
         setImgSrc(message);
@@ -87,14 +81,14 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     </div>
                     {messageType === 'text' ? (
                         <div className="chat-bubble text-white bg-sky-500 font-semibold">{message}</div>
-                    ) : messageType === 'image' ? (
+                    ) : messageType === 'image' && myImage ? (
                         <AdvancedImage
-                            className="max-w-[60%] md:max-w-[50%] lg:max-w-[25%] rounded-lg" 
+                            className="max-w-[60%] md:max-w-[50%] lg:max-w-[25%] rounded-lg"
                             onClick={handleImageWidget}
                             cldImg={myImage}
                             plugins={[responsive()]}
                         />
-                    ) : (
+                    ) : myVideo ? (
                         <AdvancedVideo
                             className="max-w-[60%] md:max-w-[50%] lg:max-w-[25%] rounded-lg"
                             cldVid={myVideo}
@@ -104,7 +98,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                             preload="none"
                             controls
                         />
-                    )
+                    ) : null
                     }
 
                     {isLastMessage && messageSeen &&
@@ -133,14 +127,14 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                     </div>
                     {messageType === 'text' ? (
                         <div className="chat-bubble text-white bg-sky-500 font-semibold">{message}</div>
-                    ) : messageType === 'image' ? (
+                    ) : messageType === 'image' && myImage ? (
                         <AdvancedImage
                             className="max-w-[60%] md:max-w-[50%] lg:max-w-[25%] rounded-lg"
                             onClick={handleImageWidget}
                             cldImg={myImage}
                             plugins={[responsive()]}
                         />
-                    ) : (
+                    ) : myVideo ? (
                         <AdvancedVideo
                             className="max-w-[60%] md:max-w-[50%] lg:max-w-[25%] rounded-lg"
                             cldVid={myVideo}
@@ -150,7 +144,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                             preload="none"
                             controls
                         />
-                    )
+                    ) : null
                     }
                 </div>
             )}
@@ -160,5 +154,3 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 };
 
 export default ChatBubble;
-
-

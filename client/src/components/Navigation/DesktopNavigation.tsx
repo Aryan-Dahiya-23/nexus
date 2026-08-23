@@ -73,13 +73,13 @@ const DesktopNavigation = () => {
         const path = location.pathname;
 
         if (path === "/") {
-            setCurrentLocation('home')
+            setCurrentLocation('home');
         } else if (path === "/people") {
-            setCurrentLocation("people")
+            setCurrentLocation("people");
         } else {
             setCurrentLocation("chats");
         }
-    }, []);
+    }, [location.pathname]);
 
     return (
         <div className="md:flex md:flex-col hidden justify-between items-center border-r-2 border-gray-200 md:w-[8%] lg:w-[5%] py-4">
