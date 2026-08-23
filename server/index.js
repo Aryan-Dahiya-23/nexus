@@ -57,28 +57,34 @@ app.use("/auth/", apiLimiter);
 app.use("/conversation/", apiLimiter);
 
 // Durable session configuration with MongoStore
-app.use(
-    session({
-        secret: process.env.SECRET_KEY || "nexus_fallback_secret",
-        resave: false,
-        saveUninitialized: false,
-        store: MongoStore.create({
-            mongoUrl: process.env.MONGO_URL,
-            ttl: 7 * 24 * 60 * 60, // 7 days
-            autoRemove: 'native',
-        }),
-        cookie: {
-            secure: isProd,
-            httpOnly: true,
-            sameSite: isProd ? "none" : "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        },
-    })
-);
+const sessionMiddleware = session({
+    secret: process.env.SECRET_KEY || "nexus_fallback_secret",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URL,
+        ttl: 7 * 24 * 60 * 60, // 7 days
+        autoRemove: 'native',
+    }),
+    cookie: {
+        secure: isProd,
+        httpOnly: true,
+        sameSite: isProd ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    },
+});
+
+app.use(sessionMiddleware);
 
 // Correct Passport middleware order
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Share session and authentication with Socket.IO
+const wrap = (middleware) => (socket, next) => middleware(socket.request, {}, next);
+io.use(wrap(sessionMiddleware));
+io.use(wrap(passport.initialize()));
+io.use(wrap(passport.session()));
 
 // Initialize Sockets
 initializeChatSockets(io);
