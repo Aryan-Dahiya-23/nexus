@@ -1,7 +1,6 @@
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "react-toastify";
 import { MdOutlineGroupAdd } from "react-icons/md";
 import IncomingVideoCallWidget from "../Widgets/IncomingVideoCallWidget";
 import { ThemeContext } from "../../contexts/ThemeContext";
@@ -25,7 +24,6 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
 
     const pathname = window.location.pathname;
 
-    const { loginToast, setLoginToast } = useContext(ThemeContext);
     const { setGroupChatWidget } = useContext(ThemeContext);
     const { incomingVideoCall, setIncomingVideoCall } = useContext(ThemeContext);
     const { videoCallName, setVideoCallName } = useContext(ThemeContext);
@@ -33,9 +31,8 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
     const { videoCallId, setVideoCallId } = useContext(ThemeContext);
     const { videoCallUserId, setVideoCallUserId } = useContext(ThemeContext);
     const { outgoingCall } = useContext(ThemeContext);
-    const { user, setUser } = useContext(AuthContext);
-    const { userConnected, setUserConnected } = useContext(AuthContext);
-    const { setConnectedUsers } = useContext(AuthContext);
+
+    const { user, setUser, userConnected, setUserConnected, setConnectedUsers } = useContext(AuthContext);
 
     const { data, isSuccess } = useQuery<User>({
         queryKey: ['user'],
@@ -52,12 +49,8 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
     useEffect(() => {
         if (isSuccess && data) {
             setUser(data);
-            if (!loginToast) {
-                setLoginToast(true);
-                toast.success("Welcome back!");
-            }
         }
-    }, [data, isSuccess, loginToast, setLoginToast, setUser]);
+    }, [data, isSuccess, setUser]);
 
     useEffect(() => {
 
