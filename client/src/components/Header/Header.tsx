@@ -79,45 +79,50 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
         }
 
         socket.on('chat message', (userId, newMessage, conversationId) => {
+            if (userId !== user?._id) {
+                const currentDate = new Date();
+                const formattedMessage = {
+                    ...newMessage,
+                    createdAt: currentDate.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        timeZoneName: "short"
+                    }),
+                    seenBy: id === conversationId && user?._id ? [...(newMessage.seenBy || []), user._id] : (newMessage.seenBy || [])
+                };
 
-            if (userId !== user._id) {
+                setUser((prevUser: any) => {
+                    if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
+                    const conversationIndex = prevUser.conversations.findIndex(
+                        (conv: any) => conv?.conversation?._id === conversationId
+                    );
+                    if (conversationIndex === -1) return prevUser;
 
-                const newUser = { ...user }
-                const conversationIndex = newUser.conversations.findIndex(conv => conv.conversation._id === conversationId);
+                    const targetConv = {
+                        ...prevUser.conversations[conversationIndex],
+                        conversation: {
+                            ...prevUser.conversations[conversationIndex].conversation,
+                            lastMessage: formattedMessage
+                        }
+                    };
 
-                if (conversationIndex !== -1) {
-                    const currentDate = new Date();
-                    const message = {
-                        ...newMessage,
-                        createdAt: currentDate.toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                            timeZoneName: "short"
-                        })
-                    }
+                    const remainingConvs = prevUser.conversations.filter(
+                        (_: any, idx: number) => idx !== conversationIndex
+                    );
 
-                    if (id === conversationId) {
-                        message.seenBy.push(user._id);
-                    }
-
-                    // newUser.conversations[conversationIndex].conversation.lastMessage = message;
-
-                    const conversationToMove = newUser.conversations[conversationIndex];
-                    newUser.conversations.splice(conversationIndex, 1);
-                    newUser.conversations.unshift(conversationToMove);
-                    newUser.conversations[0].conversation.lastMessage = message;
-
-                    setUser(newUser);
-                }
+                    return {
+                        ...prevUser,
+                        conversations: [targetConv, ...remainingConvs]
+                    };
+                });
 
                 const allowedRoutes = ['/', '/people'];
-                handleChatMessage(user, newMessage, conversationId, allowedRoutes.includes(location.pathname) ? true : false);
+                handleChatMessage(user, newMessage, conversationId, allowedRoutes.includes(location.pathname));
             }
-
         });
 
         socket.on('message sent', (userId, conversationId) => {
