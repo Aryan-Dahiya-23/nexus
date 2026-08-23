@@ -4,6 +4,8 @@ import { createServer } from 'node:http';
 import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import MongoStore from "connect-mongo";
@@ -22,6 +24,21 @@ const origin = process.env.CLIENT_URL || "http://localhost:5174";
 // Trust proxy before session middleware (crucial for Render/reverse-proxies)
 app.set("trust proxy", 1);
 
+// Security headers
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+}));
+
+// Rate limiting (protect authentication and API routes against brute-force / DoS)
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: isProd ? 300 : 1500,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: true, message: "Too many requests, please try again after a few minutes." }
+});
+
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
@@ -36,6 +53,8 @@ app.use(express.json());
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use("/auth/", apiLimiter);
+app.use("/conversation/", apiLimiter);
 
 // Durable session configuration with MongoStore
 app.use(

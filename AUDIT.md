@@ -54,7 +54,7 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P0-01 — REST API has no authentication or object-level authorization
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/routes/conversation.js`, `server/controllers/conversationController.js`
 - Every conversation route is public. Controllers accept `senderId`, `userId`, participant IDs, and conversation IDs from the client. An attacker can read a private conversation, impersonate a sender, create arbitrary groups, mark another user's messages as read, or remove a conversation from another user's account.
 - **Required change:** mount an `ensureAuthenticated` middleware on all private routes; derive the actor only from `req.user._id`; load the target conversation and require membership before every read/write; authorize requested group participants; return 401 for no session, 403 for a non-member, and 404 only where resource disclosure is acceptable.
@@ -126,28 +126,28 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P1-05 — No request validation, normalization, or bounded payloads
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** all controllers; `express.json()` and duplicate body parsers use defaults
 - Names, participant arrays, message objects/content/type, IDs, and media public IDs are trusted. Invalid ObjectIds become 500s; arbitrarily large content/member lists can create cost and denial-of-service problems.
 - **Required change:** define schemas for params/query/body; reject unknown keys; enforce ObjectId format, string lengths, allowed media types, member count, uniqueness, and message size; set small JSON/form limits; add a centralized error mapper and stable error contract.
 
 ### P1-06 — Message writes trust client identity and are not atomic
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/controllers/conversationController.js#createMessage`
 - The server inserts the client-supplied `message` object before confirming the conversation exists or membership. If the conversation update fails, an orphan Message remains. A client controls `senderId`, `seenBy`, and timestamps/extra fields.
 - **Required change:** build the message server-side from the authenticated actor and whitelisted fields; verify membership first; write Message plus conversation metadata in a transaction, or redesign Message with `conversationId` and handle consistency explicitly; return the canonical populated message for Socket.IO emission.
 
 ### P1-07 — Conversation creation allows duplicates and arbitrary membership
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `createConversation`, `createGroupConversation`
 - Repeated clicks/races can create duplicate personal conversations. A caller can omit themselves, include duplicate/invalid users, or create groups on behalf of others.
 - **Required change:** inject the authenticated actor, validate existing users and limits, canonicalize/dedupe participants, require the actor's membership, and use an idempotency key or deterministic participant-pair key with a unique index for personal chats.
 
 ### P1-08 — Cache is user-poisoned, stale, process-local, and too long-lived
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/controllers/conversationController.js#getConversation`
 - A user-filtered populate is cached only by conversation ID for 1000 seconds. Different users receive the wrong participant view. Deletion and other mutations do not consistently invalidate it. Every server instance has a different cache.
 - **Required change:** remove this cache until authorization and measurement are correct. Prefer pagination/indexes. If caching is later justified, cache an authorization-neutral DTO with short TTL, versioned invalidation, and a shared store where required.
@@ -168,14 +168,14 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P1-11 — Rate limits, security headers, and transport controls are missing
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/index.js`, `server/sockets/chatSockets.js`
 - There are no rate limits for OAuth, directory search, message creation, calls, or socket events; no Helmet/security-header policy; and no Socket.IO message-size/connection controls.
 - **Required change:** add route-specific account/IP/user limits, socket event throttles and `maxHttpBufferSize`, Helmet with a tested CSP, HTTPS/HSTS at the edge, and deliberate request timeouts.
 
 ### P1-12 — Read-receipt logic is incorrect and incomplete
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `readMessages`; `client/src/components/Chats/Chats.tsx`
 - ObjectId is compared to a string with strict inequality; `seenBy.includes(string)` is unreliable for ObjectIds. Only the last message is marked, so “read conversation” leaves earlier messages unread. The client considers a message seen when `seenBy.length >= participants.length`, although the sender normally should not be counted.
 - **Required change:** define receipt semantics, store typed user ObjectIds, use atomic `$addToSet` updates for all relevant messages (or a per-user read cursor), and derive “seen by all” from non-sender participants.
