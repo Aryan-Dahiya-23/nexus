@@ -7,7 +7,6 @@ import {
     Shield,
     Image as ImageIcon,
     Users,
-    Sparkles,
     ArrowRight,
     CheckCircle2,
     MessageSquare,
@@ -17,6 +16,7 @@ import {
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
 import ThemeToggle from '@/components/UI/ThemeToggle';
+import NexusLogo from '@/components/UI/NexusLogo';
 import { AuthContext } from '../contexts/AuthContext';
 
 export const LandingPage: React.FC = () => {
@@ -42,12 +42,7 @@ export const LandingPage: React.FC = () => {
             <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-background/80 border-b border-border transition-all">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/')}>
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
-                            <Sparkles className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="text-xl font-bold bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground bg-clip-text text-transparent tracking-tight">
-                            Nexus
-                        </span>
+                        <NexusLogo className="h-9 w-9" showText={true} />
                         <Badge variant="online" className="hidden sm:inline-flex text-[11px] py-0 px-2">
                             v2.0 Live
                         </Badge>
@@ -353,8 +348,8 @@ export const LandingPage: React.FC = () => {
             {/* Footer */}
             <footer className="border-t border-border py-8 bg-background text-xs text-muted-foreground">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center space-x-2">
-                        <Sparkles className="h-4 w-4 text-primary" />
+                    <div className="flex items-center space-x-2.5">
+                        <NexusLogo className="h-5 w-5" showText={false} />
                         <span className="font-semibold text-foreground">Nexus Communication Platform</span>
                         <span>• Built for Speed & Simplicity</span>
                     </div>

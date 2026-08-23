@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, Shield, Lock, ArrowLeft } from "lucide-react";
+import { Shield, Lock, ArrowLeft } from "lucide-react";
 import ThemeToggle from "../UI/ThemeToggle";
+import NexusLogo from "../UI/NexusLogo";
 
 const Login: React.FC = () => {
     const url = import.meta.env.VITE_URL || 'http://localhost:4000';
@@ -53,9 +54,7 @@ const Login: React.FC = () => {
 
                     {/* Logo & Header */}
                     <div className="flex flex-col items-center">
-                        <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-cyan-400 via-sky-500 to-blue-600 flex items-center justify-center shadow-xl shadow-cyan-500/25 mb-4 ring-4 ring-cyan-500/10">
-                            <Sparkles className="h-8 w-8 text-white" />
-                        </div>
+                        <NexusLogo className="h-16 w-16 mb-4" />
 
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                             Welcome to Nexus

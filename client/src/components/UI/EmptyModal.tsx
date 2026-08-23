@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Users, Sparkles } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { Button } from './button';
+import NexusLogo from './NexusLogo';
 
 const EmptyModal: React.FC = () => {
     const navigate = useNavigate();
@@ -18,13 +19,8 @@ const EmptyModal: React.FC = () => {
                 transition={{ duration: 0.4 }}
                 className="max-w-md flex flex-col items-center z-10"
             >
-                <div className="relative mb-6">
-                    <div className="h-20 w-20 rounded-3xl bg-gradient-to-tr from-cyan-500/20 to-sky-500/10 border border-cyan-500/30 flex items-center justify-center shadow-lg shadow-cyan-500/10">
-                        <MessageSquare className="h-10 w-10 text-primary" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 h-7 w-7 rounded-full bg-gradient-to-tr from-cyan-400 to-sky-500 flex items-center justify-center shadow-md">
-                        <Sparkles className="h-3.5 w-3.5 text-white" />
-                    </div>
+                <div className="mb-6">
+                    <NexusLogo className="h-20 w-20" />
                 </div>
 
                 <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">

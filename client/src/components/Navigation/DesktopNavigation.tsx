@@ -13,6 +13,7 @@ import { logout, fetchPeople } from "../../api/auth";
 
 
 import ThemeToggle from "../UI/ThemeToggle";
+import NexusLogo from "../UI/NexusLogo";
 
 const DesktopNavigation = () => {
 
@@ -39,22 +40,23 @@ const DesktopNavigation = () => {
         },
     })
 
-    const scrollToTop = (divName: string) => {
-        const Div = document.getElementById(divName);
-        Div?.scrollTo({
+    const scrollToTop = () => {
+        window.scrollTo({
             top: 0,
             behavior: 'smooth'
-        })
-    }
+        });
+    };
 
     const navigateHome = () => {
+        if (window.location.pathname === '/')
+            scrollToTop();
         navigate("/");
-        scrollToTop('user');
     }
 
     const navigatePeople = () => {
+        if (window.location.pathname === '/people')
+            scrollToTop();
         navigate("/people");
-        scrollToTop('people');
     }
 
     const handleLogout = () => {
@@ -86,6 +88,14 @@ const DesktopNavigation = () => {
     return (
         <div className="md:flex md:flex-col hidden justify-between items-center border-r border-border bg-card/40 backdrop-blur-lg md:w-[72px] lg:w-[80px] py-5 h-screen shrink-0 transition-colors">
             <div className="space-y-4 flex flex-col items-center w-full px-2">
+                <div
+                    title="Nexus"
+                    className="cursor-pointer mb-2 hover:scale-105 transition-transform"
+                    onClick={navigateHome}
+                >
+                    <NexusLogo className="h-10 w-10" showText={false} />
+                </div>
+
                 <div
                     title="Messages"
                     className={`w-11 h-11 rounded-2xl flex items-center justify-center cursor-pointer transition-all ${
