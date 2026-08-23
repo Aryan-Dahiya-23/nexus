@@ -2,7 +2,9 @@ import mongoose from 'mongoose';
 
 const conversationSchema = new mongoose.Schema({
     type: {
-        type: String
+        type: String,
+        enum: ['personal', 'group'],
+        default: 'personal'
     },
     name: {
         type: String
@@ -19,7 +21,9 @@ const conversationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Message'
     }
-});
+}, { timestamps: true });
+
+conversationSchema.index({ participants: 1 });
 
 const Conversation = mongoose.model('Conversation', conversationSchema);
 export default Conversation;
