@@ -7,7 +7,7 @@ import { ensureAuthenticated } from '../middleware/auth.js';
 const router = express.Router();
 dotenv.config();
 
-router.get("/google", passport.authenticate("google", ["profile", "email"]));
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], state: true }));
 
 router.get(
     "/google/callback",
@@ -21,7 +21,7 @@ router.get(
     }
 );
 
-router.get('/facebook', passport.authenticate('facebook', ["profile", "email"]));
+router.get('/facebook', passport.authenticate('facebook', { scope: ["public_profile", "email"], state: true }));
 
 router.get(
     '/facebook/callback',
