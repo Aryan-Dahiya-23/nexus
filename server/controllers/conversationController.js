@@ -1,9 +1,45 @@
 import mongoose from "mongoose";
+import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import User from "../models/User.js";
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+export const getZegoToken = async (req, res) => {
+    try {
+        const { roomId } = req.params;
+        const currentUserId = req.user._id;
+        const userName = req.user.fullName || "Nexus User";
+
+        const appID = parseInt(process.env.ZEGO_APP_ID || "667370382", 10);
+        const serverSecret = process.env.ZEGO_SERVER_SECRET || "";
+
+        if (!serverSecret) {
+            return res.status(500).json({ error: true, message: "ZEGOCLOUD server secret is not configured" });
+        }
+
+        const effectiveRoomId = roomId || "nexus_room";
+
+        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+            appID,
+            serverSecret,
+            effectiveRoomId,
+            currentUserId.toString(),
+            userName
+        );
+
+        res.status(200).json({
+            error: false,
+            kitToken,
+            appID,
+            roomId: effectiveRoomId
+        });
+    } catch (error) {
+        console.error("Error generating Zego token:", error);
+        res.status(500).json({ error: true, message: "Internal Server Error" });
+    }
+};
 
 export const getConversation = async (req, res) => {
     try {

@@ -1,20 +1,18 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { io, Socket } from "socket.io-client";
 import OfflineAvatar from "../Avatar/OfflineAvatar";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
 import { createConversation } from "../../api/conversation";
+import socket from "../../utils/socket";
 
 interface PeopleItemsProps {
     username: string;
     avatarSrc: string,
     userId: string;
 }
-
-const socket: Socket = io(import.meta.env.VITE_URL);
 
 const PeopleItems: React.FC<PeopleItemsProps> = ({
     username,

@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { io, Socket } from "socket.io-client";
-import { IoIosArrowBack } from "react-icons/io"
-import { IoIosVideocam } from "react-icons/io";
+import { IoIosArrowBack, IoIosVideocam } from "react-icons/io";
 import Drawer from "../Drawer/Drawer";
 import OnlineAvatar from "../Avatar/OnlineAvatar";
 import OfflineAvatar from "../Avatar/OfflineAvatar";
 import OutgoingCallWidget from "../Widgets/OutgoingCallWidget";
-import { useContext } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
-import incomingRingtone from "../../assets/incomingRingtone.mp3"
+import incomingRingtone from "../../assets/incomingRingtone.mp3";
+import socket from "../../utils/socket";
 
 interface ChatHeaderProps {
     name: string;
@@ -18,8 +16,6 @@ interface ChatHeaderProps {
     online: boolean;
     conversationType: string;
 }
-
-const socket: Socket = io(import.meta.env.VITE_URL);
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conversationType }) => {
 
@@ -33,24 +29,34 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
 
     const handleClick = () => {
         navigate("/");
-    }
+    };
 
     const handleVideoCall = () => {
         socket.emit('video call', name, user.picture, user._id, id);
         setOutgoingCall(true);
-        audio.play();
-    }
+        audio.play().catch(() => {});
+    };
 
     const handleEndCall = () => {
-        setOutgoingCall(false)
+        setOutgoingCall(false);
         audio.pause();
-    }
+    };
 
     useEffect(() => {
+        const handleReject = (convId: string) => {
+            if (convId === id) {
+                setOutgoingCall(false);
+                audio.pause();
+            }
+        };
+
+        socket.on('reject video call', handleReject);
+
         return () => {
+            socket.off('reject video call', handleReject);
             audio.pause();
         };
-    }, []);
+    }, [id, audio, setOutgoingCall]);
 
     return (
         <>
