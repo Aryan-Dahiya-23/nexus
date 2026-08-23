@@ -1,9 +1,13 @@
 import express from 'express';
 import dotenv from "dotenv";
 import { getConversation, createConversation, createGroupConversation, createMessage, readMessages, deleteConversation } from '../controllers/conversationController.js';
+import { ensureAuthenticated } from '../middleware/auth.js';
 
 const router = express.Router();
 dotenv.config();
+
+// All conversation routes require authentication
+router.use(ensureAuthenticated);
 
 router.get("/:conversationId", getConversation);
 router.post("/create-conversation", createConversation);
