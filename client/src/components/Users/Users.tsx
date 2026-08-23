@@ -31,25 +31,31 @@ const Users = () => {
                                     : 'Sent a video'
                             : 'Started a conversation'
 
-                        const lastMessageTime = conversation.conversation.lastMessage &&
-                            new Date(conversation.conversation.lastMessage.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                        const lastMessageTime = conversation.conversation.lastMessage?.createdAt
+                            ? new Date(conversation.conversation.lastMessage.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                            : '';
 
-                        const online = conversation.conversation.type === 'personal' && connectedUsers.length > 0 && connectedUsers.includes(conversation.conversation.participants[0]._id);
-                        const messageUnseen = conversation.conversation.lastMessage?.senderId !== user._id && !conversation.conversation.lastMessage?.seenBy.includes(user._id);
+                        const online = conversation.conversation.type === 'personal' && connectedUsers.length > 0 && conversation.conversation.participants[0]?._id ? connectedUsers.includes(conversation.conversation.participants[0]._id) : false;
+                        const messageUnseen = Boolean(
+                            user?._id &&
+                            conversation.conversation.lastMessage &&
+                            conversation.conversation.lastMessage.senderId !== user._id &&
+                            !conversation.conversation.lastMessage.seenBy?.includes(user._id)
+                        );
 
                         return (
                             <UsersItems
                                 key={conversation.conversation._id}
-                                username={username}
+                                username={username || ""}
                                 conversationId={conversation.conversation._id}
-                                avatarSrc={avatarSrc}
+                                avatarSrc={avatarSrc || ""}
                                 type={conversation.conversation.type}
                                 lastMessage={lastMessage}
                                 lastMessageTime={lastMessageTime}
                                 online={online}
                                 messageUnseen={messageUnseen}
                             />
-                        )
+                        );
                     })
                 }
             </div>

@@ -27,6 +27,7 @@ const PeopleItems: React.FC<PeopleItemsProps> = ({
 
     const { mutate } = useMutation({
         mutationFn: async () => {
+            if (!user?._id) throw new Error("User not authenticated");
             const response = await createConversation(user._id, userId);
             return response;
         },
@@ -43,15 +44,21 @@ const PeopleItems: React.FC<PeopleItemsProps> = ({
             document.body.classList.remove('unclickable');
         },
         onError: (error) => {
+            setLogoutLoading(false);
+            document.body.classList.remove('unclickable');
             console.error("Error creating chat:", error);
         },
     });
 
     const navigateToChat = () => {
+        if (!user || !Array.isArray(user.conversations)) {
+            return;
+        }
 
         for (let i = 0; i < user.conversations.length; i++) {
-            if (user.conversations[i].conversation.participants.length === 1 && user.conversations[i].conversation.participants[0]._id === userId) {
-                navigate(`/chats/${user.conversations[i].conversation._id}`);
+            const conv = user.conversations[i]?.conversation;
+            if (conv && conv.participants && conv.participants.some((p: any) => p._id === userId || p === userId)) {
+                navigate(`/chats/${conv._id}`);
                 return;
             }
         }

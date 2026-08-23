@@ -32,7 +32,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
     };
 
     const handleVideoCall = () => {
-        socket.emit('video call', name, user.picture, user._id, id);
+        if (!user) return;
+        socket.emit('video call', name, user.picture || "", user._id, id);
         setOutgoingCall(true);
         audio.play().catch(() => {});
     };
