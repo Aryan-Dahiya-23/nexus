@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --check index.js && node --check config/passport.js && node --check controllers/conversationController.js && node --check controllers/authController.js && node --check sockets/chatSockets.js",
     "start": "node index.js"
   },
   "keywords": [],
