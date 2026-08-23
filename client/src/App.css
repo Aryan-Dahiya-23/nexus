@@ -27,34 +27,27 @@
 }
 
 @media screen and (min-width: 768px) {
-
     .custom-scrollbar {
         overflow-y: auto;
+    }
 
-        &::-webkit-scrollbar {
-            width: 5px;
-        }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
 
-        &::-webkit-scrollbar-thumb {
-            border-radius: 4px;
-        }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        border-radius: 4px;
+    }
 
-        &::-webkit-scrollbar-track {
-            border-radius: 4px;
-        }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        border-radius: 4px;
+    }
 
-        &:hover {
-
-            &::-webkit-scrollbar-thumb {
-                background-color: #4a5568;
-            }
-
-        }
+    .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+        background-color: #4a5568;
     }
 }
 
-.textarea-scrollbar{
-    &::-webkit-scrollbar {
-        overflow: hidden;
-    }
+.textarea-scrollbar::-webkit-scrollbar {
+    overflow: hidden;
 }
