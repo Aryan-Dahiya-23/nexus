@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from "dotenv";
 import passport from 'passport';
 import { verify, logout, people } from '../controllers/authController.js';
+import { ensureAuthenticated } from '../middleware/auth.js';
 
 const router = express.Router();
 dotenv.config();
@@ -35,7 +36,7 @@ router.get(
 );
 
 router.get("/verify", verify);
-router.get("/people", people);
+router.get("/people", ensureAuthenticated, people);
 router.post("/logout", logout);
 
 export default router;

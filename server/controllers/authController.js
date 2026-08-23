@@ -2,9 +2,9 @@ import User from "../models/User.js";
 
 export const verify = async (req, res) => {
     try {
-        if (req.isAuthenticated()) {
+        if (req.isAuthenticated && req.isAuthenticated() && req.user) {
             const userId = req.user._id;
- 
+
             const user = await User.findById(userId).lean()
                 .populate({
                     path: 'conversations.conversation',
@@ -25,27 +25,28 @@ export const verify = async (req, res) => {
                 })
                 .exec();
 
-            user.conversations.sort((a, b) => {
-                const lastMessageA = a.conversation.lastMessage;
-                const lastMessageB = b.conversation.lastMessage;
+            if (!user) {
+                return res.status(404).json({
+                    error: true,
+                    message: "User not found",
+                });
+            }
 
-                if (!lastMessageA && !lastMessageB) {
-                    return 0;
-                }
+            if (user.conversations && Array.isArray(user.conversations)) {
+                user.conversations.sort((a, b) => {
+                    const lastMessageA = a?.conversation?.lastMessage;
+                    const lastMessageB = b?.conversation?.lastMessage;
 
-                if (!lastMessageA) {
-                    return -1;
-                }
+                    if (!lastMessageA && !lastMessageB) return 0;
+                    if (!lastMessageA) return 1; // conversations with messages first
+                    if (!lastMessageB) return -1;
 
-                if (!lastMessageB) {
-                    return 1;
-                }
+                    const createdAtA = new Date(lastMessageA.createdAt).getTime();
+                    const createdAtB = new Date(lastMessageB.createdAt).getTime();
 
-                const createdAtA = lastMessageA.createdAt;
-                const createdAtB = lastMessageB.createdAt;
-
-                return createdAtB - createdAtA;
-            });
+                    return createdAtB - createdAtA;
+                });
+            }
 
             res.status(200).json({
                 error: false,
@@ -53,31 +54,34 @@ export const verify = async (req, res) => {
                 user: user,
             });
         } else {
-            res.status(403).json({
+            res.status(401).json({
                 error: true,
                 message: "Not Authorized",
                 reason: "User is not authenticated.",
             });
         }
     } catch (error) {
+        console.error("Verification error:", error);
         res.status(500).json({
             error: true,
             message: "Internal Server Error",
             reason: "An error occurred while verifying user authentication.",
         });
     }
-}
+};
 
 export const people = async (req, res) => {
-    const userId = req.query.userId;
     try {
-        const people = await User.find({ _id: { $ne: userId } });
-        res.json(people);
+        const currentUserId = req.user?._id;
+        const peopleList = await User.find({ _id: { $ne: currentUserId } })
+            .select('_id fullName picture')
+            .lean();
+        res.status(200).json(peopleList);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error("Error in people endpoint:", error);
+        res.status(500).json({ error: true, message: 'Internal Server Error' });
     }
-}
+};
 
 export const logout = async (req, res) => {
     req.logout((err) => {
@@ -88,6 +92,14 @@ export const logout = async (req, res) => {
             });
         }
 
-        res.status(204).end();
+        if (req.session) {
+            req.session.destroy(() => {
+                res.clearCookie('connect.sid');
+                res.status(204).end();
+            });
+        } else {
+            res.clearCookie('connect.sid');
+            res.status(204).end();
+        }
     });
-}
+};

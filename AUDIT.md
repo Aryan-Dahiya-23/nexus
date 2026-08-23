@@ -86,7 +86,7 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P0-05 — `/auth/people` is public and returns full user documents
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/routes/auth.js`, `server/controllers/authController.js#people`
 - The endpoint trusts `req.query.userId`, requires no session, and calls `User.find(...)` without a projection. It can expose email addresses, provider IDs, conversation references, creation dates, and any legacy password value to anyone.
 - **Required change:** require authentication, exclude `req.user._id` server-side, return a deliberate public profile DTO (`_id`, display name, picture only), paginate/search it, and apply abuse controls. Remove the unused `password` field from new writes and explicitly exclude it from queries while legacy data is assessed.
@@ -98,21 +98,21 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P1-01 — Production sessions use Express MemoryStore
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/index.js`; `connect-mongo` is installed but unused
 - MemoryStore leaks memory, loses every login on restart, and cannot support multiple instances. Socket authentication also needs access to the same session store.
 - **Required change:** configure a durable shared store (MongoStore or Redis), set a stable cookie name, rotate-capable secrets, TTL cleanup, and session regeneration after OAuth login. Use the same middleware for Express and Socket.IO.
 
 ### P1-02 — Cross-origin cookie behavior is incomplete and will break after API auth is added
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `client/src/api/conversation.ts`, `client/src/api/auth.ts`, client `io(...)` calls
 - Only verify/logout set Axios `withCredentials`; all conversation and people calls omit it. A Vercel frontend calling a different-site backend will not send the session cookie, so correctly protected endpoints will fail. Socket clients also lack explicit credential/session configuration.
 - **Required change:** create one Axios instance with `baseURL`, `withCredentials: true`, timeout, response/error normalization, and CSRF support; create one shared Socket.IO client with the required credential option and controlled connection lifecycle.
 
 ### P1-03 — Cookie/proxy/Passport middleware configuration is unsafe and misordered
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/index.js`
 - `trust proxy` is enabled after the session middleware; `httpOnly` becomes false in development; `sameSite` is set to boolean `false` in development; `passport.authenticate('session')` runs before `passport.initialize()` and duplicates `passport.session()`.
 - **Required change:** validate the deployment proxy count and set trust proxy before session; always use `httpOnly: true`; explicitly choose `sameSite: 'lax'` for same-site deployments or `sameSite: 'none', secure: true` for a cross-site frontend; use `passport.initialize()` then `passport.session()`; add cookie clearing and session destruction on logout.
@@ -154,14 +154,14 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P1-09 — OAuth strategies and deserialization have correctness and account-linking risks
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/config/passport.js`
 - Facebook's callback expects `req` without `passReqToCallback`, shifting arguments and breaking login. Both strategies assume email/photo/name arrays exist. Linking provider identity solely by an email match needs an explicit verified-email policy. `deserializeUser` may never call `cb` when no user is found and does not wrap the whole async operation safely.
 - **Required change:** correct callback signatures; require/verify provider email before linking; handle absent profile fields; normalize email; use an atomic upsert guarded by provider ID and unique canonical email; always invoke `done`; add success/failure integration tests for both providers.
 
 ### P1-10 — Database connection failure does not fail startup
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/config/database.js`, `server/index.js`
 - Connection errors are logged and swallowed while the HTTP server starts immediately. The service can report as running while every database-backed route is broken.
 - **Required change:** validate required environment variables, await MongoDB before listening, exit non-zero on startup failure, expose separate liveness/readiness endpoints, and define connection/pool/timeouts.
@@ -193,7 +193,7 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P1-FE-01 — API helpers swallow failures, causing false React Query success
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `client/src/api/auth.ts`, `client/src/api/conversation.ts`
 - Every helper catches and logs errors without rethrowing. React Query treats `undefined` as success, so failed create/delete calls can show success, navigate, or mutate cache. Login can render a blank page because failed verify resolves successfully with no user.
 - **Required change:** centralize error normalization and throw on non-success; distinguish 401/403/404/validation/network errors; show retry/error UI; ensure mutations only apply success effects after a valid response.
