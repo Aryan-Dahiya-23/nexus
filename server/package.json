@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --check index.js && node --check config/passport.js && node --check controllers/conversationController.js && node --check controllers/authController.js && node --check sockets/chatSockets.js",
+    "test": "node --check index.js && node --check config/passport.js && node --check controllers/conversationController.js && node --check controllers/authController.js && node --check sockets/chatSockets.js && node --check utils/zegoServerAssistant.js",
     "start": "node index.js"
   },
   "keywords": [],
@@ -12,7 +12,6 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@zegocloud/zego-uikit-prebuilt": "^2.18.2",
     "body-parser": "^2.3.0",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",

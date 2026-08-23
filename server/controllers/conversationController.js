@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
+import { generateToken04 } from "../utils/zegoServerAssistant.js";
 import User from "../models/User.js";
 import Conversation from "../models/Conversation.js";
 import Message from "../models/Message.js";
@@ -21,19 +21,20 @@ export const getZegoToken = async (req, res) => {
 
         const effectiveRoomId = roomId || "nexus_room";
 
-        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+        const token = generateToken04(
             appID,
-            serverSecret,
-            effectiveRoomId,
             currentUserId.toString(),
-            userName
+            serverSecret,
+            3600
         );
 
         res.status(200).json({
             error: false,
-            kitToken,
+            token,
             appID,
-            roomId: effectiveRoomId
+            roomId: effectiveRoomId,
+            userId: currentUserId.toString(),
+            userName
         });
     } catch (error) {
         console.error("Error generating Zego token:", error);
