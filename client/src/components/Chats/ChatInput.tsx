@@ -42,7 +42,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
     const [uploadPreset] = useState(import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
     const [uwConfig] = useState({
         cloudName,
-        uploadPreset
+        uploadPreset,
+        maxFileSize: 25 * 1024 * 1024, // 25 MB max
+        clientAllowedFormats: ['png', 'jpeg', 'jpg', 'gif', 'webp', 'mp4', 'mov', 'webm'],
+        maxFiles: 1,
+        multiple: false,
     });
 
     const handleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
