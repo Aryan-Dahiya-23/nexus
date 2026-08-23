@@ -21,9 +21,9 @@ apiClient.interceptors.response.use(
         // Log detailed API error in dev
         console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${requestUrl}:`, message);
 
-        // Global 401 session expiration handler (skip initial auth check /auth/login/success to let ProtectedRoute handle it)
-        if (status === 401 && !requestUrl.includes('/auth/login/success')) {
-            if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        // Global 401 session expiration handler (skip /auth/ endpoints so ProtectedRoute/PublicOnlyRoute manage login state)
+        if (status === 401 && !requestUrl.includes('/auth/verify') && !requestUrl.includes('/auth/login')) {
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
                 window.location.href = '/login';
             }
         }
