@@ -17,11 +17,19 @@ const Room = () => {
             try {
                 const targetRoomId = roomId || 'nexus_room';
                 const response = await apiClient.get(`/conversation/zego-token/${targetRoomId}`);
-                const { kitToken } = response.data;
+                const { token, appID, userId, userName } = response.data;
 
-                if (!kitToken) {
-                    throw new Error("Failed to obtain kitToken from server");
+                if (!token || !appID) {
+                    throw new Error("Failed to obtain valid token from server");
                 }
+
+                const kitToken = ZegoUIKitPrebuilt.generateKitTokenForProduction(
+                    Number(appID),
+                    token,
+                    targetRoomId,
+                    userId || "nexus_user",
+                    userName || "Nexus User"
+                );
 
                 zcInstance = ZegoUIKitPrebuilt.create(kitToken);
                 zcInstance.joinRoom({
