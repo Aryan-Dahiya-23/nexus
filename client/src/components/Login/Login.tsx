@@ -16,16 +16,16 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="relative min-h-[100dvh] w-full bg-slate-950 flex flex-col justify-between items-center px-4 py-8 overflow-hidden font-sans">
+        <div className="relative min-h-[100dvh] w-full bg-background text-foreground flex flex-col justify-between items-center px-4 py-8 overflow-hidden font-sans transition-colors duration-300">
             {/* Ambient Animated Gradient Orbs */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-blue-600/20 via-indigo-600/15 to-purple-600/10 blur-[130px] pointer-events-none rounded-full" />
-            <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-cyan-500/10 blur-[120px] pointer-events-none rounded-full" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-blue-600/20 via-indigo-600/15 to-purple-600/10 blur-[130px] pointer-events-none rounded-full dark:opacity-100 opacity-60" />
+            <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-cyan-500/10 blur-[120px] pointer-events-none rounded-full dark:opacity-100 opacity-60" />
 
             {/* Top Navigation */}
             <div className="w-full max-w-5xl flex items-center justify-between z-10">
                 <Link
                     to="/"
-                    className="inline-flex items-center space-x-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors p-2 rounded-lg hover:bg-slate-900/60"
+                    className="inline-flex items-center space-x-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-accent"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back to Home</span>
@@ -33,9 +33,9 @@ const Login: React.FC = () => {
 
                 <div className="flex items-center space-x-3">
                     <ThemeToggle />
-                    <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900/60 border border-slate-800">
-                        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-[11px] text-slate-300 font-medium">Encrypted</span>
+                    <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-card/80 border border-border shadow-sm">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[11px] text-foreground font-medium">Encrypted</span>
                     </div>
                 </div>
             </div>
@@ -47,7 +47,7 @@ const Login: React.FC = () => {
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="w-full max-w-md my-auto z-10"
             >
-                <div className="rounded-3xl border border-slate-800/80 bg-slate-900/75 p-8 shadow-2xl backdrop-blur-2xl text-center relative overflow-hidden">
+                <div className="rounded-3xl border border-border bg-card/90 p-8 shadow-2xl backdrop-blur-2xl text-center relative overflow-hidden text-card-foreground">
                     {/* Top Glow Accent Bar */}
                     <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
 
@@ -57,10 +57,10 @@ const Login: React.FC = () => {
                             <Sparkles className="h-8 w-8 text-white" />
                         </div>
 
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                             Welcome to Nexus
                         </h1>
-                        <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-xs">
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-xs">
                             Select your sign-in provider to access real-time messaging, video rooms, and team channels.
                         </p>
                     </div>
@@ -72,7 +72,7 @@ const Login: React.FC = () => {
                             whileHover={{ scale: 1.015 }}
                             whileTap={{ scale: 0.985 }}
                             onClick={googleAuth}
-                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-semibold text-sm shadow-md transition-all border border-slate-200 cursor-pointer"
+                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-background dark:bg-slate-900 hover:bg-muted/80 text-foreground font-semibold text-sm shadow-sm transition-all border border-input cursor-pointer"
                         >
                             {/* Official Google SVG Icon */}
                             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -113,26 +113,26 @@ const Login: React.FC = () => {
 
                     {/* Divider */}
                     <div className="mt-8 flex items-center">
-                        <div className="flex-1 h-px bg-slate-800" />
-                        <span className="px-3 text-[11px] uppercase tracking-wider text-slate-400 font-medium">Protected Access</span>
-                        <div className="flex-1 h-px bg-slate-800" />
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="px-3 text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Protected Access</span>
+                        <div className="flex-1 h-px bg-border" />
                     </div>
 
                     {/* Trust Indicators */}
                     <div className="mt-6 grid grid-cols-2 gap-3 text-left">
-                        <div className="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800/60 flex items-start space-x-2">
-                            <Lock className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border flex items-start space-x-2">
+                            <Lock className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
                             <div>
-                                <div className="text-[11px] font-semibold text-slate-300">256-Bit Session</div>
-                                <div className="text-[10px] text-slate-400">Encrypted cookies</div>
+                                <div className="text-[11px] font-semibold text-foreground">256-Bit Session</div>
+                                <div className="text-[10px] text-muted-foreground">Encrypted cookies</div>
                             </div>
                         </div>
 
-                        <div className="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800/60 flex items-start space-x-2">
-                            <Shield className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border flex items-start space-x-2">
+                            <Shield className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                             <div>
-                                <div className="text-[11px] font-semibold text-slate-300">Zero Password</div>
-                                <div className="text-[10px] text-slate-400">Direct OAuth token</div>
+                                <div className="text-[11px] font-semibold text-foreground">Zero Password</div>
+                                <div className="text-[10px] text-muted-foreground">Direct OAuth token</div>
                             </div>
                         </div>
                     </div>
@@ -141,7 +141,7 @@ const Login: React.FC = () => {
 
             {/* Footer */}
             <div className="text-center z-10">
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                     By signing in, you agree to Nexus Terms of Service and Privacy Policy.
                 </p>
             </div>
