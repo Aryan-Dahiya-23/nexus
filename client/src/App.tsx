@@ -17,7 +17,6 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 import ProtectedRoute from "./components/Routes/ProtectedRoute";
 import PublicOnlyRoute from "./components/Routes/PublicOnlyRoute";
-import HomeOrLanding from "./components/Routes/HomeOrLanding";
 
 const PageFallback = () => (
   <div className="flex justify-center items-center h-screen w-full bg-slate-950 text-white">
@@ -44,8 +43,8 @@ const App = () => {
           />
           <Suspense fallback={<PageFallback />}>
             <Routes>
-              {/* Dynamic entry point: Landing for guests, HomePage for authenticated users */}
-              <Route path="/" element={<HomeOrLanding />} />
+              {/* Public landing page at root */}
+              <Route path="/" element={<LandingPage />} />
               <Route path="/landing" element={<LandingPage />} />
 
               {/* Public-only authentication route */}

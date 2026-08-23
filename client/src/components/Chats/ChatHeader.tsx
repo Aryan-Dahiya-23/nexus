@@ -25,7 +25,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
     const { outgoingCall, setOutgoingCall } = useContext(ThemeContext);
 
     const handleClick = () => {
-        navigate("/");
+        navigate("/chats");
     };
 
     const handleVideoCall = () => {

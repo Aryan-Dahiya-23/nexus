@@ -48,9 +48,9 @@ const DesktopNavigation = () => {
     };
 
     const navigateHome = () => {
-        if (window.location.pathname === '/')
+        if (window.location.pathname === '/chats')
             scrollToTop();
-        navigate("/");
+        navigate("/chats");
     }
 
     const navigatePeople = () => {
@@ -76,9 +76,7 @@ const DesktopNavigation = () => {
     useEffect(() => {
         const path = location.pathname;
 
-        if (path === "/") {
-            setCurrentLocation('home');
-        } else if (path === "/people") {
+        if (path === "/people") {
             setCurrentLocation("people");
         } else {
             setCurrentLocation("chats");

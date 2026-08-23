@@ -41,12 +41,12 @@ const Room = () => {
                     showPreJoinView: false,
                     showRoomTimer: true,
                     onLeaveRoom: () => {
-                        navigate('/');
+                        navigate('/chats');
                     },
                 });
             } catch (error) {
                 console.error("Error initializing video room:", error);
-                navigate('/');
+                navigate('/chats');
             }
         };
 
