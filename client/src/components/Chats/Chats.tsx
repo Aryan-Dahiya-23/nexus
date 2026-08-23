@@ -8,6 +8,7 @@ import ChatInput from "./ChatInput";
 import { AuthContext } from "../../contexts/AuthContext";
 import { queryClient, verify } from "../../api/auth";
 import { getConversation, readMessage } from "../../api/conversation";
+import { Conversation, Message, Participant, User, UserConversationRef } from "../../types";
 import socket from "../../utils/socket";
 
 const Chats = () => {
@@ -16,7 +17,7 @@ const Chats = () => {
     const navigate = useNavigate();
 
     const { messageSeenStatus, setMessageSeenStatus } = useContext(AuthContext);
-    const { user: contextUser, setUser: setContextUser } = useContext(AuthContext);
+    const { setUser: setContextUser } = useContext(AuthContext);
     const [receiverName, setreceiverName] = useState<string>("");
     const [receiverAvatarSrc, setReceiverAvatarSrc] = useState<string[]>([]);
     const [receiverOnline, setReceiverOnline] = useState<boolean>(false);
@@ -24,7 +25,7 @@ const Chats = () => {
     const { connectedUsers } = useContext(AuthContext);
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    const { data: user, isSuccess: isDone } = useQuery({
+    const { data: user, isSuccess: isDone } = useQuery<User>({
         queryKey: ['user'],
         queryFn: () => verify(),
         staleTime: 15000,
@@ -32,9 +33,9 @@ const Chats = () => {
 
     const userId = user?._id;
 
-    const { data: conversation, isSuccess, isLoading, isError } = useQuery({
+    const { data: conversation, isSuccess, isLoading, isError } = useQuery<Conversation>({
         queryKey: ['chats', id],
-        queryFn: () => getConversation(userId, id),
+        queryFn: () => getConversation(userId || '', id),
         staleTime: 15000,
         enabled: !!userId && !!id
     });
@@ -57,13 +58,13 @@ const Chats = () => {
     }, [isError, navigate]);
 
     const { mutate } = useMutation({
-        mutationFn: () => readMessage(userId, id),
+        mutationFn: () => readMessage(userId || '', id),
         onMutate: () => {
             setMessageSeenStatus('pending');
-            setContextUser((prevUser: any) => {
+            setContextUser((prevUser: User | undefined) => {
                 if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
                 const conversationIndex = prevUser.conversations.findIndex(
-                    (conv: any) => conv?.conversation?._id === id
+                    (conv: UserConversationRef) => conv?.conversation?._id === id
                 );
                 if (conversationIndex === -1) return prevUser;
 
@@ -75,7 +76,7 @@ const Chats = () => {
                     ? lastMsg.seenBy
                     : [...(lastMsg.seenBy || []), prevUser._id];
 
-                const updatedConv = {
+                const updatedConv: UserConversationRef = {
                     ...targetConv,
                     conversation: {
                         ...targetConv.conversation,
@@ -102,23 +103,24 @@ const Chats = () => {
         }
     });
 
+    const scrollTopToBottom = () => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    };
+
     useEffect(() => {
-        if (conversation && conversation.lastMessage && conversation.messages[conversation.messages.length - 1]._id) {
+        if (conversation && conversation.lastMessage && conversation.messages.length > 0 && conversation.messages[conversation.messages.length - 1]._id && userId) {
             const lastMessage = conversation.lastMessage;
-            if (messageSeenStatus === 'idle' && lastMessage.senderId !== userId && !lastMessage.seenBy.includes(userId)) {
+            const senderIdStr = typeof lastMessage.senderId === 'object' && lastMessage.senderId !== null ? lastMessage.senderId._id : lastMessage.senderId;
+            if (messageSeenStatus === 'idle' && senderIdStr !== userId && (!lastMessage.seenBy || !lastMessage.seenBy.includes(userId))) {
                 setMessageSeenStatus('pending');
                 mutate();
             }
         }
         scrollTopToBottom();
 
-    }, [conversation, id]);
-
-    const scrollTopToBottom = () => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
-    }
+    }, [conversation, id, userId, messageSeenStatus, mutate, setMessageSeenStatus]);
 
     const scrollSmooth = () => {
         if (chatContainerRef.current) {
@@ -131,13 +133,15 @@ const Chats = () => {
     };
 
     useEffect(() => {
-        setTimeout(scrollSmooth, 100);
+        const timer = setTimeout(scrollSmooth, 100);
+        return () => clearTimeout(timer);
     }, [id]);
 
     useEffect(() => {
+        const container = chatContainerRef.current;
         const handleScroll = () => {
-            if (chatContainerRef.current) {
-                const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+            if (container) {
+                const { scrollTop, scrollHeight, clientHeight } = container;
                 const isBottom = Math.abs(scrollHeight - (scrollTop + clientHeight)) < 100;
 
                 const myElement = document.getElementById('chatScroll');
@@ -151,42 +155,42 @@ const Chats = () => {
             }
         };
 
-        chatContainerRef.current?.addEventListener('scroll', handleScroll);
+        container?.addEventListener('scroll', handleScroll);
 
         return () => {
-            chatContainerRef.current?.removeEventListener('scroll', handleScroll);
+            container?.removeEventListener('scroll', handleScroll);
         };
-    }, [chatContainerRef, id, conversation]);
+    }, [id, conversation]);
 
     useEffect(() => {
 
         if (user) {
-            user.conversations.map((conversation) => {
-                if (conversation.conversation._id === id) {
-                    if (conversation.conversation.type === 'personal') {
-                        setreceiverName(conversation.conversation.participants[0].fullName);
-                        setReceiverAvatarSrc([conversation.conversation.participants[0].picture]);
+            user.conversations.forEach((userConv: UserConversationRef) => {
+                if (userConv.conversation._id === id) {
+                    if (userConv.conversation.type === 'personal') {
+                        setreceiverName(userConv.conversation.participants[0].fullName);
+                        setReceiverAvatarSrc([userConv.conversation.participants[0].picture]);
                         setConversationType('personal');
-                        if (connectedUsers.length > 0 && connectedUsers.includes(conversation.conversation.participants[0]._id)) {
+                        if (connectedUsers.length > 0 && connectedUsers.includes(userConv.conversation.participants[0]._id)) {
                             setReceiverOnline(true);
                         } else {
                             setReceiverOnline(false);
                         }
                     }
                     else {
-                        setreceiverName(conversation.conversation.name);
-                        setReceiverAvatarSrc([...conversation.conversation.participants.map((participant) => participant.picture), user.picture]);
+                        setreceiverName(userConv.conversation.name || '');
+                        setReceiverAvatarSrc([...userConv.conversation.participants.map((participant: Participant) => participant.picture), user.picture]);
                         setConversationType('group');
                     }
                 }
-            })
+            });
         }
 
     }, [user, conversation, connectedUsers, id]);
 
     return (
 
-        <div className={`flex flex-col h-[100dvh] md:w-[52%] lg:w-[70%] md:border-l-2 md:border-gray-200`} >
+        <div className="flex flex-col h-[100dvh] md:w-[52%] lg:w-[70%] md:border-l-2 md:border-gray-200">
 
             {isDone && (
                 <>
@@ -203,26 +207,41 @@ const Chats = () => {
                         </div>)
                     }
 
-                    <div className="`flex flex-col px-1 md:px-2 lg:px-4 lg:py-1.5 overflow-y-auto custom-scrollbar" ref={chatContainerRef}>
+                    <div className="flex flex-col px-1 md:px-2 lg:px-4 lg:py-1.5 overflow-y-auto custom-scrollbar" ref={chatContainerRef}>
 
-                        {isSuccess &&
-                            conversation.messages.map((message, index: number) => {
+                        {isSuccess && conversation &&
+                            conversation.messages.map((message: Message, index: number) => {
 
                                 const isLastMessage = index === conversation.messages.length - 1;
-                                const messageSeen = message.seenBy && message.seenBy.length >= conversation.participants.length;
+                                const msgSenderId = typeof message.senderId === 'object' && message.senderId !== null ? message.senderId._id : message.senderId;
+                                const senderParticipant = conversation.participants?.find((p: Participant) => p._id === msgSenderId);
+                                const msgSenderName = typeof message.senderId === 'object' && message.senderId !== null
+                                    ? message.senderId.fullName
+                                    : msgSenderId === userId
+                                        ? (user?.fullName || "You")
+                                        : (senderParticipant?.fullName || receiverName);
+                                const msgSenderPicture = typeof message.senderId === 'object' && message.senderId !== null
+                                    ? message.senderId.picture
+                                    : msgSenderId === userId
+                                        ? (user?.picture || "")
+                                        : (senderParticipant?.picture || "");
+
+                                const nonSenderCount = Math.max(1, (conversation.participants?.length || 2) - 1);
+                                const nonSendersInSeenBy = message.seenBy ? message.seenBy.filter(seenId => seenId !== msgSenderId) : [];
+                                const messageSeen = Boolean(nonSendersInSeenBy.length >= nonSenderCount);
 
                                 return (
                                     <ChatBubble
-                                        key={message?._id}
+                                        key={message?._id || index}
                                         conversationType={conversation.type}
-                                        position={userId === message.senderId._id ? "right" : "left"}
-                                        sender={message.senderId.fullName}
+                                        position={userId === msgSenderId ? "right" : "left"}
+                                        sender={msgSenderName}
                                         message={message.content}
-                                        createdAt={message.createdAt ? message.createdAt : Date.now()}
-                                        avatarSrc={message.senderId.picture}
+                                        createdAt={message.createdAt ? message.createdAt : new Date().toISOString()}
+                                        avatarSrc={msgSenderPicture}
                                         footerName={receiverName}
                                         isLastMessage={isLastMessage}
-                                        online={connectedUsers.length > 0 && connectedUsers.includes(message.senderId._id)}
+                                        online={connectedUsers.length > 0 && connectedUsers.includes(msgSenderId)}
                                         messageType={message.type}
                                         messageSeen={messageSeen}
                                     />
@@ -232,7 +251,7 @@ const Chats = () => {
 
                         <button
                             id="chatScroll"
-                            className={`h-9 w-9 hidden justify-center items-center absolute right-2 bottom-28 lg:right-6 z-30 bg-gray-700 hover:bg-gray-600 text-white rounded-md`}
+                            className="h-9 w-9 hidden justify-center items-center absolute right-2 bottom-28 lg:right-6 z-30 bg-gray-700 hover:bg-gray-600 text-white rounded-md"
                             onClick={scrollSmooth}
                         >
                             <FaArrowDownLong className="h-5 w-5" />
@@ -241,14 +260,14 @@ const Chats = () => {
                     </div>
 
                     <ChatInput
-                        data={conversation}
+                        data={conversation || { participants: [], messages: [] }}
                         conversationId={id}
                     />
                 </>
             )
             }
 
-        </div >
+        </div>
     )
 }
 

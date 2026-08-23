@@ -1,17 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { IoTrashSharp } from "react-icons/io5";
 import OfflineAvatar from "../Avatar/OfflineAvatar";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
+import { Conversation, Participant, User } from "../../types";
 
-const Drawer = ({ name, avatarSrc }) => {
+interface DrawerProps {
+    name: string;
+    avatarSrc: string[];
+}
+
+const Drawer: React.FC<DrawerProps> = ({ name, avatarSrc }) => {
 
     const { id } = useParams();
 
-    const user: any = queryClient.getQueryData(['user']);
-    const conversation: any = queryClient.getQueryData(['chats', id]);
+    const user = queryClient.getQueryData<User>(['user']);
+    const conversation = queryClient.getQueryData<Conversation>(['chats', id]);
 
     const [participants, setParticipants] = useState<string>("");
     const { setDeleteModal } = useContext(ThemeContext);
@@ -26,9 +31,10 @@ const Drawer = ({ name, avatarSrc }) => {
 
     useEffect(() => {
         const participantsList = conversation?.participants || [];
-        const newParticipants = user.fullName + ", " + participantsList.map(participant => participant.fullName).join(', ');
+        const userFullName = user?.fullName || '';
+        const newParticipants = (userFullName ? userFullName + ", " : "") + participantsList.map((participant: Participant) => participant.fullName).join(', ');
         setParticipants(newParticipants);
-    }, [conversation]);
+    }, [conversation, user?.fullName]);
 
     return (
         <div className="drawer drawer-end z-50">

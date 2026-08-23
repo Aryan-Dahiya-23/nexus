@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import RingAvatar from "../Avatar/RingAvatar";
 import { ThemeContext } from "../../contexts/ThemeContext";
@@ -7,7 +7,7 @@ import socket from "../../utils/socket";
 
 interface IncomingVideoCallProps {
     name: string;
-    avatarSrc: string;
+    avatarSrc: string | string[];
     userId: string;
     id: string;
 }
@@ -24,23 +24,23 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
 
     useEffect(() => {
         audioRef.current = audio;
-    
+
         const eventListener = () => {
           if (audioRef.current) {
             audioRef.current.play()
               .then(() => console.log('Audio played successfully'))
               .catch(error => console.error('Error playing audio:', error));
           }
-    
+
           window.removeEventListener('click', eventListener);
           window.removeEventListener('mousemove', eventListener);
           window.removeEventListener('scroll', eventListener);
         };
-    
+
         window.addEventListener('click', eventListener);
         window.addEventListener('mousemove', eventListener);
         window.addEventListener('scroll', eventListener);
-    
+
         return () => {
           if (audioRef.current) {
             audioRef.current.pause();
@@ -50,7 +50,7 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
           window.removeEventListener('scroll', eventListener);
         };
       }, [audio]);
-    
+
       useEffect(() => {
         if (!incomingVideoCall && audioRef.current) {
           audioRef.current.pause();
@@ -64,11 +64,11 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
         setIncomingVideoCall(false);
     };
 
-    const rejectCall = () => {
+    const rejectCall = useCallback(() => {
         audio.pause();
         socket.emit('reject video call', userId, id);
         setIncomingVideoCall(false);
-    };
+    }, [audio, userId, id, setIncomingVideoCall]);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -76,14 +76,15 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
         }, 15000);
 
         return () => clearTimeout(timeoutId);
-    }, []);
+    }, [rejectCall]);
 
+    const primaryAvatar = Array.isArray(avatarSrc) ? avatarSrc[0] : avatarSrc;
 
     return (
         <div className="flex flex-row items-center space-x-4 px-4 py-5 fixed z-[9999] w-full bg-gray-800 border-2 border-sky-500 md:w-72 md:bottom-24 md:right-4">
 
             <div className="ml-6 lg:ml-0.5">
-                <RingAvatar imgSrc={avatarSrc} type="incomingVideoCall" />
+                <RingAvatar imgSrc={primaryAvatar} type="incomingVideoCall" />
             </div>
 
             <div className="flex flex-col space-y-2.5">
@@ -99,7 +100,7 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default IncomingVideoCallWidget;

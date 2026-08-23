@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import ReactSelect from "react-select";
+import ReactSelect, { MultiValue, OptionProps } from "react-select";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -7,8 +7,16 @@ import { ThemeContext } from "../../contexts/ThemeContext";
 import { fetchPeople } from "../../api/auth";
 import { createGroupConversation } from "../../api/conversation";
 import { queryClient } from "../../api/auth";
+import { Participant } from "../../types";
 
-const CustomOption = ({ label, data, innerProps }) => (
+interface SelectOption {
+    label: string;
+    value: string;
+    image: string;
+    id: string;
+}
+
+const CustomOption: React.FC<OptionProps<SelectOption, true>> = ({ label, data, innerProps }) => (
     <div {...innerProps} className="flex flex-row items-center space-x-3 my-2.5 ml-2 cursor-pointer">
         <img src={data.image} alt="" className="h-10 w-10 rounded-full object-contain" />
         <p className="text-base font-semibold">{label}</p>
@@ -18,12 +26,12 @@ const CustomOption = ({ label, data, innerProps }) => (
 const GroupChatWidget = () => {
 
     const { setGroupChatWidget } = useContext(ThemeContext);
-    const { user } = useContext(AuthContext)
-    const [options, setOptions] = useState([]);
+    const { user } = useContext(AuthContext);
+    const [options, setOptions] = useState<SelectOption[]>([]);
     const [groupName, setGroupName] = useState<string>("");
-    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [selectedOptions, setSelectedOptions] = useState<SelectOption[]>([]);
 
-    const { data: people, isSuccess } = useQuery({
+    const { data: people, isSuccess } = useQuery<Participant[]>({
         queryKey: ['people'],
         queryFn: () => {
             if (!user?._id) return [];
@@ -45,8 +53,8 @@ const GroupChatWidget = () => {
     });
 
     useEffect(() => {
-        if (isSuccess) {
-            const filterOptions = people.map((person) => ({
+        if (isSuccess && people) {
+            const filterOptions: SelectOption[] = people.map((person: Participant) => ({
                 label: person.fullName,
                 value: person._id,
                 image: person.picture,
@@ -56,10 +64,10 @@ const GroupChatWidget = () => {
         }
     }, [isSuccess, people]);
 
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
-        if (status === 'pending') return
+        if (status === 'pending') return;
 
         if (groupName.trim().length === 0) {
             toast.error('Enter a group name');
@@ -70,14 +78,14 @@ const GroupChatWidget = () => {
         }
 
         mutate();
-    }
+    };
 
-    const handleGroupNameChange = (event) => {
+    const handleGroupNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setGroupName(event.target.value);
     };
 
-    const handleSelectChange = (selectedOptions) => {
-        const updatedOptions = selectedOptions.map(option => {
+    const handleSelectChange = (selected: MultiValue<SelectOption>) => {
+        const updatedOptions: SelectOption[] = (selected as readonly SelectOption[]).map((option: SelectOption) => {
             const labelParts = option.label ? option.label.split(' ') : [];
             const firstName = labelParts.length > 0 ? labelParts[0] : null;
 
