@@ -72,6 +72,22 @@ app.use(express.json());
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Request Origin / Referer validation for state-changing requests (CSRF Defense - P1-04)
+app.use((req, res, next) => {
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+        const reqOrigin = req.headers.origin || req.headers.referer;
+        if (reqOrigin && isProd) {
+            const allowedOrigins = [process.env.CLIENT_URL, "https://nexus-aryan.vercel.app"];
+            const isAllowed = allowedOrigins.some(allowed => allowed && reqOrigin.startsWith(allowed));
+            if (!isAllowed) {
+                return res.status(403).json({ error: true, message: "Forbidden: Invalid request origin" });
+            }
+        }
+    }
+    next();
+});
+
 app.use("/auth/", apiLimiter);
 app.use("/conversation/", apiLimiter);
 
