@@ -190,7 +190,7 @@ const Chats = () => {
 
     return (
 
-        <div className={`flex flex-col h-[100dvh] md:w-[52%] lg:w-[70%] md:border-l-2 md:border-gray-200`} >
+        <div className="flex flex-col h-[100dvh] md:w-[52%] lg:w-[70%] md:border-l-2 md:border-gray-200">
 
             {isDone && (
                 <>
@@ -213,12 +213,22 @@ const Chats = () => {
                             conversation.messages.map((message: Message, index: number) => {
 
                                 const isLastMessage = index === conversation.messages.length - 1;
-                                const nonSenderCount = Math.max(1, (conversation.participants?.length || 2) - 1);
-                                const messageSeen = Boolean(message.seenBy && message.seenBy.length >= nonSenderCount);
-
                                 const msgSenderId = typeof message.senderId === 'object' && message.senderId !== null ? message.senderId._id : message.senderId;
-                                const msgSenderName = typeof message.senderId === 'object' && message.senderId !== null ? message.senderId.fullName : receiverName;
-                                const msgSenderPicture = typeof message.senderId === 'object' && message.senderId !== null ? message.senderId.picture : '';
+                                const senderParticipant = conversation.participants?.find((p: Participant) => p._id === msgSenderId);
+                                const msgSenderName = typeof message.senderId === 'object' && message.senderId !== null
+                                    ? message.senderId.fullName
+                                    : msgSenderId === userId
+                                        ? (user?.fullName || "You")
+                                        : (senderParticipant?.fullName || receiverName);
+                                const msgSenderPicture = typeof message.senderId === 'object' && message.senderId !== null
+                                    ? message.senderId.picture
+                                    : msgSenderId === userId
+                                        ? (user?.picture || "")
+                                        : (senderParticipant?.picture || "");
+
+                                const nonSenderCount = Math.max(1, (conversation.participants?.length || 2) - 1);
+                                const nonSendersInSeenBy = message.seenBy ? message.seenBy.filter(seenId => seenId !== msgSenderId) : [];
+                                const messageSeen = Boolean(nonSendersInSeenBy.length >= nonSenderCount);
 
                                 return (
                                     <ChatBubble
@@ -241,7 +251,7 @@ const Chats = () => {
 
                         <button
                             id="chatScroll"
-                            className={`h-9 w-9 hidden justify-center items-center absolute right-2 bottom-28 lg:right-6 z-30 bg-gray-700 hover:bg-gray-600 text-white rounded-md`}
+                            className="h-9 w-9 hidden justify-center items-center absolute right-2 bottom-28 lg:right-6 z-30 bg-gray-700 hover:bg-gray-600 text-white rounded-md"
                             onClick={scrollSmooth}
                         >
                             <FaArrowDownLong className="h-5 w-5" />
@@ -257,7 +267,7 @@ const Chats = () => {
             )
             }
 
-        </div >
+        </div>
     )
 }
 

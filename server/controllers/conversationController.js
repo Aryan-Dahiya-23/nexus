@@ -358,13 +358,16 @@ export const readMessages = async (req, res) => {
             return res.status(403).json({ error: true, message: 'Forbidden' });
         }
 
-        if (conversation.lastMessage) {
-            const message = await Message.findById(conversation.lastMessage);
-            if (message && !message.senderId.equals(currentUserId)) {
-                await Message.findByIdAndUpdate(conversation.lastMessage, {
+        if (conversation.messages && conversation.messages.length > 0) {
+            await Message.updateMany(
+                {
+                    _id: { $in: conversation.messages },
+                    seenBy: { $ne: currentUserId }
+                },
+                {
                     $addToSet: { seenBy: currentUserId }
-                });
-            }
+                }
+            );
         }
 
         res.status(200).json({ error: false, message: 'Messages marked as read' });

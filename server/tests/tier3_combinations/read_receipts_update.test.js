@@ -69,9 +69,12 @@ describe('Tier 3: Cross-Feature Combinations — Multi-Message Read Receipts Ato
         const res = await agentA.put(`/conversation/read-conversation/${conversationAB._id}`);
         assert.equal(res.status, 200);
 
-        // Verify lastMessage or updated messages
-        const lastMsg = getMockMessage(conversationAB.lastMessage);
-        assert.ok(lastMsg);
+        // Verify that all unread messages from Bob in conversationAB now have userA in seenBy
+        for (let i = 0; i < 4; i++) {
+            const msg = getMockMessage(messageIds[i]);
+            assert.ok(msg, `Message ${i} should exist`);
+            assert.ok(msg.seenBy.includes(userA._id.toString()), `Message ${i} should be marked as seen by Alice`);
+        }
     });
 
     it('3. Repeated calls to read-conversation are idempotent', async () => {

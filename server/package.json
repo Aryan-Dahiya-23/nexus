@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test tests/**/*.test.js",
+    "test": "node --test --test-concurrency=1 tests/**/*.test.js",
     "test:syntax": "node --check index.js && node --check config/passport.js && node --check controllers/conversationController.js && node --check controllers/authController.js && node --check sockets/chatSockets.js && node --check utils/zegoServerAssistant.js",
     "start": "node index.js"
   },
