@@ -59,12 +59,13 @@ const MobileNavigation = () => {
     };
 
     const prefetch = () => {
+        if (!user?._id) return;
         queryClient.prefetchQuery({
             queryKey: ['people'],
             queryFn: () => fetchPeople(user._id),
             staleTime: 60000,
-        })
-    }
+        });
+    };
 
     return (
         <div className="flex fixed bottom-0 h-16 bg-gray-50 z-50 px-3 border-t border-gray-400 flex-row justify-between w-full space-x-4 md:hidden">
@@ -83,7 +84,7 @@ const MobileNavigation = () => {
 
             <div className="flex p-2 h-full items-center ">
                 <RingAvatar
-                    imgSrc={user && user.picture}
+                    imgSrc={user?.picture || ""}
                     type="navigation"
                 />
             </div>

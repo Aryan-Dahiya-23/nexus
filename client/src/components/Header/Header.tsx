@@ -134,12 +134,14 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
         });
 
         socket.on('new conversation', (userId) => {
-            handleNewConversation(userId, user._id);
+            if (user?._id) {
+                handleNewConversation(userId, user._id);
+            }
         });
 
         socket.on('video call', (name, avatarSrc, userId, id) => {
-
-            const isConversationExists = user.conversations.some(conversation => conversation.conversation._id === id);
+            if (!user || !Array.isArray(user.conversations)) return;
+            const isConversationExists = user.conversations.some(conversation => conversation?.conversation?._id === id);
 
             if (isConversationExists && user._id !== userId) {
                 setVideoCallName(name);
@@ -148,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                 setVideoCallId(id);
                 setIncomingVideoCall(true);
             }
-        })
+        });
 
         socket.on('accept video call', (id) => {
             const newPath = `/room/${id}`

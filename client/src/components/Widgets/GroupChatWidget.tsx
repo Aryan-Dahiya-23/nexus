@@ -25,11 +25,18 @@ const GroupChatWidget = () => {
 
     const { data: people, isSuccess } = useQuery({
         queryKey: ['people'],
-        queryFn: () => fetchPeople(user._id),
+        queryFn: () => {
+            if (!user?._id) return [];
+            return fetchPeople(user._id);
+        },
+        enabled: Boolean(user?._id),
     });
 
     const { mutate, status } = useMutation({
-        mutationFn: () => createGroupConversation(selectedOptions, groupName, user._id),
+        mutationFn: () => {
+            if (!user?._id) throw new Error("User not authenticated");
+            return createGroupConversation(selectedOptions, groupName, user._id);
+        },
         onSuccess: async() => {
             await queryClient.invalidateQueries({ queryKey: ['user'] });
             setGroupChatWidget(false);
