@@ -1,0 +1,23 @@
+{
+  "name": "nexus-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nexus - Real-time chat & video application",
+  "scripts": {
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm start --prefix server",
+    "build:client": "npm run build --prefix client",
+    "test:server": "npm test --prefix server",
+    "test": "npm run test:server && npm run build:client"
+  },
+  "keywords": [
+    "chat",
+    "video",
+    "socket.io",
+    "react",
+    "express",
+    "mongodb"
+  ],
+  "author": "Aryan Dahiya",
+  "license": "ISC"
+}
