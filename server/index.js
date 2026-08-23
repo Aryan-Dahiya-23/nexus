@@ -17,9 +17,28 @@ import "./config/passport.js";
 import authRouter from "./routes/auth.js";
 import conversationRouter from "./routes/conversation.js";
 
-const app = express();
 const isProd = process.env.NODE_ENV === "production";
 const origin = process.env.CLIENT_URL || "http://localhost:5174";
+
+// Environment variable validation on startup (OPS-05)
+function validateEnvironment() {
+    const required = ["MONGO_URL", "SECRET_KEY"];
+    const missing = required.filter(key => !process.env[key]);
+    if (missing.length > 0) {
+        console.error(`FATAL: Missing required environment variable(s): ${missing.join(", ")}`);
+        process.exit(1);
+    }
+    if (isProd) {
+        const recommended = ["CLIENT_URL", "ZEGO_APP_ID", "ZEGO_SERVER_SECRET"];
+        const missingProd = recommended.filter(key => !process.env[key]);
+        if (missingProd.length > 0) {
+            console.warn(`WARNING: Missing recommended production variable(s): ${missingProd.join(", ")}`);
+        }
+    }
+}
+validateEnvironment();
+
+const app = express();
 
 // Trust proxy before session middleware (crucial for Render/reverse-proxies)
 app.set("trust proxy", 1);
@@ -111,8 +130,49 @@ app.get("/", (req, res) => {
     res.send("Hello Live Chat App");
 });
 
-// Startup lifecycle
+// Startup & Shutdown lifecycle (OPS-03)
 const port = process.env.PORT || 4000;
+
+let isShuttingDown = false;
+
+async function gracefulShutdown(signal) {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+
+    // Stop accepting new HTTP requests
+    server.close(async () => {
+        console.log("HTTP server closed.");
+
+        // Close Socket.IO connections
+        try {
+            await io.close();
+            console.log("Socket.IO engine closed.");
+        } catch (err) {
+            console.error("Error closing Socket.IO:", err);
+        }
+
+        // Close MongoDB connection
+        try {
+            await mongoose.connection.close(false);
+            console.log("MongoDB connection closed cleanly.");
+        } catch (err) {
+            console.error("Error closing MongoDB connection:", err);
+        }
+
+        console.log("Graceful shutdown complete. Exiting.");
+        process.exit(0);
+    });
+
+    // Enforce 10s maximum deadline for active connections to drain
+    setTimeout(() => {
+        console.error("Graceful shutdown deadline exceeded (10s). Forcing exit.");
+        process.exit(1);
+    }, 10000).unref();
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 async function startServer() {
     try {
