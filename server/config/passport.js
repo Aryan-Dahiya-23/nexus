@@ -4,20 +4,24 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import User from "../models/User.js";
 
+const googleClientId = process.env.GOOGLE_CLIENT_ID || "disabled_google_client_id";
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || "disabled_google_client_secret";
+const googleCallbackUrl = process.env.GOOGLE_CALLBACK_URL || "http://localhost:4000/auth/google/callback";
+
 passport.use(
     new GoogleStrategy(
         {
-            clientID: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: process.env.GOOGLE_CALLBACK_URL,
+            clientID: googleClientId,
+            clientSecret: googleClientSecret,
+            callbackURL: googleCallbackUrl,
             passReqToCallback: true,
             scope: ["profile", "email"]
         },
         async (req, accessToken, refreshToken, profile, cb) => {
             const defaultUser = {
-                fullName: `${profile.name.givenName} ${profile.name.familyName}`,
-                email: profile.emails[0].value,
-                picture: profile.photos[0].value,
+                fullName: `${profile.name?.givenName || ""} ${profile.name?.familyName || ""}`.trim() || "Google User",
+                email: profile.emails?.[0]?.value || "",
+                picture: profile.photos?.[0]?.value || "",
                 googleId: profile.id,
             };
 
@@ -29,7 +33,7 @@ passport.use(
                     cb(null, newUser);
                 } else {
                     user.googleId = profile.id;
-                    user.picture = profile.photos[0].value;
+                    user.picture = profile.photos?.[0]?.value || user.picture;
                     await user.save();
                     cb(null, user);
                 }
@@ -41,12 +45,16 @@ passport.use(
     )
 );
 
+const fbClientId = process.env.FACEBOOK_CLIENT_ID || "disabled_fb_client_id";
+const fbClientSecret = process.env.FACEBOOK_CLIENT_SECRET || "disabled_fb_client_secret";
+const fbCallbackUrl = process.env.FACEBOOK_CALLBACK_URL || "http://localhost:4000/auth/facebook/callback";
+
 passport.use(
     new FacebookStrategy(
         {
-            clientID: process.env.FACEBOOK_CLIENT_ID,
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-            callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+            clientID: fbClientId,
+            clientSecret: fbClientSecret,
+            callbackURL: fbCallbackUrl,
             profileFields: ['id', 'displayName', 'photos', 'email'],
             passReqToCallback: true,
         },

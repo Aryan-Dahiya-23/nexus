@@ -1,3 +1,9 @@
+process.env.NODE_ENV = 'test';
+process.env.SECRET_KEY = process.env.SECRET_KEY || 'test_session_secret_32_characters_long_123';
+process.env.ZEGO_APP_ID = process.env.ZEGO_APP_ID || '123456789';
+process.env.ZEGO_SERVER_SECRET = process.env.ZEGO_SERVER_SECRET || '0123456789abcdef0123456789abcdef';
+process.env.CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5174';
+
 import express from 'express';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
