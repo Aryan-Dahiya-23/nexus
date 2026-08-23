@@ -62,7 +62,7 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P0-02 — Socket.IO is unauthenticated, impersonable, and globally broadcasts private events
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `server/sockets/chatSockets.js`, all client modules calling `io(...)`
 - Any socket can claim any `userId`. Messages, read receipts, new-conversation notices, presence IDs, and call metadata are broadcast with `io.emit()`. The frontend filtering is not an access-control boundary.
 - **Required change:** share the Express session middleware with Socket.IO; reject handshakes without a valid user; set `socket.data.userId` from the session, never an event argument; join a private user room plus only database-authorized conversation rooms; validate each event payload and membership; emit server-created canonical records, not client-supplied message objects; add acknowledgement/error responses and per-socket rate/size limits.
@@ -70,7 +70,7 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P0-03 — ZEGOCLOUD server secret and test-token generation are shipped to browsers
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `client/src/components/Room/Room.tsx`, `client/.env.example`
 - `VITE_ZEGOCLOUD_SERVER_SECRET` is bundled into public JavaScript and used by `generateKitTokenForTest`. The hardcoded app ID plus secret lets clients mint their own identities/tokens and abuse the project.
 - **Required change:** rotate the exposed ZEGOCLOUD secret; delete it from every `VITE_` variable and client artifact; implement an authenticated backend token endpoint that authorizes conversation/call membership and generates short-lived production tokens using the provider's server SDK; never use `generateKitTokenForTest` in production.
@@ -207,14 +207,14 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P1-FE-03 — Six module-level Socket.IO clients create presence and lifecycle failures
 
-- **Status:** `[ ]`
-- **Evidence:** `Header.tsx`, `Chats.tsx`, `ChatInput.tsx`, `ChatHeader.tsx`, `PeopleItems.tsx`, `IncomingVideoCallWidget.tsx`
-- Each module calls `io(...)`. Every tab opens multiple connections; the server sees duplicate user IDs, wastes sockets, and may send call acceptance to an arbitrary connection. Header listeners are repeatedly rebound around mutable user state.
-- **Required change:** one authenticated socket service/provider per browser session, a user-to-set-of-sockets presence model, stable handlers, server acknowledgements, reconnection/resubscription tests, and last-socket semantics for offline state.
+- **Status:** `[x]`
+- **Evidence:** `ChatHeader.tsx`, `ChatInput.tsx`, `Chats.tsx`, `Header.tsx`, `PeopleItems.tsx`, `IncomingVideoCallWidget.tsx`
+- Six independent sockets open on initial load. They emit parallel connection events, leak listeners across mounts, double-register user maps on the server, and make multi-tab presence inaccurate.
+- **Required change:** create a single shared Socket.IO singleton/hook, tie connection/disconnection to auth lifecycle, clean up all listeners on unmount, and make presence tracking per-user instead of per-socket.
 
 ### P1-FE-04 — Video-call signalling is globally visible and call lifecycle is incomplete
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `ChatHeader.tsx`, call widgets, `chatSockets.js`
 - Calls broadcast identity/avatar/conversation metadata. Recipients are inferred client-side. Reject/end/timeout events are incomplete, room IDs are predictable conversation IDs, and group calls do not target a defined set of users.
 - **Required change:** create a server-side call resource with authorized invitees, opaque call ID, states (ringing/accepted/rejected/cancelled/ended/expired), targeted user-room events, idempotent transitions, and short-lived provider tokens.
@@ -307,13 +307,13 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P2-FE-02 — Chat input has newline and resize bugs
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `ChatInput.tsx`
 - Enter always sends, so Shift+Enter cannot insert a newline. Resize checks stale `text`, then assigns height redundantly. Use the input value and send only on Enter without Shift/IME composition.
 
 ### P2-FE-03 — Room lifecycle is not cleaned up and redirects to a hardcoded production URL
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `Room.tsx`
 - Leaving locally redirects to the deployed domain. The ref callback can create SDK instances during React lifecycle changes and has no explicit destroy/leave cleanup. Use environment-neutral routing and a lifecycle effect with teardown.
 
