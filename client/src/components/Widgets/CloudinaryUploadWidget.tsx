@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { HiPhoto } from "react-icons/hi2";
+import { ImagePlus, Loader2 } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 
 interface CloudinaryUploadResultInfo {
@@ -103,12 +103,12 @@ const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfi
                 type="button"
                 aria-label="Upload photo or video"
                 onClick={() => initializeCloudinaryWidget('click')}
-                className="flex items-center justify-center focus:outline-none"
+                className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-muted/80 transition-colors cursor-pointer"
             >
                 {loading ? (
-                    <span className="loading loading-spinner loading-sm text-info"></span>
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 ) : (
-                    <HiPhoto className="chat-icons text-sky-500 hover:text-sky-600" />
+                    <ImagePlus className="h-5 w-5" />
                 )}
             </button>
         </CloudinaryScriptContext.Provider>

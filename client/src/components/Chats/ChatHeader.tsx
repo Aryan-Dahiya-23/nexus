@@ -83,9 +83,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
                                         {avatarSrc.slice(0, 2).map((src, i) => (
                                             <img
                                                 key={i}
-                                                src={src || "https://res.cloudinary.com/dgyocpgla/image/upload/v1711202863/nopathuser_lbf2om.png"}
+                                                src={src || "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png"}
                                                 alt=""
                                                 className="h-6 w-6 rounded-full border border-background object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
+                                                }}
                                             />
                                         ))}
                                     </div>
@@ -93,9 +96,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
                             ) : (
                                 <div className="relative">
                                     <img
-                                        src={avatarSrc[0] || "https://res.cloudinary.com/dgyocpgla/image/upload/v1711202863/nopathuser_lbf2om.png"}
+                                        src={avatarSrc[0] || "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png"}
                                         alt={name}
                                         className="h-10 w-10 rounded-2xl object-cover border border-border"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
+                                        }}
                                     />
                                     {online ? (
                                         <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { motion } from "framer-motion";
-import { Check, CheckCheck } from "lucide-react";
+import { Check, CheckCheck, Maximize2 } from "lucide-react";
 import { Cloudinary } from "@cloudinary/url-gen";
 import { AdvancedImage, AdvancedVideo, responsive, lazyload } from "@cloudinary/react";
 import { videoCodec } from "@cloudinary/url-gen/actions/transcode";
@@ -20,6 +20,8 @@ interface ChatBubbleProps {
     messageSeen: boolean;
     messageType: string;
 }
+
+const DEFAULT_AVATAR = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({
     conversationType,
@@ -42,9 +44,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         hour12: true
     });
 
+    const isRight = position === "right";
+    const isMedia = messageType === 'image' || messageType === 'video';
+    const isHttpUrl = typeof message === 'string' && (message.startsWith('http://') || message.startsWith('https://'));
+
     const cld = new Cloudinary({
         cloud: {
-            cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+            cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k'
         }
     });
 
@@ -61,104 +67,197 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         }
     ];
 
-    const myImage = messageType === 'image' ? cld.image(message) : null;
-    const myVideo = messageType === 'video' ? cld.video(message) : null;
+    const myImage = messageType === 'image' && !isHttpUrl ? cld.image(message) : null;
+    const myVideo = messageType === 'video' && !isHttpUrl ? cld.video(message) : null;
 
-    const handleImageWidget = () => {
+    const handleImageClick = () => {
         setImgSrc(message);
         setImageWidget(true);
     };
 
-    const isRight = position === "right";
-
     return (
         <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.2 }}
-            className={`flex w-full my-1.5 ${isRight ? "justify-end" : "justify-start"}`}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className={`flex w-full my-1 sm:my-1.5 ${isRight ? "justify-end" : "justify-start"}`}
         >
-            <div className={`flex items-end gap-2 max-w-[85%] sm:max-w-[75%] md:max-w-[65%] ${isRight ? "flex-row-reverse" : "flex-row"}`}>
-                {/* Avatar (for incoming or group) */}
+            <div className={`flex items-end gap-2 max-w-[88%] sm:max-w-[78%] md:max-w-[68%] lg:max-w-[60%] ${isRight ? "flex-row-reverse" : "flex-row"}`}>
+                {/* Avatar for received messages */}
                 {!isRight && (
                     <div className="relative shrink-0 mb-1">
                         <img
-                            src={avatarSrc || "https://res.cloudinary.com/dgyocpgla/image/upload/v1711202863/nopathuser_lbf2om.png"}
-                            alt=""
-                            className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover border border-border"
+                            src={avatarSrc || DEFAULT_AVATAR}
+                            alt={sender}
+                            className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover ring-1 ring-border/60 shadow-xs"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                            }}
                         />
                         {online && (
-                            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-background" />
+                            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-background shadow-xs" />
                         )}
                     </div>
                 )}
 
-                {/* Message Bubble Container */}
-                <div className={`flex flex-col ${isRight ? "items-end" : "items-start"}`}>
-                    {/* Sender name for group chats */}
+                {/* Message Bubble + Tail + Sender */}
+                <div className={`flex flex-col min-w-0 ${isRight ? "items-end" : "items-start"}`}>
+                    {/* Sender Name in Group Chats */}
                     {!isRight && conversationType === 'group' && (
-                        <span className="text-[11px] font-semibold text-muted-foreground ml-2 mb-1">
+                        <span className="text-[11px] font-bold text-primary ml-3 mb-1 tracking-tight">
                             {sender}
                         </span>
                     )}
 
-                    {/* Bubble Content */}
-                    <div
-                        className={`relative px-4 py-2.5 shadow-sm text-sm sm:text-[15px] leading-relaxed break-words overflow-hidden ${
-                            isRight
-                                ? "bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white rounded-2xl rounded-tr-xs"
-                                : "bg-card text-card-foreground border border-border/80 rounded-2xl rounded-tl-xs"
-                        }`}
-                    >
-                        {messageType === 'text' && (
-                            <p className="whitespace-pre-wrap">{message}</p>
-                        )}
-
-                        {messageType === 'image' && myImage && (
-                            <div className="rounded-xl overflow-hidden cursor-pointer group relative" onClick={handleImageWidget}>
-                                <AdvancedImage
-                                    className="max-h-72 w-auto object-cover rounded-xl group-hover:scale-102 transition-transform duration-200"
-                                    cldImg={myImage}
-                                    plugins={[responsive()]}
-                                />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-xl" />
-                            </div>
-                        )}
-
-                        {messageType === 'video' && myVideo && (
-                            <div className="rounded-xl overflow-hidden">
-                                <AdvancedVideo
-                                    className="max-h-72 w-auto object-cover rounded-xl"
-                                    cldVid={myVideo}
-                                    cldPoster="auto"
-                                    sources={sources}
-                                    plugins={[lazyload()]}
-                                    preload="none"
-                                    controls
-                                />
-                            </div>
-                        )}
-
-                        {/* Embedded Metadata / Timestamp */}
+                    {/* Speech Bubble Container with integrated Tail */}
+                    <div className="relative group">
+                        {/* THE MESSAGE BUBBLE */}
                         <div
-                            className={`flex items-center justify-end gap-1 mt-1 text-[10px] select-none ${
-                                isRight ? "text-cyan-100/80" : "text-muted-foreground"
+                            className={`relative text-sm sm:text-[15px] leading-relaxed break-words shadow-sm transition-all ${
+                                isMedia
+                                    ? isRight
+                                        ? "p-1 sm:p-1.5 bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600 rounded-2xl rounded-br-sm shadow-md"
+                                        : "p-1 sm:p-1.5 bg-card border border-border/80 rounded-2xl rounded-bl-sm shadow-xs"
+                                    : isRight
+                                        ? "px-4 py-2.5 bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-cyan-500/10"
+                                        : "px-4 py-2.5 bg-card text-card-foreground border border-border/80 rounded-2xl rounded-bl-sm shadow-xs"
                             }`}
                         >
-                            <span>{formattedTime}</span>
-                            {isRight && (
-                                messageSeen ? (
-                                    <CheckCheck className="h-3.5 w-3.5 text-white" />
-                                ) : (
-                                    <Check className="h-3.5 w-3.5 text-cyan-200/80" />
-                                )
+                            {/* --- TEXT MESSAGE --- */}
+                            {messageType === 'text' && (
+                                <div className="space-y-1">
+                                    <p className="whitespace-pre-wrap select-text font-normal">{message}</p>
+                                    
+                                    {/* Inline Timestamp & Seen Status */}
+                                    <div
+                                        className={`flex items-center justify-end gap-1 text-[10px] font-medium select-none pt-0.5 ${
+                                            isRight ? "text-cyan-100/85" : "text-muted-foreground/80"
+                                        }`}
+                                    >
+                                        <span>{formattedTime}</span>
+                                        {isRight && (
+                                            messageSeen ? (
+                                                <CheckCheck className="h-3.5 w-3.5 text-white stroke-[2.5]" />
+                                            ) : (
+                                                <Check className="h-3.5 w-3.5 text-cyan-200/90 stroke-[2.5]" />
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- IMAGE MESSAGE --- */}
+                            {messageType === 'image' && (
+                                <div
+                                    className="relative rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group/img max-w-[360px] sm:max-w-[460px] md:max-w-[500px]"
+                                    onClick={handleImageClick}
+                                >
+                                    {isHttpUrl ? (
+                                        <img
+                                            src={message}
+                                            alt="Sent media"
+                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl transition-transform duration-300 group-hover/img:scale-[1.015]"
+                                        />
+                                    ) : myImage ? (
+                                        <AdvancedImage
+                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl transition-transform duration-300 group-hover/img:scale-[1.015]"
+                                            cldImg={myImage}
+                                            plugins={[responsive()]}
+                                        />
+                                    ) : (
+                                        <img
+                                            src={`https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k'}/image/upload/${message}`}
+                                            alt="Sent media"
+                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl transition-transform duration-300 group-hover/img:scale-[1.015]"
+                                        />
+                                    )}
+
+                                    {/* Hover overlay hint */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                        <div className="p-2.5 rounded-full bg-black/60 text-white backdrop-blur-md shadow-lg transform scale-90 group-hover/img:scale-100 transition-transform">
+                                            <Maximize2 className="h-4 w-4" />
+                                        </div>
+                                    </div>
+
+                                    {/* Floating Glassmorphic Timestamp Pill */}
+                                    <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold flex items-center gap-1 shadow-md select-none pointer-events-none">
+                                        <span>{formattedTime}</span>
+                                        {isRight && (
+                                            messageSeen ? (
+                                                <CheckCheck className="h-3 w-3 text-cyan-300 stroke-[2.5]" />
+                                            ) : (
+                                                <Check className="h-3 w-3 text-white/80 stroke-[2.5]" />
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- VIDEO MESSAGE --- */}
+                            {messageType === 'video' && (
+                                <div className="relative rounded-xl sm:rounded-2xl overflow-hidden max-w-[360px] sm:max-w-[460px] md:max-w-[500px]">
+                                    {isHttpUrl ? (
+                                        <video
+                                            src={message}
+                                            controls
+                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl bg-black"
+                                        />
+                                    ) : myVideo ? (
+                                        <AdvancedVideo
+                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl bg-black"
+                                            cldVid={myVideo}
+                                            cldPoster="auto"
+                                            sources={sources}
+                                            plugins={[lazyload()]}
+                                            preload="metadata"
+                                            controls
+                                        />
+                                    ) : (
+                                        <video
+                                            src={`https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k'}/video/upload/${message}`}
+                                            controls
+                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl bg-black"
+                                        />
+                                    )}
+
+                                    {/* Floating Glassmorphic Timestamp Pill */}
+                                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold flex items-center gap-1 shadow-md select-none pointer-events-none">
+                                        <span>{formattedTime}</span>
+                                        {isRight && (
+                                            messageSeen ? (
+                                                <CheckCheck className="h-3 w-3 text-cyan-300 stroke-[2.5]" />
+                                            ) : (
+                                                <Check className="h-3 w-3 text-white/80 stroke-[2.5]" />
+                                            )
+                                        )}
+                                    </div>
+                                </div>
                             )}
                         </div>
+
+                        {/* SPEECH BUBBLE TAIL (SVG) */}
+                        {isRight ? (
+                            /* Outgoing Message Tail (Bottom-Right) */
+                            <svg
+                                className="absolute -bottom-[2px] -right-[6px] w-[11px] h-[14px] pointer-events-none text-blue-600 dark:text-blue-600 fill-current"
+                                viewBox="0 0 11 14"
+                            >
+                                <path d="M0,0 C2,4 6,10 11,14 C8,13 3,11 0,8 Z" />
+                            </svg>
+                        ) : (
+                            /* Incoming Message Tail (Bottom-Left) */
+                            <svg
+                                className="absolute -bottom-[2px] -left-[6px] w-[11px] h-[14px] pointer-events-none fill-card stroke-border/70"
+                                viewBox="0 0 11 14"
+                            >
+                                <path d="M11,0 C9,4 5,10 0,14 C3,13 8,11 11,8 Z" />
+                            </svg>
+                        )}
                     </div>
 
-                    {/* Seen by indicator for group or personal */}
+                    {/* Seen by indicator for last message */}
                     {isRight && isLastMessage && messageSeen && (
-                        <span className="text-[10px] text-muted-foreground mt-1 mr-1">
+                        <span className="text-[10px] font-medium text-muted-foreground/80 mt-1 mr-1">
                             {conversationType === 'group' ? "Seen by all" : `Seen by ${footerName.split(" ")[0]}`}
                         </span>
                     )}
