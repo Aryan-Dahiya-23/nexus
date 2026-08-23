@@ -68,12 +68,22 @@ export const ThemeContext = createContext<ThemeContextProps>(defaultThemeContext
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
     const [theme, setTheme] = useState<string>(() => {
-        const savedTheme = localStorage.getItem("theme");
-        return savedTheme !== null ? savedTheme : "light";
+        try {
+            const savedTheme = localStorage.getItem("nexus_theme");
+            if (savedTheme === "dark" || savedTheme === "light") {
+                return savedTheme;
+            }
+            if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: light)").matches) {
+                return "light";
+            }
+        } catch (e) {
+            console.error("Error loading theme preference:", e);
+        }
+        return "dark";
     });
     const [chatHeight, setChatHeight] = useState<boolean>(false);
-    const [groupChatWidget, setGroupChatWidget] = useState<boolean>(false)
-    const [logoutLoading, setLogoutLoading] = useState<boolean>(false)
+    const [groupChatWidget, setGroupChatWidget] = useState<boolean>(false);
+    const [logoutLoading, setLogoutLoading] = useState<boolean>(false);
     const [loginToast, setLoginToast] = useState<boolean>(false);
     const [incomingVideoCall, setIncomingVideoCall] = useState(false);
     const [videoCallName, setVideoCallName] = useState<string>('');
@@ -81,24 +91,27 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [videoCallAvatarSrc, setVideoCallAvatarSrc] = useState<string | string[]>('');
     const [videoCallId, setVideoCallId] = useState<string>('');
     const [outgoingCall, setOutgoingCall] = useState<boolean>(false);
-    const [ deleteModal, setDeleteModal ] = useState<boolean>(false);
-    const [ imageWidget, setImageWidget ] = useState<boolean>(false);
-    const [ imgSrc, setImgSrc ] = useState<string>("");
+    const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [imageWidget, setImageWidget] = useState<boolean>(false);
+    const [imgSrc, setImgSrc] = useState<string>("");
 
     useEffect(() => {
         try {
-            localStorage.setItem("theme", theme);
-            const localTheme = localStorage.getItem("theme");
+            localStorage.setItem("nexus_theme", theme);
+            const root = document.documentElement;
 
-            if (localTheme !== null) {
-                document.querySelector("html")?.setAttribute("data-theme", localTheme);
+            if (theme === "dark") {
+                root.classList.add("dark");
+                root.classList.remove("light");
+                root.setAttribute("data-theme", "dark");
             } else {
-                document.querySelector("html")?.setAttribute("data-theme", "light");
+                root.classList.add("light");
+                root.classList.remove("dark");
+                root.setAttribute("data-theme", "light");
             }
         } catch (error) {
-            console.error('Error accessing localStorage:', error);
+            console.error('Error updating theme classes:', error);
         }
-
     }, [theme]);
 
     return (
