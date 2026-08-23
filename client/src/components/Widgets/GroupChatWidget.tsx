@@ -102,66 +102,117 @@ const GroupChatWidget = () => {
         setGroupChatWidget(false);
     }
 
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+
     return (
-        <>
-            <dialog id="my_modal_4" className="modal" open>
-                <div className="modal-box w-11/12 h-2/3 md:w-3/5 md:h-3/5 lg:w-1/3 lg:h-3/5 max-w-5xl">
-                    <h3 className="font-bold text-lg">Create a group chat</h3>
-                    <p className="pt-2">Create a chat with more than 2 people.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-lg bg-card text-card-foreground border border-border rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                {/* Top glow */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600" />
 
-                    <div className="modal-action">
-                        <form method="dialog" className="w-full" onSubmit={handleSubmit}>
+                <button
+                    type="button"
+                    className="absolute right-4 top-4 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                    onClick={handleClose}
+                    aria-label="Close modal"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
 
-                            <label className="label">
-                                <span className="label-text font-bold">Group Name</span>
-                            </label>
-                            <input
-                                type="text"
-                                onChange={handleGroupNameChange}
-                                value={groupName}
-                                placeholder="Group name"
-                                className="input input-bordered input-md w-full text-base"
-                            />
+                <h3 className="font-extrabold text-xl sm:text-2xl text-foreground tracking-tight">Create a Group Chat</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">Start a collaborative channel with 2 or more teammates.</p>
 
-                            <label className="label mt-4">
-                                <span className="label-text font-bold">Members</span>
-                            </label>
-
-                            <ReactSelect
-                                onChange={handleSelectChange}
-                                value={selectedOptions}
-                                isMulti
-                                options={options}
-                                components={{ Option: CustomOption }}
-                                menuPortalTarget={document.body}
-                                styles={{
-                                    menuPortal: (base) => ({
-                                        ...base,
-                                        zIndex: 9999
-                                    })
-                                }}
-                                classNames={{
-                                    control: () => "text-base"
-                                }}
-                            />
-
-                            <button type="submit" className="btn btn-info text-white absolute right-2 bottom-4">
-                                {status === 'pending' ?
-                                    <span className="loading loading-spinner"></span>
-                                    :
-                                    "Create"
-                                }
-                            </button>
-                            <button className="btn btn-ghost absolute right-24 bottom-4" onClick={handleClose}>Cancel</button>
-                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={handleClose}>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                        </form>
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                            Group Name
+                        </label>
+                        <input
+                            type="text"
+                            onChange={handleGroupNameChange}
+                            value={groupName}
+                            placeholder="e.g. Frontend Core Team"
+                            className="w-full h-11 px-4 rounded-xl bg-background border border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground"
+                        />
                     </div>
-                </div>
-            </dialog>
-        </>
-    )
-}
+
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                            Add Members
+                        </label>
+
+                        <ReactSelect
+                            onChange={handleSelectChange}
+                            value={selectedOptions}
+                            isMulti
+                            options={options}
+                            components={{ Option: CustomOption }}
+                            menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                            styles={{
+                                menuPortal: (base) => ({
+                                    ...base,
+                                    zIndex: 9999
+                                }),
+                                control: (base, state) => ({
+                                    ...base,
+                                    backgroundColor: 'transparent',
+                                    borderColor: state.isFocused ? 'var(--ring)' : 'var(--border)',
+                                    borderRadius: '0.75rem',
+                                    minHeight: '2.75rem',
+                                    boxShadow: 'none',
+                                }),
+                                menu: (base) => ({
+                                    ...base,
+                                    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                                    color: isDark ? '#f8fafc' : '#0f172a',
+                                    border: isDark ? '1px solid #1e293b' : '1px solid #e2e8f0',
+                                    borderRadius: '0.75rem',
+                                    overflow: 'hidden',
+                                }),
+                                option: (base, state) => ({
+                                    ...base,
+                                    backgroundColor: state.isFocused
+                                        ? isDark ? '#1e293b' : '#f1f5f9'
+                                        : 'transparent',
+                                    color: isDark ? '#f8fafc' : '#0f172a',
+                                }),
+                                multiValue: (base) => ({
+                                    ...base,
+                                    backgroundColor: isDark ? '#1e293b' : '#e0f2fe',
+                                    borderRadius: '0.5rem',
+                                }),
+                                multiValueLabel: (base) => ({
+                                    ...base,
+                                    color: isDark ? '#38bdf8' : '#0284c7',
+                                    fontWeight: '600',
+                                }),
+                            }}
+                            placeholder="Search and select teammates..."
+                        />
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end space-x-3">
+                        <button
+                            type="button"
+                            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl transition-colors cursor-pointer"
+                            onClick={handleClose}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={status === 'pending'}
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-white font-semibold text-sm shadow-md shadow-cyan-500/20 transition-all disabled:opacity-50 cursor-pointer"
+                        >
+                            {status === 'pending' ? 'Creating Group...' : 'Create Group'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
 
 export default GroupChatWidget;

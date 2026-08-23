@@ -84,35 +84,56 @@ const DesktopNavigation = () => {
     }, [location.pathname]);
 
     return (
-        <div className="md:flex md:flex-col hidden justify-between items-center border-r-2 border-gray-200 md:w-[8%] lg:w-[5%] py-4">
-
-            <div className="space-y-3 cursor-pointer">
-                <div className={`hover:bg-gray-200 rounded-md p-2.5 ${(currentLocation === 'home' || currentLocation === 'chats') && 'bg-gray-200'}`} onClick={navigateHome}>
-                    <BsFillChatDotsFill className="icons" />
+        <div className="md:flex md:flex-col hidden justify-between items-center border-r border-border bg-card/40 backdrop-blur-lg md:w-[72px] lg:w-[80px] py-5 h-screen shrink-0 transition-colors">
+            <div className="space-y-4 flex flex-col items-center w-full px-2">
+                <div
+                    title="Messages"
+                    className={`w-11 h-11 rounded-2xl flex items-center justify-center cursor-pointer transition-all ${
+                        currentLocation === 'home' || currentLocation === 'chats'
+                            ? 'bg-primary/15 text-primary shadow-sm border border-primary/20 scale-105'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                    }`}
+                    onClick={navigateHome}
+                >
+                    <BsFillChatDotsFill className="h-5 w-5" />
                 </div>
 
-                <div className={`hover:bg-gray-200 rounded-md p-2.5 ${currentLocation === 'people' && 'bg-gray-200'}`} onClick={navigatePeople} onMouseEnter={prefetch} onTouchMove={prefetch} onFocus={prefetch} >
-                    <MdPeopleAlt className="icons" />
+                <div
+                    title="People Directory"
+                    className={`w-11 h-11 rounded-2xl flex items-center justify-center cursor-pointer transition-all ${
+                        currentLocation === 'people'
+                            ? 'bg-primary/15 text-primary shadow-sm border border-primary/20 scale-105'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                    }`}
+                    onClick={navigatePeople}
+                    onMouseEnter={prefetch}
+                    onTouchMove={prefetch}
+                    onFocus={prefetch}
+                >
+                    <MdPeopleAlt className="h-6 w-6" />
                 </div>
 
-                <div className={`hover:bg-slate-800/40 rounded-md p-1 flex justify-center items-center`}>
+                <div className="w-11 h-11 rounded-2xl flex justify-center items-center">
                     <ThemeToggle />
                 </div>
 
-                <div className="hover:bg-gray-200 dark:hover:bg-slate-800 rounded-md p-2.5" onClick={handleLogout}>
-                    <IoLogOutOutline className="icons" />
+                <div
+                    title="Log Out"
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center cursor-pointer text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                    onClick={handleLogout}
+                >
+                    <IoLogOutOutline className="h-6 w-6" />
                 </div>
-
             </div>
 
-            <div className="cursor-pointer p-2">
+            <div className="cursor-pointer p-1 ring-2 ring-primary/30 hover:ring-primary rounded-full transition-all">
                 <RingAvatar
                     imgSrc={user?.picture || ""}
                     type="navigation"
                 />
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default DesktopNavigation;
