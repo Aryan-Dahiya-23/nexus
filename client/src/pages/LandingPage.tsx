@@ -109,7 +109,7 @@ export const LandingPage: React.FC = () => {
                             variant="gradient"
                             size="lg"
                             onClick={handleCta}
-                            className="w-full sm:w-auto text-base px-8 h-12 shadow-lg shadow-blue-500/25 group"
+                            className="w-full sm:w-auto text-base px-8 h-12 shadow-md shadow-cyan-500/20 group"
                         >
                             <span>{loggedIn || user ? "Go to My Chats" : "Get Started Free"}</span>
                             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -335,7 +335,7 @@ export const LandingPage: React.FC = () => {
                                 variant="gradient"
                                 size="lg"
                                 onClick={handleCta}
-                                className="h-12 px-8 text-base shadow-lg shadow-blue-500/30"
+                                className="h-12 px-8 text-base shadow-md shadow-cyan-500/20"
                             >
                                 <span>{loggedIn || user ? "Open Web App" : "Sign In with Google or Meta"}</span>
                                 <ArrowRight className="ml-2 h-4 w-4" />

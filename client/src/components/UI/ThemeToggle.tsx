@@ -18,7 +18,7 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className={`relative rounded-xl hover:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors ${className || ''}`}
+            className={`relative rounded-xl hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors ${className || ''}`}
             aria-label="Toggle Theme"
         >
             <motion.div

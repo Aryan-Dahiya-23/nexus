@@ -68,10 +68,10 @@ const Login: React.FC = () => {
                     <div className="mt-8 space-y-3.5">
                         {/* Google Button */}
                         <motion.button
-                            whileHover={{ scale: 1.015 }}
-                            whileTap={{ scale: 0.985 }}
+                            whileHover={{ scale: 1.012 }}
+                            whileTap={{ scale: 0.988 }}
                             onClick={googleAuth}
-                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-background dark:bg-slate-900 hover:bg-muted/80 text-foreground font-semibold text-sm shadow-sm transition-all border border-input cursor-pointer"
+                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-card hover:bg-muted text-foreground font-semibold text-sm shadow-sm transition-all border border-input hover:border-primary/40 cursor-pointer"
                         >
                             {/* Official Google SVG Icon */}
                             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -97,10 +97,10 @@ const Login: React.FC = () => {
 
                         {/* Facebook / Meta Button */}
                         <motion.button
-                            whileHover={{ scale: 1.015 }}
-                            whileTap={{ scale: 0.985 }}
+                            whileHover={{ scale: 1.012 }}
+                            whileTap={{ scale: 0.988 }}
                             onClick={facebookAuth}
-                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-semibold text-sm shadow-md transition-all cursor-pointer"
+                            className="w-full flex items-center justify-center space-x-3.5 h-12 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-md transition-all cursor-pointer"
                         >
                             {/* Facebook / Meta SVG Icon */}
                             <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">

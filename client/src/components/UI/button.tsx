@@ -9,19 +9,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:shadow-md",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow transition-all",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 transition-all",
         outline:
-          "border border-input bg-background/50 backdrop-blur-sm shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border border-border bg-card/60 backdrop-blur-sm text-foreground shadow-sm hover:bg-muted/80 hover:border-primary/40 hover:text-foreground transition-all",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/70 transition-all",
+        ghost: "text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors",
         link: "text-primary underline-offset-4 hover:underline",
         gradient:
-          "bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-md hover:from-cyan-400 hover:via-sky-400 hover:to-blue-500 hover:shadow-cyan-500/25",
+          "bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-md hover:opacity-95 hover:shadow-lg hover:shadow-cyan-500/20 active:opacity-90 transition-all",
         glass:
-          "bg-white/10 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 shadow-lg",
+          "bg-card/40 backdrop-blur-md border border-border text-foreground hover:bg-muted/80 shadow-sm transition-all",
       },
       size: {
         default: "h-10 px-4 py-2",
