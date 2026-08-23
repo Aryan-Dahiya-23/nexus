@@ -267,6 +267,19 @@ export const createMessage = async (req, res) => {
         const content = (message.content || message.messageUrl || "").trim();
         const type = message.type || 'text';
 
+        const ALLOWED_TYPES = ['text', 'image', 'video'];
+        if (!ALLOWED_TYPES.includes(type)) {
+            return res.status(400).json({ error: true, message: `Invalid message type: ${type}` });
+        }
+
+        if (type === 'text' && content.length > 5000) {
+            return res.status(400).json({ error: true, message: 'Message exceeds maximum length of 5000 characters' });
+        }
+
+        if ((type === 'image' || type === 'video') && (content.length === 0 || content.length > 500)) {
+            return res.status(400).json({ error: true, message: 'Invalid media asset identifier' });
+        }
+
         const newMessage = await Message.create({
             senderId: currentUserId,
             content: content,
