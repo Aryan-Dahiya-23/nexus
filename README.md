@@ -88,16 +88,16 @@ npm test
 | `FACEBOOK_CLIENT_ID` | Facebook OAuth app ID | `your_fb_app_id` |
 | `FACEBOOK_CLIENT_SECRET`| Facebook OAuth app secret | `your_fb_app_secret` |
 | `FACEBOOK_CALLBACK_URL`| Facebook OAuth callback URI | `http://localhost:4000/auth/facebook/callback` |
-| `ZEGO_APP_ID` | ZEGOCLOUD App ID (Token Minting) | `667370382` |
-| `ZEGO_SERVER_SECRET` | ZEGOCLOUD Server Secret (Never expose to client) | `a4ca40baccffce58fef41747feddbf60` |
+| `ZEGO_APP_ID` | ZEGOCLOUD App ID (Token Minting) | `your_zego_app_id` |
+| `ZEGO_SERVER_SECRET` | ZEGOCLOUD Server Secret (Never expose to client) | `your_zego_server_secret` |
 
 ### Frontend (`client/.env`)
 
 | Variable | Description | Example (Local / Production) |
 | :--- | :--- | :--- |
 | `VITE_URL` | Backend API base URL | `http://localhost:4000` / `https://nexus-sqpn.onrender.com` |
-| `VITE_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `dq3iqffnu` |
-| `VITE_CLOUDINARY_UPLOAD_PRESET` | Cloudinary upload preset | `odksp3xk` |
+| `VITE_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `your_cloudinary_cloud_name` |
+| `VITE_CLOUDINARY_UPLOAD_PRESET` | Cloudinary upload preset | `your_cloudinary_upload_preset` |
 
 ---
 

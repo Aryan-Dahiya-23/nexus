@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import Header from "../Header/Header"
+import Header from "../Header/Header";
 import PeopleItems from "./PeopleItems";
 import PeopleItemsLoading from "../UI/PeopleItemsLoading";
 import { verify, fetchPeople } from "../../api/auth";
+import { Participant, User } from "../../types";
 
 const People = () => {
 
-    const { data: user, } = useQuery({
+    const { data: user } = useQuery<User>({
         queryKey: ['user'],
         queryFn: () => verify(),
         staleTime: 10000,
@@ -14,9 +15,9 @@ const People = () => {
 
     const userId = user?._id;
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading } = useQuery<Participant[]>({
         queryKey: ['people'],
-        queryFn: () => fetchPeople(user._id),
+        queryFn: () => fetchPeople(userId),
         staleTime: 10000,
         enabled: !!userId,
     });
@@ -30,17 +31,17 @@ const People = () => {
 
             <div className="flex flex-col space-y-1 py-2 custom-scrollbar" id="people">
                 {data &&
-                    data.map((user: { _id: string; fullName: string; picture: string; }) => (
+                    data.map((person: Participant) => (
                         <PeopleItems
-                            key={user._id}
-                            userId={user._id}
-                            username={user.fullName}
-                            avatarSrc={user.picture}
+                            key={person._id}
+                            userId={person._id}
+                            username={person.fullName}
+                            avatarSrc={person.picture}
                         />
                     ))}
             </div>
 
-        </div>)
-}
+        </div>);
+};
 
 export default People;

@@ -9,7 +9,7 @@ const Room = () => {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        let zcInstance: any = null;
+        let zcInstance: ReturnType<typeof ZegoUIKitPrebuilt.create> | null = null;
 
         const initMeeting = async () => {
             if (!containerRef.current) return;

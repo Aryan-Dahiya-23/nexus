@@ -6,19 +6,22 @@ import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
 import { deleteConversation } from "../../api/conversation";
 import { toast } from "react-toastify";
+import { User } from "../../types";
 
 const ChatDeleteModal = () => {
 
-    const { id } = useParams()
+    const { id } = useParams();
     const navigate = useNavigate();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user: any = queryClient.getQueryData(['user']);
+    const user = queryClient.getQueryData<User>(['user']);
 
     const { setDeleteModal } = useContext(ThemeContext);
 
     const { mutate, status } = useMutation({
-        mutationFn: () => deleteConversation(user._id, id),
+        mutationFn: () => {
+            if (!user?._id || !id) throw new Error("User and conversation ID required");
+            return deleteConversation(user._id, id);
+        },
         onSettled: async() => {
             await queryClient.invalidateQueries({ queryKey: ['user'] });
             toast.success("Conversation Successfully deleted");

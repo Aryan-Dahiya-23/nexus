@@ -3,6 +3,7 @@ import Header from "../Header/Header";
 import UsersItems from "./UsersItems";
 import UserItemsLoading from "../UI/UserItemsLoading";
 import { AuthContext } from "../../contexts/AuthContext";
+import { Participant, UserConversationRef } from "../../types";
 
 const Users = () => {
 
@@ -18,38 +19,50 @@ const Users = () => {
 
             <div className="flex flex-col space-y-1 py-2 custom-scrollbar" id="user">
                 {user &&
-                    user.conversations.map((conversation) => {
+                    user.conversations.map((conversation: UserConversationRef) => {
 
-                        const username = conversation.conversation.type === 'group' ? conversation.conversation.name : conversation.conversation.participants[0].fullName;
-                        const avatarSrc = [...conversation.conversation.participants.map((participant) => participant.picture), user.picture];
+                        const conv = conversation?.conversation;
+                        if (!conv) return null;
 
-                        const lastMessage = conversation.conversation.lastMessage ?
-                            conversation.conversation.lastMessage.type === 'text'
-                                ? conversation.conversation.lastMessage.content
-                                : conversation.conversation.lastMessage.type === 'image'
+                        const firstParticipant = conv.participants && conv.participants.length > 0 ? conv.participants[0] : undefined;
+                        const username = conv.type === 'group' ? conv.name : firstParticipant?.fullName;
+                        const avatarSrc = [...(conv.participants || []).map((participant: Participant) => participant.picture), user.picture];
+
+                        const lastMessage = conv.lastMessage ?
+                            conv.lastMessage.type === 'text'
+                                ? conv.lastMessage.content
+                                : conv.lastMessage.type === 'image'
                                     ? 'Sent an Image'
                                     : 'Sent a video'
-                            : 'Started a conversation'
+                            : 'Started a conversation';
 
-                        const lastMessageTime = conversation.conversation.lastMessage?.createdAt
-                            ? new Date(conversation.conversation.lastMessage.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                        const lastMessageTime = conv.lastMessage?.createdAt
+                            ? new Date(conv.lastMessage.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
                             : '';
 
-                        const online = conversation.conversation.type === 'personal' && connectedUsers.length > 0 && conversation.conversation.participants[0]?._id ? connectedUsers.includes(conversation.conversation.participants[0]._id) : false;
+                        const online = conv.type === 'personal' && connectedUsers.length > 0 && firstParticipant?._id ? connectedUsers.includes(firstParticipant._id) : false;
+
+                        const lastMsg = conv.lastMessage;
+                        const lastMsgSenderId = lastMsg
+                            ? typeof lastMsg.senderId === 'object' && lastMsg.senderId !== null
+                                ? lastMsg.senderId._id
+                                : lastMsg.senderId
+                            : undefined;
+
                         const messageUnseen = Boolean(
                             user?._id &&
-                            conversation.conversation.lastMessage &&
-                            conversation.conversation.lastMessage.senderId !== user._id &&
-                            !conversation.conversation.lastMessage.seenBy?.includes(user._id)
+                            lastMsg &&
+                            lastMsgSenderId !== user._id &&
+                            !lastMsg.seenBy?.includes(user._id)
                         );
 
                         return (
                             <UsersItems
-                                key={conversation.conversation._id}
+                                key={conv._id}
                                 username={username || ""}
-                                conversationId={conversation.conversation._id}
-                                avatarSrc={avatarSrc || ""}
-                                type={conversation.conversation.type}
+                                conversationId={conv._id}
+                                avatarSrc={avatarSrc || []}
+                                type={conv.type}
                                 lastMessage={lastMessage}
                                 lastMessageTime={lastMessageTime}
                                 online={online}

@@ -2,11 +2,17 @@ import { useEffect } from "react";
 import { MdCallEnd } from "react-icons/md";
 import RingAvatar from "../Avatar/RingAvatar";
 
-const OutgoingCallWidget = ({ name, imgSrc, onEndCall }) => {
+interface OutgoingCallWidgetProps {
+    name: string;
+    imgSrc: string[];
+    onEndCall: () => void;
+}
+
+const OutgoingCallWidget: React.FC<OutgoingCallWidgetProps> = ({ name, imgSrc, onEndCall }) => {
 
     const endCall = () => {
         onEndCall();
-    }
+    };
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -14,7 +20,7 @@ const OutgoingCallWidget = ({ name, imgSrc, onEndCall }) => {
         }, 15000);
 
         return () => clearTimeout(timeoutId);
-    }, []);
+    }, [onEndCall]);
 
     return (
         <div className="h-[100dvh] w-full right-0 fixed flex flex-col py-20 md:py-24 lg:py-16 items-center space-y-20 md:space-y-32 lg:space-y-20 z-[999] bg-gray-800">
@@ -47,4 +53,3 @@ const OutgoingCallWidget = ({ name, imgSrc, onEndCall }) => {
 }
 
 export default OutgoingCallWidget;
-

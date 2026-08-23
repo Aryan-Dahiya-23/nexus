@@ -6,11 +6,12 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
 import { createConversation } from "../../api/conversation";
+import { Participant } from "../../types";
 import socket from "../../utils/socket";
 
 interface PeopleItemsProps {
     username: string;
-    avatarSrc: string,
+    avatarSrc: string;
     userId: string;
 }
 
@@ -22,7 +23,7 @@ const PeopleItems: React.FC<PeopleItemsProps> = ({
     const navigate = useNavigate();
 
     const { user } = useContext(AuthContext);
-    const { setLogoutLoading } = useContext(ThemeContext)
+    const { setLogoutLoading } = useContext(ThemeContext);
     const [clicked, setClicked] = useState(false);
 
     const { mutate } = useMutation({
@@ -57,7 +58,7 @@ const PeopleItems: React.FC<PeopleItemsProps> = ({
 
         for (let i = 0; i < user.conversations.length; i++) {
             const conv = user.conversations[i]?.conversation;
-            if (conv && conv.participants && conv.participants.some((p: any) => p._id === userId || p === userId)) {
+            if (conv && conv.participants && conv.participants.some((p: Participant | string) => (typeof p === 'object' && p !== null ? p._id === userId : p === userId))) {
                 navigate(`/chats/${conv._id}`);
                 return;
             }

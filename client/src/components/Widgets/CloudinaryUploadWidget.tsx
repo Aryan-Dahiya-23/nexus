@@ -1,10 +1,37 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { HiPhoto } from "react-icons/hi2";
 import { AuthContext } from "../../contexts/AuthContext";
 
+interface CloudinaryUploadResultInfo {
+    public_id: string;
+    resource_type?: string;
+    video?: boolean;
+    secure_url?: string;
+}
+
+interface CloudinaryUploadResult {
+    event: string;
+    info: CloudinaryUploadResultInfo;
+}
+
+interface CloudinaryWidgetInstance {
+    open: () => void;
+    close?: () => void;
+}
+
+declare global {
+    interface Window {
+        cloudinary?: {
+            createUploadWidget: (
+                options: Record<string, unknown>,
+                callback: (error: Error | null, result: CloudinaryUploadResult | undefined) => void
+            ) => CloudinaryWidgetInstance;
+        };
+    }
+}
+
 interface CloudinaryUploadWidgetProps {
-    uwConfig: any;
+    uwConfig: Record<string, unknown>;
 }
 
 interface CloudinaryScriptContextProps {
@@ -38,12 +65,12 @@ const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfi
     }, [loaded]);
 
     const initializeCloudinaryWidget = useCallback((type: string) => {
-        if (loaded && (window as any).cloudinary) {
+        if (loaded && window.cloudinary) {
             if (type === 'click') setLoading(true);
 
-            const myWidget = (window as any).cloudinary.createUploadWidget(
+            const myWidget = window.cloudinary.createUploadWidget(
                 uwConfig,
-                (error: any, result: any) => {
+                (error: Error | null, result: CloudinaryUploadResult | undefined) => {
                     setLoading(false);
                     if (!error && result && result.event === "success") {
                         if (result.info.video || result.info.resource_type === 'video') {
@@ -72,9 +99,9 @@ const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfi
 
     return (
         <CloudinaryScriptContext.Provider value={{ loaded }}>
-            <button 
+            <button
                 type="button"
-                aria-label="Upload photo or video" 
+                aria-label="Upload photo or video"
                 onClick={() => initializeCloudinaryWidget('click')}
                 className="flex items-center justify-center focus:outline-none"
             >

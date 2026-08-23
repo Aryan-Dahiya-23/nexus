@@ -8,10 +8,11 @@ import { ThemeContext } from "../../contexts/ThemeContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import { verify } from "../../api/auth";
 import { handleChatMessage, handleMessageSent, handleSeenMessage, handleNewConversation } from "../../utils/socketHandlers";
+import { Message, User, UserConversationRef } from "../../types";
 import socket from "../../utils/socket";
 
 interface HeaderProps {
-    message: string,
+    message: string;
 }
 
 const Header: React.FC<HeaderProps> = ({ message }) => {
@@ -35,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
     const { userConnected, setUserConnected } = useContext(AuthContext);
     const { setConnectedUsers } = useContext(AuthContext);
 
-    const { data, isSuccess, isError, error } = useQuery({
+    const { data, isSuccess, isError, error } = useQuery<User>({
         queryKey: ['user'],
         queryFn: () => verify(),
         staleTime: 10000,
@@ -45,43 +46,43 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
         if (isError && error !== null) {
             navigate("/login");
         }
-    }, [isError, error]);
+    }, [isError, error, navigate]);
 
     useEffect(() => {
-        if (isSuccess && data.conversations.length < 1) {
+        if (isSuccess && data && data.conversations.length < 1) {
             navigate('/people');
         }
-    }, [isSuccess]);
+    }, [isSuccess, data, navigate]);
 
     useEffect(() => {
         if (isSuccess && data) {
-            setUser(data)
+            setUser(data);
             if (!loginToast) {
                 setLoginToast(true);
                 toast.success("Welcome back!");
             }
         }
-    }, [data, isSuccess]);
+    }, [data, isSuccess, loginToast, setLoginToast, setUser]);
 
     useEffect(() => {
 
         socket.on("connect", () => {
         });
 
-        socket.on('connected users', (connectedUserIds) => {
+        socket.on('connected users', (connectedUserIds: string[]) => {
             setConnectedUsers(connectedUserIds);
         });
 
         if (!userConnected && user && user._id) {
-            const userId: string = user._id;
-            socket.emit('user connected', userId);
+            const currentUserId: string = user._id;
+            socket.emit('user connected', currentUserId);
             setUserConnected(true);
         }
 
-        socket.on('chat message', (userId, newMessage, conversationId) => {
-            if (userId !== user?._id) {
+        socket.on('chat message', (senderUserId: string, newMessage: Message, conversationId: string) => {
+            if (senderUserId !== user?._id) {
                 const currentDate = new Date();
-                const formattedMessage = {
+                const formattedMessage: Message = {
                     ...newMessage,
                     createdAt: currentDate.toLocaleDateString("en-US", {
                         year: "numeric",
@@ -95,10 +96,10 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                     seenBy: id === conversationId && user?._id ? [...(newMessage.seenBy || []), user._id] : (newMessage.seenBy || [])
                 };
 
-                setUser((prevUser: any) => {
+                setUser((prevUser: User | undefined) => {
                     if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
                     const conversationIndex = prevUser.conversations.findIndex(
-                        (conv: any) => conv?.conversation?._id === conversationId
+                        (conv: UserConversationRef) => conv?.conversation?._id === conversationId
                     );
                     if (conversationIndex === -1) return prevUser;
 
@@ -111,7 +112,7 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                     };
 
                     const remainingConvs = prevUser.conversations.filter(
-                        (_: any, idx: number) => idx !== conversationIndex
+                        (_: UserConversationRef, idx: number) => idx !== conversationIndex
                     );
 
                     return {
@@ -121,43 +122,45 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                 });
 
                 const allowedRoutes = ['/', '/people'];
-                handleChatMessage(user, newMessage, conversationId, allowedRoutes.includes(location.pathname));
+                handleChatMessage(user!, newMessage, conversationId, allowedRoutes.includes(location.pathname));
             }
         });
 
-        socket.on('message sent', (userId, conversationId) => {
-            handleMessageSent(user, userId, conversationId);
+        socket.on('message sent', (senderUserId: string, conversationId: string) => {
+            if (user) {
+                handleMessageSent(user, senderUserId, conversationId);
+            }
         });
 
-        socket.on('seen message', (conversationId) => {
+        socket.on('seen message', (conversationId: string) => {
             handleSeenMessage(id, conversationId);
         });
 
-        socket.on('new conversation', (userId) => {
+        socket.on('new conversation', (newUserId: string) => {
             if (user?._id) {
-                handleNewConversation(userId, user._id);
+                handleNewConversation(newUserId, user._id);
             }
         });
 
-        socket.on('video call', (name, avatarSrc, userId, id) => {
+        socket.on('video call', (name: string, avatarSrc: string[], callUserId: string, callId: string) => {
             if (!user || !Array.isArray(user.conversations)) return;
-            const isConversationExists = user.conversations.some(conversation => conversation?.conversation?._id === id);
+            const isConversationExists = user.conversations.some(conversation => conversation?.conversation?._id === callId);
 
-            if (isConversationExists && user._id !== userId) {
+            if (isConversationExists && user._id !== callUserId) {
                 setVideoCallName(name);
-                setVideoCallUserId(userId);
+                setVideoCallUserId(callUserId);
                 setVideoCallAvatarSrc(avatarSrc);
-                setVideoCallId(id);
+                setVideoCallId(callId);
                 setIncomingVideoCall(true);
             }
         });
 
-        socket.on('accept video call', (id) => {
-            const newPath = `/room/${id}`
-            if (location.pathname !== newPath && location.pathname === `/chats/${id}` && outgoingCall) {
+        socket.on('accept video call', (callId: string) => {
+            const newPath = `/room/${callId}`;
+            if (location.pathname !== newPath && location.pathname === `/chats/${callId}` && outgoingCall) {
                 navigate(newPath);
             }
-        })
+        });
 
         return () => {
             socket.off('connected users');
@@ -168,7 +171,22 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
             socket.off('video call');
             socket.off('accept video call');
         };
-    }, [user, isSuccess, outgoingCall]);
+    }, [
+        user,
+        userConnected,
+        setUserConnected,
+        setConnectedUsers,
+        id,
+        setUser,
+        location.pathname,
+        setVideoCallName,
+        setVideoCallUserId,
+        setVideoCallAvatarSrc,
+        setVideoCallId,
+        setIncomingVideoCall,
+        outgoingCall,
+        navigate
+    ]);
 
     const handleTheme = (e: { target: { checked: unknown; }; }) => {
         if (e.target.checked || localStorage.getItem("theme") === "light") {

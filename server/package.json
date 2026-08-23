@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --check index.js && node --check config/passport.js && node --check controllers/conversationController.js && node --check controllers/authController.js && node --check sockets/chatSockets.js && node --check utils/zegoServerAssistant.js",
+    "test": "node --test --test-concurrency=1 tests/**/*.test.js",
+    "test:syntax": "node --check index.js && node --check config/passport.js && node --check controllers/conversationController.js && node --check controllers/authController.js && node --check sockets/chatSockets.js && node --check utils/zegoServerAssistant.js",
     "start": "node index.js"
   },
   "keywords": [],
@@ -28,5 +29,9 @@
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
     "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3",
+    "supertest": "^7.2.2"
   }
 }

@@ -1,35 +1,39 @@
 import { toast } from "react-toastify";
 import { queryClient } from "../api/auth";
+import { Conversation, Message, User, UserConversationRef } from "../types";
 
-type Conversation = {
-    lastMessage: object,
-    messages: object[],
-    participants: object[],
-    type: string,
-    _id: string,
-}
-
-export const handleChatMessage =  (user, newMessage, conversationId, toastNotification) => {
-    const isConversationExists = user.conversations.some(conversation => conversation.conversation._id === conversationId);
+export const handleChatMessage = (
+    user: User,
+    newMessage: Message,
+    conversationId: string,
+    toastNotification: boolean
+) => {
+    const isConversationExists = user.conversations?.some(
+        (conversation: UserConversationRef) => conversation.conversation?._id === conversationId
+    );
 
     if (isConversationExists) {
-        if (toastNotification) toast.success(`New Message received from ${newMessage.senderId.fullName}`);
+        const senderName = typeof newMessage.senderId === 'object' && newMessage.senderId !== null ? newMessage.senderId.fullName : 'Someone';
+        if (toastNotification) toast.success(`New Message received from ${senderName}`);
 
         const conversation: Conversation | undefined = queryClient.getQueryData(['chats', conversationId]);
 
         queryClient.cancelQueries({ queryKey: ['chats', conversationId] });
 
-        const newConversation = {
-            ...conversation,
-            messages: [...(conversation?.messages as object[]), newMessage],
-        };
-
-        queryClient.setQueryData(['chats', conversationId], newConversation);
+        if (conversation) {
+            const newConversation: Conversation = {
+                ...conversation,
+                messages: [...(conversation.messages || []), newMessage],
+            };
+            queryClient.setQueryData(['chats', conversationId], newConversation);
+        }
     }
 };
 
-export const handleMessageSent = (user, userId, conversationId) => {
-    const isConversationExists = user.conversations.some(conversation => conversation.conversation._id === conversationId);
+export const handleMessageSent = (user: User, userId: string, conversationId: string) => {
+    const isConversationExists = user.conversations?.some(
+        (conversation: UserConversationRef) => conversation.conversation?._id === conversationId
+    );
     if (isConversationExists && userId !== user._id) {
         queryClient.invalidateQueries();
     }
@@ -45,4 +49,4 @@ export const handleNewConversation = (userId: string, currentUserId: string) => 
     if (userId === currentUserId) {
         queryClient.invalidateQueries({ queryKey: ['user'] });
     }
-}
+};
