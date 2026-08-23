@@ -17,7 +17,7 @@ const Login: React.FC = () => {
         window.open(`${url}/auth/facebook`, "_self");
     }, [url]);
 
-    // Keyboard Shortcuts: G for Google, F for Facebook, Esc for Home
+    // Keyboard Shortcut: Esc for Home
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
@@ -25,18 +25,12 @@ const Login: React.FC = () => {
             if (e.key === 'Escape') {
                 e.preventDefault();
                 navigate('/');
-            } else if (e.key === 'g' || e.key === 'G') {
-                e.preventDefault();
-                googleAuth();
-            } else if (e.key === 'f' || e.key === 'F') {
-                e.preventDefault();
-                facebookAuth();
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [googleAuth, facebookAuth, navigate]);
+    }, [navigate]);
 
     return (
         <div className="relative min-h-[100dvh] w-full bg-background text-foreground flex flex-col justify-between items-center px-4 py-6 sm:py-8 font-sans selection:bg-primary/20 selection:text-primary transition-colors duration-300 overflow-x-hidden">
@@ -51,7 +45,6 @@ const Login: React.FC = () => {
                 >
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back to Home</span>
-                    <span className="hidden sm:inline text-[10px] text-muted-foreground/60 font-mono ml-1 px-1.5 py-0.5 rounded bg-muted">ESC</span>
                 </Link>
 
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -95,57 +88,47 @@ const Login: React.FC = () => {
                         <button
                             type="button"
                             onClick={googleAuth}
-                            className="w-full flex items-center justify-between h-12 px-4 rounded-2xl bg-background hover:bg-muted text-foreground font-semibold text-sm border border-input hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
+                            className="w-full flex items-center justify-center gap-3 h-12 px-4 rounded-2xl bg-background hover:bg-muted text-foreground font-semibold text-sm border border-input hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
                         >
-                            <div className="flex items-center space-x-3 min-w-0">
-                                <svg
-                                    className="w-5 h-5 shrink-0"
-                                    viewBox="0 0 24 24"
-                                    style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
-                                >
-                                    <path
-                                        fill="#4285F4"
-                                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                                    />
-                                    <path
-                                        fill="#34A853"
-                                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
-                                    />
-                                    <path
-                                        fill="#FBBC05"
-                                        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.99 0 12c0 2.01.46 3.84 1.26 5.42l4.02-3.15z"
-                                    />
-                                    <path
-                                        fill="#EA4335"
-                                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                                    />
-                                </svg>
-                                <span className="whitespace-nowrap">Continue with Google</span>
-                            </div>
-                            <span className="hidden sm:inline text-[10px] text-muted-foreground font-mono px-1.5 py-0.5 rounded bg-muted group-hover:bg-muted/80 shrink-0">
-                                G
-                            </span>
+                            <svg
+                                className="w-5 h-5 shrink-0"
+                                viewBox="0 0 24 24"
+                                style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
+                            >
+                                <path
+                                    fill="#4285F4"
+                                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                                />
+                                <path
+                                    fill="#34A853"
+                                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.26 21.36 7.33 24 12 24z"
+                                />
+                                <path
+                                    fill="#FBBC05"
+                                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.99 0 12c0 2.01.46 3.84 1.26 5.42l4.02-3.15z"
+                                />
+                                <path
+                                    fill="#EA4335"
+                                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                                />
+                            </svg>
+                            <span className="whitespace-nowrap">Continue with Google</span>
                         </button>
 
                         {/* Facebook / Meta Button */}
                         <button
                             type="button"
                             onClick={facebookAuth}
-                            className="w-full flex items-center justify-between h-12 px-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-sm transition-all cursor-pointer group"
+                            className="w-full flex items-center justify-center gap-3 h-12 px-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-sm transition-all cursor-pointer group"
                         >
-                            <div className="flex items-center space-x-3 min-w-0">
-                                <svg
-                                    className="w-5 h-5 fill-current shrink-0"
-                                    viewBox="0 0 24 24"
-                                    style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
-                                >
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                                </svg>
-                                <span className="whitespace-nowrap">Continue with Facebook</span>
-                            </div>
-                            <span className="hidden sm:inline text-[10px] text-white/80 font-mono px-1.5 py-0.5 rounded bg-black/20 group-hover:bg-black/30 shrink-0">
-                                F
-                            </span>
+                            <svg
+                                className="w-5 h-5 fill-current shrink-0"
+                                viewBox="0 0 24 24"
+                                style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
+                            >
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                            <span className="whitespace-nowrap">Continue with Facebook</span>
                         </button>
                     </div>
 
