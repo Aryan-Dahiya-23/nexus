@@ -1,39 +1,59 @@
-import { useContext } from "react";
+import React, { useContext, useEffect, useCallback } from "react";
+import { X } from "lucide-react";
 import { Cloudinary } from "@cloudinary/url-gen";
-import { AdvancedImage } from "@cloudinary/react"
+import { AdvancedImage } from "@cloudinary/react";
 import { ThemeContext } from "../../contexts/ThemeContext";
 
-const ImageWidget = () => {
-
+const ImageWidget: React.FC = () => {
     const cld = new Cloudinary({
         cloud: {
             cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
         }
     });
 
-    const { setImageWidget } = useContext(ThemeContext);
-    const { imgSrc } = useContext(ThemeContext);
+    const { setImageWidget, imgSrc } = useContext(ThemeContext);
 
     const myImg = cld.image(imgSrc);
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setImageWidget(false);
-    }
+    }, [setImageWidget]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                handleClose();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleClose]);
 
     return (
-        <div className="flex justify-center items-center h-full w-full fixed z-[9999] bg-gray-700">
-
-            <button className="btn btn-sm btn-circle btn-ghost text-white absolute right-1 top-1" onClick={handleClose}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        <div
+            className="fixed inset-0 z-[9999] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
+            onClick={handleClose}
+        >
+            <button
+                type="button"
+                className="absolute right-4 top-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-10"
+                onClick={handleClose}
+                aria-label="Close Lightbox"
+            >
+                <X className="h-6 w-6" />
             </button>
 
-            <AdvancedImage
-                className="max-h-[95%] lg:max-w-[95%] object-contain rounded-md lg:rounded-lg"
-                cldImg={myImg}
-            />
-
+            <div
+                className="relative max-w-full max-h-full flex items-center justify-center animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <AdvancedImage
+                    className="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl border border-white/10"
+                    cldImg={myImg}
+                />
+            </div>
         </div>
-    )
-}
+    );
+};
 
-export default ImageWidget
+export default ImageWidget;

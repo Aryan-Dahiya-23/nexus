@@ -62,6 +62,11 @@ class MockQuery {
         return this;
     }
 
+    limit(limitCount) {
+        this.limitCount = limitCount;
+        return this;
+    }
+
     async exec() {
         return this.then((res) => res);
     }
@@ -86,6 +91,10 @@ class MockQuery {
 
             if (result && typeof result === 'object' && result.senderId && typeof result.senderId === 'string') {
                 result.senderId = new mongoose.Types.ObjectId(result.senderId);
+            }
+
+            if (Array.isArray(result) && this.limitCount) {
+                result = result.slice(0, this.limitCount);
             }
 
             return resolve(result);
@@ -202,6 +211,7 @@ const origConvFindByIdAndUpdate = Conversation.findByIdAndUpdate;
 const origConvSave = Conversation.prototype.save;
 
 const origMsgFindById = Message.findById;
+const origMsgFind = Message.find;
 const origMsgCreate = Message.create;
 const origMsgUpdateMany = Message.updateMany;
 const origMsgFindByIdAndUpdate = Message.findByIdAndUpdate;
@@ -379,6 +389,22 @@ export function setupMockDb() {
         });
     };
 
+    Message.find = function (query = {}) {
+        return new MockQuery(() => {
+            let results = Array.from(messagesStore.values());
+            if (query._id && query._id.$in) {
+                const inIds = query._id.$in.map(id => id.toString());
+                results = results.filter(m => inIds.includes(m._id.toString()));
+            }
+            if (query.createdAt && query.createdAt.$lt) {
+                const ltDate = new Date(query.createdAt.$lt);
+                results = results.filter(m => new Date(m.createdAt) < ltDate);
+            }
+            results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            return results.map(clone);
+        });
+    };
+
     Message.create = async function (data) {
         const _id = data._id || new mongoose.Types.ObjectId().toString();
         const doc = {
@@ -398,18 +424,9 @@ export function setupMockDb() {
     Message.updateMany = async function (filter = {}, update = {}) {
         let count = 0;
         const messageIds = filter._id?.$in ? filter._id.$in.map(m => m.toString()) : Array.from(messagesStore.keys());
-        const senderNe = filter.senderId?.$ne ? filter.senderId.$ne.toString() : null;
-        const seenByNe = filter.seenBy?.$ne ? filter.seenBy.$ne.toString() : null;
-
-        for (const id of messageIds) {
-            const msg = messagesStore.get(id);
-            if (!msg) continue;
-
-            let eligible = true;
-            if (senderNe && matchesId(msg.senderId, senderNe)) eligible = false;
-            if (seenByNe && (msg.seenBy || []).some(s => matchesId(s, seenByNe))) eligible = false;
-
-            if (eligible) {
+        for (const mId of messageIds) {
+            const msg = messagesStore.get(mId.toString());
+            if (msg) {
                 if (update.$addToSet && update.$addToSet.seenBy) {
                     const viewerId = update.$addToSet.seenBy.toString();
                     if (!msg.seenBy.includes(viewerId)) {
@@ -454,6 +471,7 @@ export function restoreMockDb() {
     Conversation.prototype.save = origConvSave;
 
     Message.findById = origMsgFindById;
+    Message.find = origMsgFind;
     Message.create = origMsgCreate;
     Message.updateMany = origMsgUpdateMany;
     Message.findByIdAndUpdate = origMsgFindByIdAndUpdate;

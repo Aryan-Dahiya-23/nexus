@@ -1,9 +1,7 @@
-import { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { IoIosArrowBack, IoIosVideocam } from "react-icons/io";
+import { ArrowLeft, Video } from "lucide-react";
 import Drawer from "../Drawer/Drawer";
-import OnlineAvatar from "../Avatar/OnlineAvatar";
-import OfflineAvatar from "../Avatar/OfflineAvatar";
 import OutgoingCallWidget from "../Widgets/OutgoingCallWidget";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
@@ -18,7 +16,6 @@ interface ChatHeaderProps {
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conversationType }) => {
-
     const navigate = useNavigate();
     const { id } = useParams();
 
@@ -59,72 +56,94 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
         };
     }, [id, audio, setOutgoingCall]);
 
+    const isGroup = conversationType === 'group';
+
     return (
         <>
-
             {outgoingCall && <OutgoingCallWidget name={name} imgSrc={avatarSrc} onEndCall={handleEndCall} />}
 
-            <div className="flex flex-row justify-between items-center min-h-[10%] lg:min-h-[12%] px-2 md:px-5 border-b-2 border-gray-200">
+            <div className="flex flex-row justify-between items-center h-16 px-3 sm:px-5 border-b border-border bg-card/60 backdrop-blur-xl shrink-0 transition-colors z-20">
+                {/* Left: Back Arrow (Mobile) & Avatar + Info */}
+                <div className="flex items-center space-x-3 overflow-hidden">
+                    <button
+                        type="button"
+                        onClick={handleClick}
+                        className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 md:hidden transition-colors"
+                        aria-label="Back to messages"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </button>
 
-                <div className="text-sky-500 mr-2 md:hidden" onClick={handleClick}>
-                    <IoIosArrowBack className="h-8 w-8" />
-                </div>
-
-
-                <div className="flex flex-row justify-center space-x-2.5 cursor-pointer">
-
-                    {conversationType === 'personal' ?
-                        online ?
-                            <OnlineAvatar
-                                height="12"
-                                width="12"
-                                imgSrc={avatarSrc[0]}
-                            />
-                            :
-                            <OfflineAvatar
-                                height="12"
-                                width="12"
-                                imgSrc={avatarSrc[0]}
-                            />
-                        :
-                        <div className="flex flex-col-reverse justify-end items-center">
-                            <div className="flex flex-row md:mt-1 space-x-1">
-                                <OfflineAvatar height="6" width="6" imgSrc={avatarSrc[0]} />
-                                <OfflineAvatar height="6" width="6" imgSrc={avatarSrc[1]} />
-                            </div>
-                            <OfflineAvatar height="6" width="6" imgSrc={avatarSrc[2]} />
+                    <div className="flex items-center space-x-3 cursor-pointer">
+                        {/* Avatar */}
+                        <div className="relative shrink-0">
+                            {isGroup ? (
+                                <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-sky-500/20 border border-border flex items-center justify-center overflow-hidden">
+                                    <div className="flex -space-x-2">
+                                        {avatarSrc.slice(0, 2).map((src, i) => (
+                                            <img
+                                                key={i}
+                                                src={src || "https://res.cloudinary.com/dgyocpgla/image/upload/v1711202863/nopathuser_lbf2om.png"}
+                                                alt=""
+                                                className="h-6 w-6 rounded-full border border-background object-cover"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <img
+                                        src={avatarSrc[0] || "https://res.cloudinary.com/dgyocpgla/image/upload/v1711202863/nopathuser_lbf2om.png"}
+                                        alt={name}
+                                        className="h-10 w-10 rounded-2xl object-cover border border-border"
+                                    />
+                                    {online ? (
+                                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
+                                    ) : (
+                                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-slate-400 ring-2 ring-background" />
+                                    )}
+                                </div>
+                            )}
                         </div>
-                    }
 
-                    <div className="flex flex-col">
-                        <p className="font-semibold text-lg">
-                            {name}
-                        </p>
-                        <p className="text-gray-500 text-sm">
-                            {conversationType === 'personal' ?
-                                online ? "Online" : "Offline"
-                                :
-                                avatarSrc.length + " Members"
-                            }
-                        </p>
+                        {/* Title & Status */}
+                        <div className="flex flex-col min-w-0">
+                            <h2 className="font-bold text-sm sm:text-base text-foreground truncate tracking-tight">
+                                {name || "Conversation"}
+                            </h2>
+                            <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
+                                {isGroup ? (
+                                    <span>{avatarSrc.length} members</span>
+                                ) : online ? (
+                                    <span className="text-emerald-500 font-medium flex items-center gap-1">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                        Active now
+                                    </span>
+                                ) : (
+                                    <span>Offline</span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex flex-row justify-center items-center space-x-4 md:space-x-3 ml-auto">
+                {/* Right: Actions (Video Call & Details Drawer) */}
+                <div className="flex items-center space-x-2 shrink-0">
+                    <button
+                        type="button"
+                        onClick={handleVideoCall}
+                        className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all cursor-pointer group shadow-sm"
+                        title="Start 1080p Video Call"
+                    >
+                        <Video className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                        <span className="text-xs font-semibold hidden sm:inline">Call</span>
+                    </button>
 
-                    <div className="flex flex-row">
-                        <IoIosVideocam className="chat-icons text-sky-500 hover:opacity-75" onClick={handleVideoCall} />
-                    </div>
-
-                    <Drawer
-                        name={name}
-                        avatarSrc={avatarSrc}
-                    />
-
+                    <Drawer name={name} avatarSrc={avatarSrc} />
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
 
 export default ChatHeader;
