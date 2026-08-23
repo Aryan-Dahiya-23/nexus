@@ -200,7 +200,7 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P1-FE-02 — Route/auth state handling can crash or show protected UI incorrectly
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `App.tsx`, `Header.tsx`, `LoginPage.tsx`, `RoomPage.tsx`
 - There is no auth route boundary. Effects access `data.conversations` and `user._id` without always guarding data. Room access depends on transient context, and its effect has stale dependencies.
 - **Required change:** add an authenticated route/layout with explicit loading, authenticated, unauthenticated, and error states; obtain identity from one query; validate conversation/call access server-side; add an error boundary and not-found/forbidden screens.
@@ -301,7 +301,7 @@ The original Gemini audit was directionally good and correctly identified the un
 
 ### P2-FE-01 — Production avatar sizing uses dynamic Tailwind classes
 
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Evidence:** `OnlineAvatar.tsx`
 - `w-${width}` and `h-${height}` are not statically discoverable and may be absent from production CSS. Use a typed static size map or inline dimensions.
 
