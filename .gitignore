@@ -37,3 +37,9 @@ lerna-debug.log*
 .turbo/
 .cache/
 tmp/
+
+# Audit & Internal Notes
+AUDIT.md
+*audit*
+*AUDIT*
+
