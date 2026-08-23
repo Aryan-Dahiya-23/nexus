@@ -10,8 +10,6 @@ import { handleChatMessage, handleMessageSent, handleSeenMessage, handleNewConve
 import { Message, User, UserConversationRef } from "../../types";
 import socket from "../../utils/socket";
 
-import ThemeToggle from "../UI/ThemeToggle";
-
 interface HeaderProps {
     message: string;
 }
@@ -206,8 +204,6 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                     >
                         <MdOutlineGroupAdd className="h-6 w-6 text-primary hover:scale-105 transition-transform" />
                     </button>
-
-                    <ThemeToggle />
                 </div>
             </div>
         </>
