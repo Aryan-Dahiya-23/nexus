@@ -2,7 +2,7 @@ import { GoogleLoginButton, FacebookLoginButton } from "react-social-login-butto
 
 const Login = () => {
 
-    const url = import.meta.env.VITE_URL;
+    const url = import.meta.env.VITE_URL || 'http://localhost:4000';
 
     const googleAuth = () => {
         window.open(
