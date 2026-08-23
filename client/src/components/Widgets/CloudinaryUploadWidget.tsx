@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { HiPhoto } from "react-icons/hi2";
 import { AuthContext } from "../../contexts/AuthContext";
 
@@ -14,8 +14,7 @@ interface CloudinaryScriptContextProps {
 const CloudinaryScriptContext = createContext<CloudinaryScriptContextProps>({ loaded: false });
 
 const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfig }) => {
-    const { setMessageUrl } = useContext(AuthContext);
-    const { setMessageType } = useContext(AuthContext);
+    const { setMessageUrl, setMessageType } = useContext(AuthContext);
     const [loaded, setLoaded] = useState(false);
     const [loading, setLoading] = useState(false);
     const [prefetch, setPrefetch] = useState(false);
@@ -38,8 +37,8 @@ const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfi
         }
     }, [loaded]);
 
-    const initializeCloudinaryWidget = (type: string) => {
-        if (loaded) {
+    const initializeCloudinaryWidget = useCallback((type: string) => {
+        if (loaded && (window as any).cloudinary) {
             if (type === 'click') setLoading(true);
 
             const myWidget = (window as any).cloudinary.createUploadWidget(
@@ -47,8 +46,7 @@ const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfi
                 (error: any, result: any) => {
                     setLoading(false);
                     if (!error && result && result.event === "success") {
-                        console.log(result);
-                        if (result.info.video) {
+                        if (result.info.video || result.info.resource_type === 'video') {
                             setMessageType('video');
                         } else {
                             setMessageType('image');
@@ -60,20 +58,28 @@ const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfi
 
             if (type === 'click') myWidget.open();
         }
-    };
+    }, [loaded, uwConfig, setMessageUrl, setMessageType]);
 
-    if (!prefetch && loaded) {
-        setPrefetch(true);
-        setTimeout(() => {
-            initializeCloudinaryWidget('prefetch');
-        }, 250);
-    }
+    useEffect(() => {
+        if (!prefetch && loaded) {
+            setPrefetch(true);
+            const timer = setTimeout(() => {
+                initializeCloudinaryWidget('prefetch');
+            }, 250);
+            return () => clearTimeout(timer);
+        }
+    }, [loaded, prefetch, initializeCloudinaryWidget]);
 
     return (
         <CloudinaryScriptContext.Provider value={{ loaded }}>
-            <button onClick={() => initializeCloudinaryWidget('click')}>
+            <button 
+                type="button"
+                aria-label="Upload photo or video" 
+                onClick={() => initializeCloudinaryWidget('click')}
+                className="flex items-center justify-center focus:outline-none"
+            >
                 {loading ? (
-                    <span className="loading loading-spinner text-info"></span>
+                    <span className="loading loading-spinner loading-sm text-info"></span>
                 ) : (
                     <HiPhoto className="chat-icons text-sky-500 hover:text-sky-600" />
                 )}
