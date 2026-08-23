@@ -15,6 +15,17 @@
     <meta name="twitter:card" content="summary_large_image" />
     
     <title>Nexus — Real-Time Collaboration</title>
+    <script>
+      (function() {
+        try {
+          var savedTheme = localStorage.getItem('nexus_theme');
+          var theme = (savedTheme === 'dark' || savedTheme === 'light') ? savedTheme : 'light';
+          document.documentElement.classList.remove('dark', 'light');
+          document.documentElement.classList.add(theme);
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
