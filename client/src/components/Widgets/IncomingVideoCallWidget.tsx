@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { io, Socket } from "socket.io-client";
 import RingAvatar from "../Avatar/RingAvatar";
 import { ThemeContext } from "../../contexts/ThemeContext";
-import incomingRingtone from "../../assets/incomingRingtone.mp3"
+import incomingRingtone from "../../assets/incomingRingtone.mp3";
+import socket from "../../utils/socket";
 
 interface IncomingVideoCallProps {
     name: string;
@@ -11,8 +11,6 @@ interface IncomingVideoCallProps {
     userId: string;
     id: string;
 }
-
-const socket: Socket = io(import.meta.env.VITE_URL);
 
 const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avatarSrc, userId, id }) => {
 
@@ -64,12 +62,13 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
         socket.emit('accept video call', userId, id);
         navigate(`/room/${id}`);
         setIncomingVideoCall(false);
-    }
+    };
 
     const rejectCall = () => {
-        audio.play();
+        audio.pause();
+        socket.emit('reject video call', userId, id);
         setIncomingVideoCall(false);
-    }
+    };
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {

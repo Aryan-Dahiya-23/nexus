@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, ChangeEvent, useContext, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { io, Socket } from "socket.io-client";
 import { useMutation } from "@tanstack/react-query";
 import EmojiPicker from 'emoji-picker-react';
 import { HiPaperAirplane } from "react-icons/hi2";
@@ -11,6 +9,7 @@ import { queryClient } from "../../api/auth";
 import { createMessage } from "../../api/conversation";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
+import socket from "../../utils/socket";
 
 type ChatInputProps = {
     data: {
@@ -23,9 +22,6 @@ type ChatInputProps = {
     };
     conversationId: string | undefined;
 };
-
-
-const socket: Socket = io(import.meta.env.VITE_URL);
 
 const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
@@ -50,14 +46,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
     const handleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         const textarea = event.target;
-        setText(textarea.value);
-
-        if (text.length === 0) {
-            textarea.style.height = "0px";
-        } else {
-            // textarea.style.height = 'auto';
-            textarea.style.height = `${Math.min(textarea.scrollHeight, 75)}px`;
-        }
+        const val = textarea.value;
+        setText(val);
 
         textarea.style.height = 'auto';
         textarea.style.height = `${Math.min(textarea.scrollHeight, 75)}px`;
@@ -162,12 +152,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
             mutate();
     }, [message]);
 
-    const handleKeyDown = (event) => {
-        if (event.key === 'Enter') {
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             handleMessageSend(text, 'text');
         }
-    }
+    };
 
     useEffect(() => {
         if (messageUrl !== '' && messageType !== '') {

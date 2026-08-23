@@ -1,75 +1,59 @@
-import { useContext } from "react";
+import { useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ZegoUIKitPrebuilt, ZegoUser } from '@zegocloud/zego-uikit-prebuilt';
-import { AuthContext } from "../../contexts/AuthContext";
+import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
+import apiClient from "../../api/client";
 
 const Room = () => {
-
     const navigate = useNavigate();
     const { roomId } = useParams();
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
-    const { user } = useContext(AuthContext);
+    useEffect(() => {
+        let zcInstance: any = null;
 
-    const myMeeting = async (element) => {
-        const appID = 667370382;
-        const serverSecret = import.meta.env.VITE_ZEGOCLOUD_SERVER_SECRET;
-        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-            appID,
-            serverSecret,
-            roomId ? roomId : 'abcdef1234',
-            Date.now().toString(),
-            user.fullName,
-        );
+        const initMeeting = async () => {
+            if (!containerRef.current) return;
 
-        const zc = ZegoUIKitPrebuilt.create(kitToken);
-        zc.joinRoom({
-            container: element,
-            scenario: {
-                mode: ZegoUIKitPrebuilt.GroupCall,
-            },
-            videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
-            showPreJoinView: false,
-            showRoomTimer: true,
-           
-            onLeaveRoom: () => {
-                navigate('/');
-                const navigateToHome = () => {
-                    // window.location.href = "http://localhost:3000"
-                    window.location.href = "https://nexus-aryan.vercel.app"
+            try {
+                const targetRoomId = roomId || 'nexus_room';
+                const response = await apiClient.get(`/conversation/zego-token/${targetRoomId}`);
+                const { kitToken } = response.data;
+
+                if (!kitToken) {
+                    throw new Error("Failed to obtain kitToken from server");
                 }
-                setTimeout(navigateToHome, 10);
-            },
-            
-            // onUserLeave: (userList) => {
-            //     // setTimeout(() => {
-            //     //     console.log(users);
-            //     // }, 1000);
 
-            //     setTimeout(() => {
-            //         userList.forEach(user => {
-            //             console.log(user);
-            //         })
-            //     }, 1000);
-            // },
-            // onUserJoin: (userList) => {
-            //     // setTimeout(() => {
-            //     //     console.log(users);
-            //     // }, 1000);
+                zcInstance = ZegoUIKitPrebuilt.create(kitToken);
+                zcInstance.joinRoom({
+                    container: containerRef.current,
+                    scenario: {
+                        mode: ZegoUIKitPrebuilt.GroupCall,
+                    },
+                    videoResolutionDefault: ZegoUIKitPrebuilt.VideoResolution_720P,
+                    showPreJoinView: false,
+                    showRoomTimer: true,
+                    onLeaveRoom: () => {
+                        navigate('/');
+                    },
+                });
+            } catch (error) {
+                console.error("Error initializing video room:", error);
+                navigate('/');
+            }
+        };
 
-            //     setTimeout(() => {
-            //         userList.forEach(user => {
-            //             console.log(user);
-            //         })
-            //     }, 1000);
-            // }
-        });
+        initMeeting();
 
-    }
+        return () => {
+            if (zcInstance && typeof zcInstance.destroy === 'function') {
+                zcInstance.destroy();
+            }
+        };
+    }, [roomId, navigate]);
 
     return (
-        <div ref={myMeeting} style={{ width: '100vw', height: '100dvh' }} />
-    )
-
-}
+        <div ref={containerRef} style={{ width: '100vw', height: '100dvh' }} />
+    );
+};
 
 export default Room;
