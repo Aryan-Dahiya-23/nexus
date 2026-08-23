@@ -1,12 +1,13 @@
-import { useState, ChangeEvent, useContext, useEffect } from "react";
+import { useState, ChangeEvent, useContext, useEffect, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import EmojiPicker from 'emoji-picker-react';
 import { HiPaperAirplane } from "react-icons/hi2";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import CloudinaryUploadWidget from "../Widgets/CloudinaryUploadWidget";
 import { queryClient } from "../../api/auth";
 import { createMessage } from "../../api/conversation";
+
+const EmojiPicker = lazy(() => import('emoji-picker-react'));
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import socket from "../../utils/socket";
@@ -203,10 +204,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
             {showEmojis &&
                 <div className="fixed bottom-24 left-[30%]" id="emojis">
-                    <EmojiPicker
-                        onEmojiClick={handleEmojiClick}
-                        lazyLoadEmojis
-                    />
+                    <Suspense fallback={<div className="p-4 bg-base-100 rounded-lg shadow">Loading emojis...</div>}>
+                        <EmojiPicker
+                            onEmojiClick={handleEmojiClick}
+                            lazyLoadEmojis
+                        />
+                    </Suspense>
                 </div>
             }
 
