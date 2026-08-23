@@ -1,10 +1,8 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import User from "../models/User.js";
-
-dotenv.config();
 
 passport.use(
     new GoogleStrategy(
@@ -49,27 +47,35 @@ passport.use(
             clientID: process.env.FACEBOOK_CLIENT_ID,
             clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
             callbackURL: process.env.FACEBOOK_CALLBACK_URL,
-            profileFields: ['id', 'displayName', 'photos', 'email']
+            profileFields: ['id', 'displayName', 'photos', 'email'],
+            passReqToCallback: true,
         },
 
         async (req, accessToken, refreshToken, profile, cb) => {
+            const email = profile.emails?.[0]?.value;
+            const picture = profile.photos?.[0]?.value || "";
 
             const defaultUser = {
-                fullName: profile.displayName,
+                fullName: profile.displayName || "Facebook User",
                 facebookId: profile.id,
-                email: profile.emails[0].value,
-                picture: profile.photos[0].value,
+                email: email,
+                picture: picture,
             };
 
             try {
-                const user = await User.findOne({ email: defaultUser.email });
+                let user = null;
+                if (email) {
+                    user = await User.findOne({ email });
+                } else {
+                    user = await User.findOne({ facebookId: profile.id });
+                }
 
                 if (!user) {
                     const newUser = await User.create(defaultUser);
                     cb(null, newUser);
                 } else {
                     user.facebookId = profile.id;
-                    user.picture = profile.photos[0].value,
+                    if (picture) user.picture = picture;
                     await user.save();
                     cb(null, user);
                 }
@@ -86,9 +92,10 @@ passport.serializeUser((user, cb) => {
 });
 
 passport.deserializeUser(async (id, cb) => {
-    const user = await User.findOne({ _id: id }).catch((err) => {
+    try {
+        const user = await User.findById(id);
+        cb(null, user || null);
+    } catch (err) {
         cb(err, null);
-    });
-
-    if (user) cb(null, user);
+    }
 });

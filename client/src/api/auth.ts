@@ -1,51 +1,45 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { QueryClient } from "@tanstack/react-query";
-import axios from "axios"
+import apiClient from "./client";
 
-const url = import.meta.env.VITE_URL;
-
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: 1,
+            refetchOnWindowFocus: false,
+        },
+    },
+});
 
 export const verify = async () => {
     try {
-        const response = await axios.get(`${url}/auth/verify`, {
-            withCredentials: true,
-        });
-
-        if (response.data.error === false) {
+        const response = await apiClient.get("/auth/verify");
+        if (response.data && response.data.error === false) {
             return response.data.user;
-        } else {
-            console.error("Not Authorized", response.data.reason);
         }
+        throw new Error(response.data?.reason || "Verification failed");
     } catch (error: any) {
-        console.error("Error verifying authentication:", error.message);
+        // Re-throw so React Query is aware of the failure
+        throw error;
     }
 };
 
-export const fetchPeople = async (userId: string) => {
+export const fetchPeople = async (userId?: string) => {
     try {
-        const response = await axios.get(`${url}/auth/people`, {
-            params: { userId },
+        const response = await apiClient.get("/auth/people", {
+            params: userId ? { userId } : {},
         });
         return response.data;
-    } catch (error) {
-        console.log(error);
+    } catch (error: any) {
+        throw error;
     }
 };
 
 export const logout = async () => {
     try {
-        const response = await axios.post(`${url}/auth/logout`, {}, {
-            withCredentials: true,
-        });
-
-        if (response.status === 204) {
-            return (response.status);
-        } else {
-            console.error("Logout failed:", response.data.message);
-        }
+        const response = await apiClient.post("/auth/logout", {});
+        return response.status;
     } catch (error: any) {
-        console.error("Error during logout:", error.message);
+        throw error;
     }
-};
+};
