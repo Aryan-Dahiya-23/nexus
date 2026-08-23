@@ -1,7 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { io, Socket } from "socket.io-client";
 import { FaArrowDownLong } from "react-icons/fa6";
 import ChatHeader from "./ChatHeader";
 import ChatBubble from "./ChatBubbe";
@@ -9,8 +8,7 @@ import ChatInput from "./ChatInput";
 import { AuthContext } from "../../contexts/AuthContext";
 import { queryClient, verify } from "../../api/auth";
 import { getConversation, readMessage } from "../../api/conversation";
-
-const socket: Socket = io(import.meta.env.VITE_URL);
+import socket from "../../utils/socket";
 
 const Chats = () => {
 
@@ -23,7 +21,7 @@ const Chats = () => {
     const [receiverAvatarSrc, setReceiverAvatarSrc] = useState<string[]>([]);
     const [receiverOnline, setReceiverOnline] = useState<boolean>(false);
     const [conversationType, setConversationType] = useState<string>("");
-    const { connectedUsers } = useContext(AuthContext)
+    const { connectedUsers } = useContext(AuthContext);
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
     const { data: user, isSuccess: isDone } = useQuery({
@@ -38,14 +36,25 @@ const Chats = () => {
         queryKey: ['chats', id],
         queryFn: () => getConversation(userId, id),
         staleTime: 15000,
-        enabled: !!userId
+        enabled: !!userId && !!id
     });
+
+    useEffect(() => {
+        if (id) {
+            socket.emit('join conversation', id);
+        }
+        return () => {
+            if (id) {
+                socket.emit('leave conversation', id);
+            }
+        };
+    }, [id]);
 
     useEffect(() => {
         if (isError) {
             navigate("/");
         }
-    }, [isError]);
+    }, [isError, navigate]);
 
     const { mutate } = useMutation({
         mutationFn: () => readMessage(userId, id),

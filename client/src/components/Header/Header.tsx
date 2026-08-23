@@ -1,7 +1,6 @@
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { io, Socket } from "socket.io-client";
 import { toast } from "react-toastify";
 import { MdOutlineGroupAdd } from "react-icons/md";
 import IncomingVideoCallWidget from "../Widgets/IncomingVideoCallWidget";
@@ -9,12 +8,11 @@ import { ThemeContext } from "../../contexts/ThemeContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import { verify } from "../../api/auth";
 import { handleChatMessage, handleMessageSent, handleSeenMessage, handleNewConversation } from "../../utils/socketHandlers";
+import socket from "../../utils/socket";
 
 interface HeaderProps {
     message: string,
 }
-
-const socket: Socket = io(import.meta.env.VITE_URL);
 
 const Header: React.FC<HeaderProps> = ({ message }) => {
 
