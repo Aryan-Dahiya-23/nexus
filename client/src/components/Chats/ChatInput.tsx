@@ -5,7 +5,7 @@ import { Send, Smile } from "lucide-react";
 import CloudinaryUploadWidget from "../Widgets/CloudinaryUploadWidget";
 import { queryClient } from "../../api/auth";
 import { createMessage } from "../../api/conversation";
-import { Message, User, UserConversationRef } from "../../types";
+import { Conversation, Message, User, UserConversationRef } from "../../types";
 
 import type { Theme as EmojiTheme } from 'emoji-picker-react';
 const EmojiPicker = lazy(() => import('emoji-picker-react'));
@@ -130,12 +130,25 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
             }
             return { previousData: data };
         },
-        onSuccess: () => {
+        onSuccess: (res) => {
             if (user?._id) {
                 socket.emit('message sent', user._id, conversationId);
             }
+            if (res && res.data && res.data._id) {
+                const currentConv: Conversation | undefined = queryClient.getQueryData(['chats', conversationId]);
+                if (currentConv) {
+                    // Replace temporary message or append confirmed server message
+                    const updatedMessages = currentConv.messages.map((m: Message) =>
+                        m._id === undefined && m.content === res.data.content ? res.data : m
+                    );
+                    queryClient.setQueryData(['chats', conversationId], {
+                        ...currentConv,
+                        messages: updatedMessages,
+                        lastMessage: res.data
+                    });
+                }
+            }
             queryClient.invalidateQueries({ queryKey: ['user'] });
-            queryClient.invalidateQueries({ queryKey: ['chats', conversationId] });
             setMessage({});
         },
         onError: (error, _variables, context) => {

@@ -93,6 +93,22 @@ class MockQuery {
                 result.senderId = new mongoose.Types.ObjectId(result.senderId);
             }
 
+            if (Array.isArray(result) && this.sortOption) {
+                if (typeof this.sortOption === 'object') {
+                    if (this.sortOption.createdAt === 1) {
+                        result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    } else if (this.sortOption.createdAt === -1) {
+                        result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    }
+                } else if (typeof this.sortOption === 'string') {
+                    if (this.sortOption === 'createdAt') {
+                        result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    } else if (this.sortOption === '-createdAt') {
+                        result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    }
+                }
+            }
+
             if (Array.isArray(result) && this.limitCount) {
                 result = result.slice(0, this.limitCount);
             }
@@ -526,6 +542,16 @@ export function seedMessage(msgData) {
         createdAt: msgData.createdAt || new Date(),
     };
     messagesStore.set(_id, doc);
+
+    if (msgData.conversationId) {
+        const conv = conversationsStore.get(msgData.conversationId.toString());
+        if (conv) {
+            conv.messages = conv.messages || [];
+            conv.messages.push(_id);
+            conv.lastMessage = _id;
+        }
+    }
+
     return doc;
 }
 

@@ -22,6 +22,8 @@ export interface Conversation {
     participants: Participant[];
     messages: Message[];
     lastMessage?: Message;
+    hasMore?: boolean;
+    totalMessagesCount?: number;
     createdAt?: string;
     updatedAt?: string;
 }

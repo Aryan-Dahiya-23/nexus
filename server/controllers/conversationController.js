@@ -64,6 +64,7 @@ export const getConversation = async (req, res) => {
     try {
         const { conversationId } = req.params;
         const currentUserId = req.user._id;
+        const INITIAL_MESSAGE_LIMIT = 30;
 
         if (!isValidObjectId(conversationId)) {
             return res.status(400).json({ error: true, message: 'Invalid conversation ID' });
@@ -74,15 +75,6 @@ export const getConversation = async (req, res) => {
                 path: 'participants',
                 model: 'User',
                 select: 'fullName picture'
-            })
-            .populate({
-                path: 'messages',
-                model: 'Message',
-                populate: {
-                    path: 'senderId',
-                    model: 'User',
-                    select: 'fullName picture'
-                }
             })
             .populate({
                 path: 'lastMessage',
@@ -107,14 +99,35 @@ export const getConversation = async (req, res) => {
             });
         }
 
+        // Fetch only the latest INITIAL_MESSAGE_LIMIT messages
+        const totalMessages = Array.isArray(conversation.messages) ? conversation.messages.length : 0;
+        const messageIdsToFetch = totalMessages > INITIAL_MESSAGE_LIMIT
+            ? conversation.messages.slice(-INITIAL_MESSAGE_LIMIT)
+            : conversation.messages || [];
+
+        const populatedMessages = await Message.find({ _id: { $in: messageIdsToFetch } })
+            .sort({ createdAt: 1 })
+            .populate({
+                path: 'senderId',
+                model: 'User',
+                select: 'fullName picture'
+            })
+            .lean();
+
+        const hasMore = totalMessages > populatedMessages.length;
+
         // Filter out requesting user from participants array for the client view
         const otherParticipants = conversation.participants.filter(
             p => (p._id ? p._id.toString() : p.toString()) !== currentUserId.toString()
         );
 
         res.status(200).json({
+            error: false,
             ...conversation,
-            participants: otherParticipants
+            participants: otherParticipants,
+            messages: populatedMessages,
+            hasMore,
+            totalMessagesCount: totalMessages
         });
     } catch (error) {
         console.error('Error fetching conversation:', error);

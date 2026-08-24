@@ -64,6 +64,13 @@ const Chats: React.FC = () => {
         enabled: !!userId && !!id
     });
 
+    // Synchronize hasMore state whenever conversation data changes or chat changes
+    useEffect(() => {
+        if (conversation) {
+            setHasMore(Boolean(conversation.hasMore));
+        }
+    }, [conversation, id]);
+
     useEffect(() => {
         if (id) {
             socket.emit('join conversation', id);
@@ -161,7 +168,7 @@ const Chats: React.FC = () => {
 
     // Fetch older messages on upward scroll (Reverse Pagination)
     const loadOlderMessages = useCallback(async () => {
-        if (isLoadingMore || !conversation || !conversation.messages || conversation.messages.length === 0 || !id) return;
+        if (isLoadingMore || !hasMore || !conversation || !conversation.messages || conversation.messages.length === 0 || !id) return;
         const earliestMsg = conversation.messages[0];
         if (!earliestMsg || !earliestMsg.createdAt) return;
 
@@ -174,14 +181,15 @@ const Chats: React.FC = () => {
             const res = await fetchConversationMessages(id, earliestMsg.createdAt, 30);
             if (res && Array.isArray(res.messages) && res.messages.length > 0) {
                 // Deduplicate incoming older messages
-                const existingIds = new Set(conversation.messages.map(m => m._id));
+                const existingIds = new Set(conversation.messages.map(m => m._id).filter(Boolean));
                 const olderMessages = res.messages.filter((m: Message) => !existingIds.has(m._id));
 
                 if (olderMessages.length > 0) {
                     const updatedMessages = [...olderMessages, ...conversation.messages];
                     queryClient.setQueryData(['chats', id], {
                         ...conversation,
-                        messages: updatedMessages
+                        messages: updatedMessages,
+                        hasMore: Boolean(res.hasMore)
                     });
 
                     // Scroll anchoring
@@ -201,7 +209,7 @@ const Chats: React.FC = () => {
         } finally {
             setIsLoadingMore(false);
         }
-    }, [isLoadingMore, conversation, id]);
+    }, [isLoadingMore, hasMore, conversation, id]);
 
     // Scroll listener for reverse infinite pagination & scroll-to-bottom FAB
     useEffect(() => {
