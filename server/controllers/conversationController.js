@@ -32,11 +32,33 @@ export const getZegoToken = async (req, res) => {
             });
         }
 
-        const appID = parseInt(process.env.ZEGO_APP_ID, 10);
-        const serverSecret = process.env.ZEGO_SERVER_SECRET || "";
+        const rawAppId = process.env.ZEGO_APP_ID ||
+                          process.env.ZEGOCLOUD_APP_ID ||
+                          process.env.VITE_ZEGO_APP_ID ||
+                          process.env.ZEGO_APPID ||
+                          process.env.ZEGOCLOUD_APPID ||
+                          "";
 
-        if (!appID || !serverSecret) {
-            return res.status(500).json({ error: true, message: "ZEGOCLOUD credentials are not configured" });
+        const cleanAppIdStr = String(rawAppId).replace(/['"\s]/g, "");
+        const appID = cleanAppIdStr ? parseInt(cleanAppIdStr, 10) : 0;
+
+        const serverSecret = String(
+            process.env.ZEGO_SERVER_SECRET ||
+            process.env.ZEGOCLOUD_SERVER_SECRET ||
+            process.env.ZEGO_SECRET ||
+            process.env.ZEGOCLOUD_SECRET ||
+            ""
+        ).replace(/['"\s]/g, "");
+
+        if (!appID || isNaN(appID) || !serverSecret || serverSecret.length !== 32) {
+            console.error("[ZEGOCLOUD] Credentials missing or invalid:", {
+                hasAppId: Boolean(appID),
+                secretLength: serverSecret ? serverSecret.length : 0
+            });
+            return res.status(500).json({
+                error: true,
+                message: "ZEGOCLOUD credentials are not configured. Please set ZEGO_APP_ID and ZEGO_SERVER_SECRET in your environment variables."
+            });
         }
 
         const token = generateToken04(

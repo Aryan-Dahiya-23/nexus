@@ -84,4 +84,45 @@ describe('Tier 1: Feature Coverage — ZEGOCLOUD RTC Token Issuance Authorizatio
         assert.equal(res.status, 200);
         assert.ok(typeof res.body.appID === 'number' || typeof res.body.appId === 'number');
     });
+
+    it('6. Credentials with quotes and whitespace are safely sanitized and parsed', async () => {
+        const origAppId = process.env.ZEGO_APP_ID;
+        const origSecret = process.env.ZEGO_SERVER_SECRET;
+
+        try {
+            process.env.ZEGO_APP_ID = '"667370382" ';
+            process.env.ZEGO_SERVER_SECRET = " 'a4ca40baccffce58fef41747feddbf60' ";
+
+            const agentA = createAuthenticatedAgent(app, userA);
+            const res = await agentA.get(`/conversation/zego-token/${conversationAB._id}`);
+
+            assert.equal(res.status, 200);
+            assert.equal(res.body.error, false);
+            assert.equal(res.body.appID, 667370382);
+            assert.ok(typeof res.body.token === 'string');
+        } finally {
+            process.env.ZEGO_APP_ID = origAppId;
+            process.env.ZEGO_SERVER_SECRET = origSecret;
+        }
+    });
+
+    it('7. Missing or unconfigured ZEGOCLOUD credentials returns 500 with descriptive error message', async () => {
+        const origAppId = process.env.ZEGO_APP_ID;
+        const origSecret = process.env.ZEGO_SERVER_SECRET;
+
+        try {
+            delete process.env.ZEGO_APP_ID;
+            delete process.env.ZEGO_SERVER_SECRET;
+
+            const agentA = createAuthenticatedAgent(app, userA);
+            const res = await agentA.get(`/conversation/zego-token/${conversationAB._id}`);
+
+            assert.equal(res.status, 500);
+            assert.equal(res.body.error, true);
+            assert.match(res.body.message, /ZEGOCLOUD credentials are not configured/i);
+        } finally {
+            process.env.ZEGO_APP_ID = origAppId;
+            process.env.ZEGO_SERVER_SECRET = origSecret;
+        }
+    });
 });
