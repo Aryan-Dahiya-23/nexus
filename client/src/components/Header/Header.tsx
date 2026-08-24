@@ -105,8 +105,7 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                     };
                 });
 
-                const allowedRoutes = ['/', '/people'];
-                handleChatMessage(user!, newMessage, conversationId, allowedRoutes.includes(location.pathname));
+                handleChatMessage(user!, newMessage, conversationId);
             }
         });
 

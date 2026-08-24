@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { MessageSquare, Users, LogOut } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
@@ -58,7 +57,6 @@ const MobileNavigation = () => {
 
         // 5. Instantly redirect back to home page
         navigate('/', { replace: true });
-        toast.success("You've been successfully logged out.");
 
         // 6. Perform backend session teardown in the background
         logout().catch((err) => {

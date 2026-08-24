@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useContext, useEffect, lazy, Suspense, useCallback } from "react";
+import React, { useState, useRef, ChangeEvent, useContext, useEffect, lazy, Suspense, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { Send, Smile } from "lucide-react";
@@ -36,6 +36,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
     const [text, setText] = useState<string>('');
     const [message, setMessage] = useState<Record<string, unknown>>({});
     const [showEmojis, setShowEmojis] = useState<boolean>(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const [cloudName] = useState(import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
     const [uploadPreset] = useState(import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
@@ -163,6 +164,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         setText('');
         setMessageUrl('');
         setMessageType('');
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
 
         const newMessage = {
             senderId: user._id,
@@ -194,6 +198,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
     useEffect(() => {
         setText('');
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
     }, [id]);
 
     const handleEmojiClick = (emoji: { emoji: string }) => {
@@ -259,7 +266,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
                 {/* Expanding Textarea */}
                 <textarea
-                    placeholder="Type a message (Shift+Enter for newline)..."
+                    ref={textareaRef}
+                    placeholder="Type a message..."
+                    autoComplete="off"
+                    autoCorrect="on"
+                    spellCheck={false}
                     className="flex-1 max-h-32 min-h-[36px] sm:min-h-[40px] py-1.5 sm:py-2 px-2 bg-transparent text-base text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none custom-scrollbar leading-relaxed"
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}

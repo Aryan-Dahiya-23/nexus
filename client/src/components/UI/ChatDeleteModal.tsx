@@ -8,7 +8,6 @@ import { ThemeContext } from "../../contexts/ThemeContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import { queryClient } from "../../api/auth";
 import { deleteConversation } from "../../api/conversation";
-import { toast } from "react-toastify";
 
 const ChatDeleteModal: React.FC = () => {
     const { id } = useParams();
@@ -28,7 +27,6 @@ const ChatDeleteModal: React.FC = () => {
         },
         onSettled: async () => {
             await queryClient.invalidateQueries({ queryKey: ['user'] });
-            toast.success("Conversation removed");
             handleDeleteModal();
             navigate("/chats");
         }

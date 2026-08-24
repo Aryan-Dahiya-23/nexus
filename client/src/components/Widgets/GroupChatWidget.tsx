@@ -83,7 +83,6 @@ const GroupChatWidget = () => {
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['user'] });
             setGroupChatWidget(false);
-            toast.success("New Group channel created");
         },
         onError: (err) => {
             console.error("Error creating group:", err);

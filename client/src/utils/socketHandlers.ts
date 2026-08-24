@@ -1,21 +1,16 @@
-import { toast } from "react-toastify";
 import { queryClient } from "../api/auth";
 import { Conversation, Message, User, UserConversationRef } from "../types";
 
 export const handleChatMessage = (
     user: User,
     newMessage: Message,
-    conversationId: string,
-    toastNotification: boolean
+    conversationId: string
 ) => {
     const isConversationExists = user.conversations?.some(
         (conversation: UserConversationRef) => conversation.conversation?._id === conversationId
     );
 
     if (isConversationExists) {
-        const senderName = typeof newMessage.senderId === 'object' && newMessage.senderId !== null ? newMessage.senderId.fullName : 'Someone';
-        if (toastNotification) toast.success(`New Message received from ${senderName}`);
-
         const conversation: Conversation | undefined = queryClient.getQueryData(['chats', conversationId]);
 
         queryClient.cancelQueries({ queryKey: ['chats', conversationId] });
