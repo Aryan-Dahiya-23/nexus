@@ -11,7 +11,7 @@ const RoomPage = () => {
 
     useEffect(() => {
         if (!user) {
-            navigate("/login");
+            navigate("/");
         }
     }, [user, navigate]);
 

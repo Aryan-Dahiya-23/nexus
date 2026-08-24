@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { verify } from '../../api/auth';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -7,7 +7,6 @@ import { User } from '../../types';
 import LoadingIndicator from '../UI/LoadingIndicator/LoadingIndicator';
 
 export const ProtectedRoute: React.FC = () => {
-    const location = useLocation();
     const { user, setUser, setLoggedIn } = useContext(AuthContext);
 
     const { data, isLoading, isError } = useQuery<User>({
@@ -33,7 +32,7 @@ export const ProtectedRoute: React.FC = () => {
     }
 
     if (isError && !user) {
-        return <Navigate to="/login" replace state={{ from: location }} />;
+        return <Navigate to="/" replace />;
     }
 
     return <Outlet />;
