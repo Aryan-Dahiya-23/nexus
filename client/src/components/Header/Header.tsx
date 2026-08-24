@@ -187,20 +187,23 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                 />
             )}
 
-            <div className="flex flex-row justify-between items-center px-4 py-3.5 sm:py-4 border-b border-border/80 shrink-0">
-                <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">
-                    <p>{message}</p>
+            <div className="flex flex-row justify-between items-center px-4 py-3.5 border-b border-border/60 shrink-0 bg-background/50 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                    <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+                        {message}
+                    </h1>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-1.5">
                     <button
                         type="button"
-                        className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors flex items-center justify-center cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all active:scale-95 cursor-pointer shadow-2xs"
                         onClick={handleGroupChatWidget}
-                        title="New Group Chat"
-                        aria-label="Create New Group Chat"
+                        title="Create New Group"
+                        aria-label="Create New Group"
                     >
-                        <UserPlus className="h-5 w-5 text-primary hover:scale-105 transition-transform" />
+                        <UserPlus className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">New Group</span>
                     </button>
                 </div>
             </div>
