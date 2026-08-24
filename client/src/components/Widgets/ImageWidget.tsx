@@ -126,7 +126,7 @@ const ImageWidget: React.FC = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                className="fixed inset-0 z-[100] bg-black/94 backdrop-blur-2xl flex flex-col justify-between items-center p-3 sm:p-6 select-none overflow-hidden"
+                className="fixed inset-0 z-[100] bg-background/95 dark:bg-black/95 backdrop-blur-2xl flex flex-col justify-between items-center p-3 sm:p-6 select-none overflow-hidden"
                 onClick={handleClose}
             >
                 {/* --- TOP FLOATING TOOLBAR --- */}
@@ -135,8 +135,8 @@ const ImageWidget: React.FC = () => {
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Left: Media Badge */}
-                    <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/10 backdrop-blur-md text-white text-xs font-semibold shadow-lg">
-                        <ImageIcon className="h-3.5 w-3.5 text-blue-400" />
+                    <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-card/90 dark:bg-white/10 border border-border dark:border-white/10 backdrop-blur-md text-foreground dark:text-white text-xs font-semibold shadow-md">
+                        <ImageIcon className="h-3.5 w-3.5 text-primary" />
                         <span>{isVideo ? "Video Player" : "Media Viewer"}</span>
                     </div>
 
@@ -144,12 +144,12 @@ const ImageWidget: React.FC = () => {
                     <div className="flex items-center gap-1.5 sm:gap-2">
                         {/* Zoom Controls (Images Only) */}
                         {!isVideo && (
-                            <div className="flex items-center bg-white/10 border border-white/10 rounded-full p-1 backdrop-blur-md shadow-lg text-white">
+                            <div className="flex items-center bg-card/90 dark:bg-white/10 border border-border dark:border-white/10 rounded-full p-1 backdrop-blur-md shadow-md text-foreground dark:text-white">
                                 <button
                                     type="button"
                                     onClick={handleZoomOut}
                                     disabled={zoom <= 1}
-                                    className="p-1.5 rounded-full hover:bg-white/15 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-full hover:bg-muted dark:hover:bg-white/15 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
                                     title="Zoom Out (-)"
                                     aria-label="Zoom Out"
                                 >
@@ -159,7 +159,7 @@ const ImageWidget: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={handleResetZoom}
-                                    className="px-2 py-0.5 text-xs font-mono font-medium hover:bg-white/15 rounded-md transition-colors cursor-pointer"
+                                    className="px-2 py-0.5 text-xs font-mono font-medium hover:bg-muted dark:hover:bg-white/15 rounded-md transition-colors cursor-pointer"
                                     title="Reset Zoom (0)"
                                 >
                                     {Math.round(zoom * 100)}%
@@ -169,7 +169,7 @@ const ImageWidget: React.FC = () => {
                                     type="button"
                                     onClick={handleZoomIn}
                                     disabled={zoom >= 3.5}
-                                    className="p-1.5 rounded-full hover:bg-white/15 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-full hover:bg-muted dark:hover:bg-white/15 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer"
                                     title="Zoom In (+)"
                                     aria-label="Zoom In"
                                 >
@@ -180,11 +180,11 @@ const ImageWidget: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={handleResetZoom}
-                                        className="p-1.5 rounded-full hover:bg-white/15 transition-colors cursor-pointer ml-0.5"
+                                        className="p-1.5 rounded-full hover:bg-muted dark:hover:bg-white/15 transition-colors cursor-pointer ml-0.5"
                                         title="Reset Zoom"
                                         aria-label="Reset Zoom"
                                     >
-                                        <RotateCcw className="h-3.5 w-3.5 text-blue-400" />
+                                        <RotateCcw className="h-3.5 w-3.5 text-primary" />
                                     </button>
                                 )}
                             </div>
@@ -194,7 +194,7 @@ const ImageWidget: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleDownload}
-                            className="p-2 sm:p-2.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all shadow-lg cursor-pointer flex items-center justify-center"
+                            className="p-2 sm:p-2.5 rounded-full bg-card/90 dark:bg-white/10 border border-border dark:border-white/10 hover:bg-muted dark:hover:bg-white/20 text-foreground dark:text-white backdrop-blur-md transition-all shadow-md cursor-pointer flex items-center justify-center"
                             title="Download High-Resolution Media"
                             aria-label="Download Media"
                         >
@@ -206,7 +206,7 @@ const ImageWidget: React.FC = () => {
                             href={fullImageUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 sm:p-2.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all shadow-lg cursor-pointer flex items-center justify-center"
+                            className="p-2 sm:p-2.5 rounded-full bg-card/90 dark:bg-white/10 border border-border dark:border-white/10 hover:bg-muted dark:hover:bg-white/20 text-foreground dark:text-white backdrop-blur-md transition-all shadow-md cursor-pointer flex items-center justify-center"
                             title="Open in Full Window"
                             aria-label="Open Full Resolution"
                         >
@@ -217,7 +217,7 @@ const ImageWidget: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="p-2 sm:p-2.5 rounded-full bg-white/15 border border-white/15 hover:bg-rose-500/80 text-white backdrop-blur-md transition-all shadow-lg cursor-pointer ml-1 group"
+                            className="p-2 sm:p-2.5 rounded-full bg-card/90 dark:bg-white/10 border border-border dark:border-white/10 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-500 dark:hover:text-white text-foreground dark:text-white backdrop-blur-md transition-all shadow-md cursor-pointer ml-1 group"
                             title="Close [Esc]"
                             aria-label="Close Lightbox"
                         >
@@ -238,7 +238,7 @@ const ImageWidget: React.FC = () => {
                     {/* Loading Spinner */}
                     {!imageLoaded && !isVideo && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     )}
 
@@ -255,7 +255,7 @@ const ImageWidget: React.FC = () => {
                                 controls
                                 autoPlay
                                 playsInline
-                                className="max-h-[78dvh] max-w-[92vw] object-contain rounded-2xl shadow-2xl ring-1 ring-white/15 bg-black"
+                                className="max-h-[78dvh] max-w-[92vw] object-contain rounded-2xl shadow-2xl ring-1 ring-border/80 dark:ring-white/15 bg-black"
                             />
                         </motion.div>
                     ) : (
@@ -279,7 +279,7 @@ const ImageWidget: React.FC = () => {
                                 src={fullImageUrl}
                                 alt="High-resolution preview"
                                 onLoad={() => setImageLoaded(true)}
-                                className={`max-h-[78dvh] max-w-[92vw] object-contain rounded-2xl shadow-2xl ring-1 ring-white/15 select-none transition-opacity duration-200 ${
+                                className={`max-h-[78dvh] max-w-[92vw] object-contain rounded-2xl shadow-2xl ring-1 ring-border/80 dark:ring-white/15 select-none transition-opacity duration-200 ${
                                     imageLoaded ? "opacity-100" : "opacity-0"
                                 }`}
                                 draggable={false}
@@ -292,14 +292,14 @@ const ImageWidget: React.FC = () => {
                 <div
                     className="w-full flex items-center justify-center z-50 pb-1 pointer-events-none"
                 >
-                    <div className="px-3.5 py-1 rounded-full bg-black/60 border border-white/10 text-white/70 text-[11px] font-medium backdrop-blur-md shadow-lg pointer-events-auto">
+                    <div className="px-3.5 py-1.5 rounded-full bg-card/90 dark:bg-zinc-900/90 border border-border dark:border-white/10 text-muted-foreground dark:text-white/80 text-[11px] font-medium backdrop-blur-md shadow-md pointer-events-auto flex items-center gap-1.5">
                         {!isVideo ? (
                             <span>
                                 {zoom > 1 ? "Drag to pan • Click or 0 to reset zoom • " : "Click to zoom • "}
-                                Press <kbd className="px-1 py-0.5 rounded bg-white/15 font-mono text-[10px] text-white">Esc</kbd> or click outside to close
+                                Press <kbd className="px-1.5 py-0.5 rounded bg-muted dark:bg-white/15 border border-border dark:border-transparent font-mono text-[10px] text-foreground dark:text-white font-semibold">Esc</kbd> or click outside to close
                             </span>
                         ) : (
-                            <span>Press <kbd className="px-1 py-0.5 rounded bg-white/15 font-mono text-[10px] text-white">Esc</kbd> to close</span>
+                            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-muted dark:bg-white/15 border border-border dark:border-transparent font-mono text-[10px] text-foreground dark:text-white font-semibold">Esc</kbd> to close</span>
                         )}
                     </div>
                 </div>
