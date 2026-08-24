@@ -64,7 +64,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
     const [showActionsMenu, setShowActionsMenu] = useState<boolean>(false);
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const menuRef = useRef<HTMLDivElement | null>(null);
+    const actionsRef = useRef<HTMLDivElement | null>(null);
+    const actionTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const firstActionRef = useRef<HTMLButtonElement | null>(null);
+    const cancelDeleteRef = useRef<HTMLButtonElement | null>(null);
 
     const formattedTime = new Date(createdAt).toLocaleTimeString([], {
         hour: '2-digit',
@@ -74,6 +77,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
     const isRight = position === "right";
     const isMedia = (messageType === 'image' || messageType === 'video') && !isDeleted;
+    const canCopy = messageType === 'text';
+    // Visibility must follow message ownership, not callback identity. The chat
+    // screen always supplies these handlers; tying visibility to them made the
+    // Edit/Delete actions disappear despite an outgoing message being shown.
+    const canEdit = isRight && messageType === 'text';
+    const canDelete = isRight;
+    const canShowActions = !isDeleted && !isEditing && !isConfirmingDelete && (canCopy || canEdit || canDelete);
     const isHttpUrl = typeof message === 'string' && (message.startsWith('http://') || message.startsWith('https://'));
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k';
 
@@ -93,7 +103,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
     // Close action menu on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+            if (actionsRef.current && !actionsRef.current.contains(event.target as Node)) {
                 setShowActionsMenu(false);
             }
         };
@@ -107,6 +117,35 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
             document.removeEventListener('touchstart', handleClickOutside);
         };
     }, [showActionsMenu]);
+
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') return;
+            if (showActionsMenu) {
+                setShowActionsMenu(false);
+                actionTriggerRef.current?.focus();
+            }
+            if (isConfirmingDelete) {
+                setIsConfirmingDelete(false);
+                actionTriggerRef.current?.focus();
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [showActionsMenu, isConfirmingDelete]);
+
+    useEffect(() => {
+        if (!showActionsMenu) return;
+        const frame = requestAnimationFrame(() => firstActionRef.current?.focus());
+        return () => cancelAnimationFrame(frame);
+    }, [showActionsMenu]);
+
+    useEffect(() => {
+        if (!isConfirmingDelete) return;
+        const frame = requestAnimationFrame(() => cancelDeleteRef.current?.focus());
+        return () => cancelAnimationFrame(frame);
+    }, [isConfirmingDelete]);
 
     const handleImageClick = () => {
         setImgSrc(highResMediaUrl);
@@ -143,6 +182,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         try {
             await onEditSave(messageId, editedText.trim());
             setIsEditing(false);
+        } catch {
+            toast.error("We couldn't save your changes. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -155,9 +196,32 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
             await onDeleteConfirm(messageId);
             setIsConfirmingDelete(false);
             setShowActionsMenu(false);
+        } catch {
+            toast.error("We couldn't delete this message. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            setShowActionsMenu(false);
+            actionTriggerRef.current?.focus();
+            return;
+        }
+
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+        event.preventDefault();
+        const menuItems = Array.from(
+            event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')
+        );
+        const currentIndex = menuItems.indexOf(document.activeElement as HTMLButtonElement);
+        const direction = event.key === 'ArrowDown' ? 1 : -1;
+        const nextIndex = currentIndex === -1
+            ? 0
+            : (currentIndex + direction + menuItems.length) % menuItems.length;
+        menuItems[nextIndex]?.focus();
     };
 
     return (
@@ -196,131 +260,137 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
                     {/* Speech Bubble Container */}
                     <div className="relative group/bubble">
-                        {/* Desktop Hover Action Pill */}
-                        {!isDeleted && !isEditing && !isConfirmingDelete && (
-                            <div
-                                className={`absolute -top-3.5 ${
-                                    isRight ? "right-2" : "left-2"
-                                } opacity-0 group-hover/bubble:opacity-100 focus-within:opacity-100 transition-all duration-150 hidden sm:flex items-center gap-0.5 bg-card/95 dark:bg-zinc-900/95 backdrop-blur-md border border-border rounded-full p-0.5 shadow-md z-30 pointer-events-auto`}
-                            >
-                                {/* Copy Text Button */}
-                                {messageType === 'text' && (
+                        {/* Desktop: keep primary actions direct and unmistakable. */}
+                        {canShowActions && (
+                            <div className={`absolute top-1/2 z-30 hidden -translate-y-1/2 items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-lg transition-all duration-150 group-hover/bubble:opacity-100 group-focus-within/bubble:opacity-100 sm:flex ${
+                                isRight
+                                    ? "right-full mr-2 translate-x-1 opacity-0 group-hover/bubble:translate-x-0 group-focus-within/bubble:translate-x-0"
+                                    : "left-full ml-2 -translate-x-1 opacity-0 group-hover/bubble:translate-x-0 group-focus-within/bubble:translate-x-0"
+                            }`}>
+                                {canCopy && (
                                     <button
                                         type="button"
                                         onClick={handleCopyText}
-                                        className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:outline-none"
                                         title="Copy text"
-                                        aria-label="Copy text"
                                     >
-                                        <Copy className="h-3 w-3" />
+                                        <Copy className="h-3.5 w-3.5" />
+                                        <span>Copy</span>
                                     </button>
                                 )}
-
-                                {/* Edit Message Button (Outgoing only) */}
-                                {isRight && messageType === 'text' && onEditSave && (
+                                {canEdit && (
                                     <button
                                         type="button"
                                         onClick={handleStartEdit}
-                                        className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:outline-none"
                                         title="Edit message"
-                                        aria-label="Edit message"
                                     >
-                                        <Pencil className="h-3 w-3" />
+                                        <Pencil className="h-3.5 w-3.5" />
+                                        <span>Edit</span>
                                     </button>
                                 )}
-
-                                {/* Delete Message Button (Outgoing only) */}
-                                {isRight && onDeleteConfirm && (
+                                {canDelete && (
                                     <button
                                         type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
+                                        onClick={(event) => {
+                                            event.stopPropagation();
                                             setIsConfirmingDelete(true);
                                         }}
-                                        className="p-1 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 focus-visible:bg-destructive/10 focus-visible:outline-none"
                                         title="Delete message"
-                                        aria-label="Delete message"
                                     >
-                                        <Trash2 className="h-3 w-3" />
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <span>Delete</span>
                                     </button>
                                 )}
                             </div>
                         )}
 
-                        {/* Mobile 3-Dot Trigger Button (Touch Devices) */}
-                        {!isDeleted && !isEditing && !isConfirmingDelete && (
-                            <div className="absolute top-1 right-1 sm:hidden z-20">
+                        {/* Touch: use a compact menu without sacrificing its actions. */}
+                        {canShowActions && (
+                            <div ref={actionsRef} className="absolute right-1 top-1 z-30 sm:hidden">
                                 <button
+                                    ref={actionTriggerRef}
                                     type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setShowActionsMenu(!showActionsMenu);
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setShowActionsMenu((isOpen) => !isOpen);
                                     }}
-                                    className={`p-1 rounded-full transition-all ${
-                                        isRight
-                                            ? "text-primary-foreground/70 hover:text-primary-foreground bg-black/10 active:bg-black/20"
-                                            : "text-muted-foreground hover:text-foreground bg-muted/50 active:bg-muted"
+                                    className={`grid h-8 w-8 place-items-center rounded-full border shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                                        showActionsMenu
+                                            ? "scale-100 opacity-100 bg-card text-foreground border-border"
+                                            : "scale-95 bg-card/95 text-muted-foreground border-border/80 hover:bg-muted hover:text-foreground"
                                     }`}
-                                    aria-label="Message options"
+                                    aria-label="Open message actions"
+                                    aria-haspopup="menu"
+                                    aria-expanded={showActionsMenu}
                                 >
-                                    <MoreHorizontal className="h-3.5 w-3.5" />
+                                    <MoreHorizontal className="h-4 w-4" />
                                 </button>
+
+                                <AnimatePresence>
+                                    {showActionsMenu && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.96, y: 4 }}
+                                            transition={{ duration: 0.14, ease: "easeOut" }}
+                                            className="absolute bottom-full right-0 mb-2 flex min-w-[184px] flex-col overflow-hidden rounded-2xl border border-border bg-card p-1.5 text-card-foreground shadow-xl"
+                                            role="menu"
+                                            aria-label="Message actions"
+                                            onClick={(event) => event.stopPropagation()}
+                                            onKeyDown={handleMenuKeyDown}
+                                        >
+                                            <p className="px-2.5 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                                Message
+                                            </p>
+                                            {canCopy && (
+                                                <button
+                                                    ref={firstActionRef}
+                                                    type="button"
+                                                    onClick={handleCopyText}
+                                                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                                                    role="menuitem"
+                                                >
+                                                    <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    <span>Copy text</span>
+                                                </button>
+                                            )}
+                                            {canEdit && (
+                                                <button
+                                                    ref={canCopy ? undefined : firstActionRef}
+                                                    type="button"
+                                                    onClick={handleStartEdit}
+                                                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                                                    role="menuitem"
+                                                >
+                                                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    <span>Edit message</span>
+                                                </button>
+                                            )}
+                                            {canDelete && (
+                                                <div className="mt-1 border-t border-border pt-1">
+                                                    <button
+                                                        ref={!canCopy && !canEdit ? firstActionRef : undefined}
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            setShowActionsMenu(false);
+                                                            setIsConfirmingDelete(true);
+                                                        }}
+                                                        className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 focus-visible:bg-destructive/10 focus-visible:outline-none"
+                                                        role="menuitem"
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                        <span>Delete message</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         )}
-
-                        {/* Mobile Context Actions Popover / Menu */}
-                        <AnimatePresence>
-                            {showActionsMenu && !isDeleted && (
-                                <motion.div
-                                    ref={menuRef}
-                                    initial={{ opacity: 0, scale: 0.9, y: 4 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 4 }}
-                                    transition={{ duration: 0.15 }}
-                                    className={`absolute ${
-                                        isRight ? "right-0" : "left-0"
-                                    } bottom-full mb-2 z-50 min-w-[140px] bg-card text-card-foreground border border-border rounded-2xl p-1.5 shadow-xl backdrop-blur-xl flex flex-col gap-0.5`}
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    {messageType === 'text' && (
-                                        <button
-                                            type="button"
-                                            onClick={handleCopyText}
-                                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl hover:bg-muted text-foreground transition-colors cursor-pointer text-left"
-                                        >
-                                            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
-                                            <span>Copy Text</span>
-                                        </button>
-                                    )}
-
-                                    {isRight && messageType === 'text' && onEditSave && (
-                                        <button
-                                            type="button"
-                                            onClick={handleStartEdit}
-                                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl hover:bg-muted text-foreground transition-colors cursor-pointer text-left"
-                                        >
-                                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                                            <span>Edit Message</span>
-                                        </button>
-                                    )}
-
-                                    {isRight && onDeleteConfirm && (
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setShowActionsMenu(false);
-                                                setIsConfirmingDelete(true);
-                                            }}
-                                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl hover:bg-destructive/10 text-destructive transition-colors cursor-pointer text-left"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                            <span>Delete Message</span>
-                                        </button>
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
 
                         {/* Viewport-Safe Inline Delete Confirmation Card */}
                         <AnimatePresence>
@@ -329,18 +399,25 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                     initial={{ opacity: 0, scale: 0.95, y: 4 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95, y: 4 }}
-                                    className="mb-2 p-3 rounded-2xl bg-card border border-destructive/30 text-card-foreground shadow-lg flex flex-col gap-2.5 z-40 max-w-[280px] sm:max-w-[320px]"
+                                    className={`absolute bottom-full z-40 mb-2 flex w-[min(320px,calc(100vw-3rem))] flex-col gap-3 rounded-2xl border border-destructive/30 bg-card p-3.5 text-card-foreground shadow-xl ${
+                                        isRight ? "right-0" : "left-0"
+                                    }`}
                                     onClick={(e) => e.stopPropagation()}
+                                    role="dialog"
+                                    aria-modal="false"
+                                    aria-labelledby={`delete-message-title-${messageId}`}
+                                    aria-describedby={`delete-message-description-${messageId}`}
                                 >
-                                    <div className="flex items-center gap-2 text-destructive font-semibold text-xs">
+                                    <div id={`delete-message-title-${messageId}`} className="flex items-center gap-2 text-destructive font-semibold text-xs">
                                         <AlertCircle className="h-4 w-4 shrink-0" />
-                                        <span>Delete this message?</span>
+                                        <span>Delete for everyone?</span>
                                     </div>
-                                    <p className="text-[11px] text-muted-foreground leading-tight">
-                                        This message will be deleted for everyone in this chat.
+                                    <p id={`delete-message-description-${messageId}`} className="text-[11px] leading-relaxed text-muted-foreground">
+                                        This can’t be undone. Everyone in this chat will see that a message was removed.
                                     </p>
                                     <div className="flex items-center justify-end gap-2 pt-1 border-t border-border/50">
                                         <button
+                                            ref={cancelDeleteRef}
                                             type="button"
                                             disabled={isSubmitting}
                                             onClick={() => setIsConfirmingDelete(false)}
@@ -362,7 +439,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                             ) : (
                                                 <>
                                                     <Trash2 className="h-3 w-3" />
-                                                    <span>Delete</span>
+                                                    <span>Delete message</span>
                                                 </>
                                             )}
                                         </button>
@@ -396,21 +473,22 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                 </div>
                             ) : isEditing ? (
                                 /* --- ENHANCED INLINE EDITING INTERFACE --- */
-                                <div className="flex flex-col gap-2.5 w-full">
-                                    <div className="flex items-center justify-between text-[11px] font-semibold text-primary">
-                                        <span className="flex items-center gap-1">
-                                            <Pencil className="h-3 w-3" />
-                                            <span>Editing message</span>
+                                <div className="flex w-full flex-col gap-3">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="flex items-center gap-1.5 text-[11px] font-semibold text-primary">
+                                            <Pencil className="h-3.5 w-3.5" />
+                                            <span>Edit message</span>
                                         </span>
-                                        <span className="text-muted-foreground text-[10px] font-mono">
-                                            {editedText.length} chars
+                                        <span className="text-[10px] font-medium tabular-nums text-muted-foreground">
+                                            {editedText.length} / 5000
                                         </span>
                                     </div>
                                     <textarea
                                         ref={textareaRef}
                                         value={editedText}
                                         onChange={(e) => setEditedText(e.target.value)}
-                                        className="w-full bg-background text-foreground border border-input rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none custom-scrollbar leading-relaxed"
+                                        maxLength={5000}
+                                        className="w-full resize-none rounded-xl border border-input bg-background p-3 text-sm leading-relaxed text-foreground shadow-inner outline-none transition-shadow placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/40 custom-scrollbar"
                                         placeholder="Edit your message..."
                                         autoFocus
                                         disabled={isSubmitting}
@@ -424,9 +502,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                             }
                                         }}
                                     />
-                                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50">
-                                        <span className="text-[10px] text-muted-foreground hidden sm:inline">
-                                            Press <kbd className="px-1 py-0.5 bg-muted rounded font-mono text-[9px]">Enter</kbd> to save, <kbd className="px-1 py-0.5 bg-muted rounded font-mono text-[9px]">Esc</kbd> to cancel
+                                    <div className="flex items-center justify-between gap-2 border-t border-border/50 pt-2">
+                                        <span className="hidden text-[10px] text-muted-foreground sm:inline">
+                                            <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[9px]">Enter</kbd> save · <kbd className="rounded bg-muted px-1 py-0.5 font-mono text-[9px]">Shift + Enter</kbd> new line
                                         </span>
                                         <div className="flex items-center gap-2 ml-auto">
                                             <button
@@ -436,7 +514,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                                     setIsEditing(false);
                                                     setEditedText(message);
                                                 }}
-                                                className="px-3 py-1.5 text-xs rounded-xl hover:bg-muted font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                                                className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 <X className="h-3.5 w-3.5" />
                                                 <span>Cancel</span>
@@ -445,7 +523,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                                 type="button"
                                                 disabled={!editedText.trim() || editedText.trim() === message || isSubmitting}
                                                 onClick={handleSaveEdit}
-                                                className="px-3.5 py-1.5 text-xs rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold disabled:opacity-50 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                                                className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 {isSubmitting ? (
                                                     <>
@@ -467,7 +545,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                     {/* --- TEXT MESSAGE --- */}
                                     {messageType === 'text' && (
                                         <div className="space-y-1">
-                                            <p className="whitespace-pre-wrap select-text font-normal pr-4 sm:pr-0">{message}</p>
+                                            <p className="whitespace-pre-wrap select-text font-normal pr-8 sm:pr-0">{message}</p>
                                             
                                             {/* Inline Timestamp, Edited Badge & Seen Status */}
                                             <div
@@ -492,9 +570,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
                                     {/* --- IMAGE MESSAGE --- */}
                                     {messageType === 'image' && (
-                                        <div
-                                            className="relative rounded-2xl overflow-hidden cursor-pointer group/img max-w-[320px] sm:max-w-[440px] md:max-w-[500px] border border-border/60 bg-muted/20 shadow-xs"
+                                        <button
+                                            type="button"
+                                            className="relative block max-w-[320px] cursor-pointer overflow-hidden rounded-2xl border border-border/60 bg-muted/20 text-left shadow-xs group/img focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:max-w-[440px] md:max-w-[500px]"
                                             onClick={handleImageClick}
+                                            aria-label="Open image preview"
                                         >
                                             <img
                                                 src={highResMediaUrl}
@@ -522,7 +602,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                                     )
                                                 )}
                                             </div>
-                                        </div>
+                                        </button>
                                     )}
 
                                     {/* --- VIDEO MESSAGE --- */}

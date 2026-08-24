@@ -322,28 +322,38 @@ const Chats: React.FC = () => {
     }, [user, conversation, connectedUsers, id]);
 
     const handleEditMessage = async (messageId: string, newContent: string) => {
-        if (!id || !messageId || !newContent.trim()) return;
+        if (!id || !messageId || !newContent.trim()) {
+            throw new Error('Missing message details');
+        }
         try {
             const res = await editMessage(id, messageId, newContent.trim());
             if (res && res.data) {
                 handleMessageEdited(id, res.data);
                 socket.emit('edit message', id, res.data);
+                return;
             }
+            throw new Error('The message could not be updated');
         } catch (err) {
             console.error('Failed to edit message:', err);
+            throw err;
         }
     };
 
     const handleDeleteMessage = async (messageId: string) => {
-        if (!id || !messageId) return;
+        if (!id || !messageId) {
+            throw new Error('Missing message details');
+        }
         try {
             const res = await deleteMessage(id, messageId);
             if (res && res.data) {
                 handleMessageDeleted(id, res.data);
                 socket.emit('delete message', id, res.data);
+                return;
             }
+            throw new Error('The message could not be deleted');
         } catch (err) {
             console.error('Failed to delete message:', err);
+            throw err;
         }
     };
 
