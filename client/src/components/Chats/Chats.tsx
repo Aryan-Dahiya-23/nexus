@@ -178,7 +178,7 @@ const Chats: React.FC = () => {
         const prevScroll = container ? container.scrollTop : 0;
 
         try {
-            const res = await fetchConversationMessages(id, earliestMsg.createdAt, 30);
+            const res = await fetchConversationMessages(id, earliestMsg.createdAt, 10);
             if (res && Array.isArray(res.messages) && res.messages.length > 0) {
                 // Deduplicate incoming older messages
                 const existingIds = new Set(conversation.messages.map(m => m._id).filter(Boolean));

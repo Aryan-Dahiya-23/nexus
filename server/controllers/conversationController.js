@@ -64,7 +64,7 @@ export const getConversation = async (req, res) => {
     try {
         const { conversationId } = req.params;
         const currentUserId = req.user._id;
-        const INITIAL_MESSAGE_LIMIT = 30;
+        const INITIAL_MESSAGE_LIMIT = 10;
 
         if (!isValidObjectId(conversationId)) {
             return res.status(400).json({ error: true, message: 'Invalid conversation ID' });
@@ -428,7 +428,7 @@ export const getConversationMessages = async (req, res) => {
     try {
         const { conversationId } = req.params;
         const currentUserId = req.user._id;
-        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 30, 1), 100);
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
         const { before } = req.query;
 
         if (!isValidObjectId(conversationId)) {

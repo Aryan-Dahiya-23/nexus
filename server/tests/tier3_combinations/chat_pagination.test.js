@@ -32,19 +32,47 @@ describe('Tier 3: End-to-End Chat Pagination & Infinite Scroll', () => {
         userC = seedUser({ fullName: 'Charlie Davis', email: 'charlie@nexus.app' });
     });
 
-    it('1. Opening chat with <= 30 messages loads all messages and sets hasMore to false', async () => {
+    it('1. Opening chat with <= 10 messages loads all messages and sets hasMore to false', async () => {
         const conversation = seedConversation({
             type: 'personal',
             participants: [userA._id, userB._id]
         });
 
-        // Seed 10 messages
-        for (let i = 1; i <= 10; i++) {
+        // Seed 8 messages
+        for (let i = 1; i <= 8; i++) {
             seedMessage({
                 conversationId: conversation._id,
                 senderId: i % 2 === 0 ? userA._id : userB._id,
                 content: `Message ${i}`,
-                createdAt: new Date(Date.now() - (10 - i) * 60000)
+                createdAt: new Date(Date.now() - (8 - i) * 60000)
+            });
+        }
+
+        const agentA = createAuthenticatedAgent(app, userA);
+        const res = await agentA.get(`/conversation/${conversation._id}`);
+
+        assert.equal(res.status, 200);
+        assert.equal(res.body.error, false);
+        assert.equal(res.body.messages.length, 8);
+        assert.equal(res.body.hasMore, false);
+        assert.equal(res.body.totalMessagesCount, 8);
+        assert.equal(res.body.messages[0].content, 'Message 1');
+        assert.equal(res.body.messages[7].content, 'Message 8');
+    });
+
+    it('2. Opening chat with 25 messages loads only the latest 10 messages and sets hasMore to true', async () => {
+        const conversation = seedConversation({
+            type: 'personal',
+            participants: [userA._id, userB._id]
+        });
+
+        // Seed 25 messages
+        for (let i = 1; i <= 25; i++) {
+            seedMessage({
+                conversationId: conversation._id,
+                senderId: i % 2 === 0 ? userA._id : userB._id,
+                content: `Message ${i}`,
+                createdAt: new Date(Date.now() - (25 - i) * 60000)
             });
         }
 
@@ -54,55 +82,27 @@ describe('Tier 3: End-to-End Chat Pagination & Infinite Scroll', () => {
         assert.equal(res.status, 200);
         assert.equal(res.body.error, false);
         assert.equal(res.body.messages.length, 10);
-        assert.equal(res.body.hasMore, false);
-        assert.equal(res.body.totalMessagesCount, 10);
-        assert.equal(res.body.messages[0].content, 'Message 1');
-        assert.equal(res.body.messages[9].content, 'Message 10');
-    });
-
-    it('2. Opening chat with 50 messages loads only the latest 30 messages and sets hasMore to true', async () => {
-        const conversation = seedConversation({
-            type: 'personal',
-            participants: [userA._id, userB._id]
-        });
-
-        // Seed 50 messages
-        for (let i = 1; i <= 50; i++) {
-            seedMessage({
-                conversationId: conversation._id,
-                senderId: i % 2 === 0 ? userA._id : userB._id,
-                content: `Message ${i}`,
-                createdAt: new Date(Date.now() - (50 - i) * 60000)
-            });
-        }
-
-        const agentA = createAuthenticatedAgent(app, userA);
-        const res = await agentA.get(`/conversation/${conversation._id}`);
-
-        assert.equal(res.status, 200);
-        assert.equal(res.body.error, false);
-        assert.equal(res.body.messages.length, 30);
         assert.equal(res.body.hasMore, true);
-        assert.equal(res.body.totalMessagesCount, 50);
+        assert.equal(res.body.totalMessagesCount, 25);
 
-        // Initial chunk contains messages 21 to 50
-        assert.equal(res.body.messages[0].content, 'Message 21');
-        assert.equal(res.body.messages[29].content, 'Message 50');
+        // Initial chunk contains messages 16 to 25
+        assert.equal(res.body.messages[0].content, 'Message 16');
+        assert.equal(res.body.messages[9].content, 'Message 25');
     });
 
-    it('3. Scrolling up: fetchConversationMessages loads previous page of older messages', async () => {
+    it('3. Scrolling up: fetchConversationMessages loads previous page of older messages in batches of 10', async () => {
         const conversation = seedConversation({
             type: 'personal',
             participants: [userA._id, userB._id]
         });
 
-        // Seed 50 messages
-        for (let i = 1; i <= 50; i++) {
+        // Seed 25 messages
+        for (let i = 1; i <= 25; i++) {
             seedMessage({
                 conversationId: conversation._id,
                 senderId: i % 2 === 0 ? userA._id : userB._id,
                 content: `Message ${i}`,
-                createdAt: new Date(Date.now() - (50 - i) * 60000)
+                createdAt: new Date(Date.now() - (25 - i) * 60000)
             });
         }
 
@@ -110,15 +110,25 @@ describe('Tier 3: End-to-End Chat Pagination & Infinite Scroll', () => {
         const initialRes = await agentA.get(`/conversation/${conversation._id}`);
         const earliestMessage = initialRes.body.messages[0];
 
-        // Fetch older messages before the earliest message
-        const olderRes = await agentA.get(`/conversation/${conversation._id}/messages?before=${earliestMessage.createdAt}&limit=30`);
+        // Fetch older messages before the earliest message (batch 2: messages 6 to 15)
+        const olderRes = await agentA.get(`/conversation/${conversation._id}/messages?before=${earliestMessage.createdAt}&limit=10`);
 
         assert.equal(olderRes.status, 200);
         assert.equal(olderRes.body.error, false);
-        assert.equal(olderRes.body.messages.length, 20); // Remaining 20 messages (1 to 20)
-        assert.equal(olderRes.body.hasMore, false); // No more older messages
-        assert.equal(olderRes.body.messages[0].content, 'Message 1');
-        assert.equal(olderRes.body.messages[19].content, 'Message 20');
+        assert.equal(olderRes.body.messages.length, 10);
+        assert.equal(olderRes.body.hasMore, true); // Still messages 1 to 5 left
+        assert.equal(olderRes.body.messages[0].content, 'Message 6');
+        assert.equal(olderRes.body.messages[9].content, 'Message 15');
+
+        // Fetch final older messages (batch 3: messages 1 to 5)
+        const finalRes = await agentA.get(`/conversation/${conversation._id}/messages?before=${olderRes.body.messages[0].createdAt}&limit=10`);
+
+        assert.equal(finalRes.status, 200);
+        assert.equal(finalRes.body.error, false);
+        assert.equal(finalRes.body.messages.length, 5);
+        assert.equal(finalRes.body.hasMore, false); // Reached beginning
+        assert.equal(finalRes.body.messages[0].content, 'Message 1');
+        assert.equal(finalRes.body.messages[4].content, 'Message 5');
     });
 
     it('4. Non-participant User C is forbidden from reading paginated messages', async () => {
