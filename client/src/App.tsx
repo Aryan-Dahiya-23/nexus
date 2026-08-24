@@ -56,10 +56,12 @@ const App = () => {
           />
           <Suspense fallback={<PageFallback />}>
             <Routes>
-              {/* Public-only routes (accessible only for logged out users) */}
+              {/* Public showcase pages: instant 0ms render, non-blocking for cold starts */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/landing" element={<LandingPage />} />
+
+              {/* Public-only authentication route (for guests; logged-in users get redirected to /chats) */}
               <Route element={<PublicOnlyRoute />}>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
               </Route>
 

@@ -97,6 +97,11 @@ export const pingServerHealth = async (): Promise<boolean> => {
         const response = await apiClient.get("/auth/health", { timeout: 60000 });
         return response.status === 200;
     } catch {
-        return false;
+        try {
+            const fallback = await apiClient.get("/health/live", { timeout: 60000 });
+            return fallback.status === 200;
+        } catch {
+            return false;
+        }
     }
 };

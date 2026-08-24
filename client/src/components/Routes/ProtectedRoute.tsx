@@ -11,7 +11,10 @@ export const ProtectedRoute: React.FC = () => {
     const { user, setUser, setLoggedIn } = useContext(AuthContext);
     const [isSlowLoading, setIsSlowLoading] = useState<boolean>(false);
 
-    const { data, isLoading, isError, error, refetch } = useQuery<User, { response?: { status?: number }; code?: string; message?: string }>({
+    const { data, isLoading, isError, error, refetch } = useQuery<
+        User,
+        { response?: { status?: number }; code?: string; message?: string }
+    >({
         queryKey: ['user'],
         queryFn: verify,
         staleTime: 5 * 60 * 1000,
@@ -30,7 +33,7 @@ export const ProtectedRoute: React.FC = () => {
         if (isLoading && !user) {
             const timer = setTimeout(() => {
                 setIsSlowLoading(true);
-            }, 2500);
+            }, 1500);
             return () => clearTimeout(timer);
         } else {
             setIsSlowLoading(false);
@@ -57,7 +60,7 @@ export const ProtectedRoute: React.FC = () => {
         );
     }
 
-    // Normal fast loading spinner for the first 2.5 seconds
+    // Normal fast loading spinner for the first 1.5 seconds
     if (isLoading && !user) {
         return (
             <div className="flex justify-center items-center h-[100dvh] w-full bg-background text-foreground">
