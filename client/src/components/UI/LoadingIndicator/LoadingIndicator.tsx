@@ -1,12 +1,25 @@
-import "../LoadingIndicator/loadingIndicator.css";
+import { Loader2 } from "lucide-react";
 
-const LoadingIndicator = () => {
+interface LoadingIndicatorProps {
+  size?: "sm" | "default" | "lg";
+  className?: string;
+}
+
+const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ size = "default", className = "" }) => {
+  const sizeClasses = {
+    sm: "h-5 w-5",
+    default: "h-8 w-8",
+    lg: "h-12 w-12",
+  };
+
   return (
-    <div className="lds-ring">
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
+    <div
+      role="status"
+      aria-label="Loading"
+      className={`relative flex items-center justify-center ${className}`}
+    >
+      <Loader2 className={`${sizeClasses[size]} animate-spin text-primary stroke-[2.5]`} />
+      <span className="sr-only">Loading...</span>
     </div>
   );
 };

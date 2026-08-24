@@ -70,9 +70,5 @@ export default {
       },
     },
   },
-  daisyui: {
-    themes: ["light", "dark", "cupcake"],
-  },
-  plugins: [require("tailwindcss-animate"), require("daisyui")],
-}
-
+  plugins: [require("tailwindcss-animate")],
+};

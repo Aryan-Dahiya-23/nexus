@@ -1,11 +1,8 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "react-toastify"
-import { BsFillChatDotsFill } from "react-icons/bs";
-import { MdPeopleAlt } from "react-icons/md"
-import { IoLogOutOutline } from "react-icons/io5"
-import RingAvatar from "../Avatar/RingAvatar";
+import { toast } from "react-toastify";
+import { MessageSquare, Users, LogOut } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
@@ -14,9 +11,10 @@ import { fetchPeople } from "../../api/auth";
 
 import ThemeToggle from "../UI/ThemeToggle";
 
-const MobileNavigation = () => {
+const DEFAULT_AVATAR = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
 
-    const navigate = useNavigate()
+const MobileNavigation = () => {
+    const navigate = useNavigate();
     const { user } = useContext(AuthContext);
     const { setLogoutLoading } = useContext(ThemeContext);
 
@@ -34,26 +32,26 @@ const MobileNavigation = () => {
             setLogoutLoading(false);
             document.body.classList.remove('unclickable');
         },
-    })
+    });
 
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
-        })
-    }
+        });
+    };
 
     const navigateHome = () => {
         if (window.location.pathname === '/chats')
             scrollToTop();
         navigate("/chats");
-    }
+    };
 
     const navigatePeople = () => {
         if (window.location.pathname === '/people')
             scrollToTop();
         navigate("/people");
-    }
+    };
 
     const handleLogout = () => {
         mutate();
@@ -74,7 +72,9 @@ const MobileNavigation = () => {
 
     return (
         <div className="flex fixed bottom-0 h-16 bg-card/90 backdrop-blur-xl z-50 px-4 border-t border-border flex-row justify-around items-center w-full md:hidden transition-colors">
-            <div
+            <button
+                type="button"
+                aria-label="Messages"
                 className={`p-2.5 rounded-xl cursor-pointer transition-all ${
                     isHomeActive
                         ? 'bg-primary/15 text-primary scale-105'
@@ -82,10 +82,12 @@ const MobileNavigation = () => {
                 }`}
                 onClick={navigateHome}
             >
-                <BsFillChatDotsFill className="h-5 w-5" />
-            </div>
+                <MessageSquare className="h-5 w-5" />
+            </button>
 
-            <div
+            <button
+                type="button"
+                aria-label="People Directory"
                 className={`p-2.5 rounded-xl cursor-pointer transition-all ${
                     isPeopleActive
                         ? 'bg-primary/15 text-primary scale-105'
@@ -94,25 +96,31 @@ const MobileNavigation = () => {
                 onClick={navigatePeople}
                 onTouchMove={prefetch}
             >
-                <MdPeopleAlt className="h-5 w-5" />
-            </div>
+                <Users className="h-5 w-5" />
+            </button>
 
             <div className="p-1 flex items-center justify-center">
                 <ThemeToggle />
             </div>
 
-            <div
+            <button
+                type="button"
                 className="p-2.5 rounded-xl cursor-pointer text-muted-foreground hover:text-rose-500 transition-colors"
                 onClick={handleLogout}
                 title="Log Out"
+                aria-label="Log Out"
             >
-                <IoLogOutOutline className="h-5 w-5" />
-            </div>
+                <LogOut className="h-5 w-5" />
+            </button>
 
-            <div className="p-1 ring-2 ring-primary/30 rounded-full">
-                <RingAvatar
-                    imgSrc={user?.picture || ""}
-                    type="navigation"
+            <div className="p-0.5 ring-2 ring-primary/30 rounded-full">
+                <img
+                    src={user?.picture || DEFAULT_AVATAR}
+                    alt={user?.fullName || "User profile"}
+                    className="h-8 w-8 rounded-full object-cover"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                    }}
                 />
             </div>
         </div>

@@ -44,10 +44,21 @@ const UsersItems: React.FC<UsersItemsProps> = ({
         });
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            navigateToChat();
+        }
+    };
+
     return (
         <div
-            className="flex flex-row items-center w-full px-3 py-2.5 rounded-xl space-x-3 hover:bg-muted/70 cursor-pointer transition-colors"
+            role="button"
+            tabIndex={0}
+            aria-label={`Conversation with ${username}`}
+            className="flex flex-row items-center w-full px-3 py-2.5 rounded-2xl space-x-3 hover:bg-muted/70 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
             onClick={navigateToChat}
+            onKeyDown={handleKeyDown}
             onMouseEnter={prefetch}
             onTouchMove={prefetch}
             onFocus={prefetch}
@@ -81,11 +92,13 @@ const UsersItems: React.FC<UsersItemsProps> = ({
                 </div>
 
                 <div className="w-full flex items-center justify-between mt-0.5">
-                    <p className={`text-xs truncate max-w-[85%] ${messageUnseen ? 'text-foreground font-semibold dark:text-cyan-300' : 'text-muted-foreground'}`}>
+                    <p className={`text-xs truncate max-w-[85%] ${messageUnseen ? 'text-foreground font-semibold dark:text-primary' : 'text-muted-foreground'}`}>
                         {lastMessage}
                     </p>
                     {messageUnseen && (
-                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse shrink-0" />
+                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse shrink-0">
+                            <span className="sr-only">Unread message</span>
+                        </span>
                     )}
                 </div>
             </div>

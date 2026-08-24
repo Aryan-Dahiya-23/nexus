@@ -1,7 +1,7 @@
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { MdOutlineGroupAdd } from "react-icons/md";
+import { UserPlus } from "lucide-react";
 import IncomingVideoCallWidget from "../Widgets/IncomingVideoCallWidget";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -202,7 +202,7 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                         title="New Group Chat"
                         aria-label="Create New Group Chat"
                     >
-                        <MdOutlineGroupAdd className="h-6 w-6 text-primary hover:scale-105 transition-transform" />
+                        <UserPlus className="h-5 w-5 text-primary hover:scale-105 transition-transform" />
                     </button>
                 </div>
             </div>

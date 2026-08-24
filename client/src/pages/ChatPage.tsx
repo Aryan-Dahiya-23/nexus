@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import DesktopNavigation from "../components/Navigation/DesktopNavigation";
-import MobileNavigation from "../components/Navigation/MobileNavigation";
 import Users from "../components/Users/Users";
 import Chats from "../components/Chats/Chats";
 import LoadingIndicator from "../components/UI/LoadingIndicator/LoadingIndicator";
@@ -21,21 +20,20 @@ const ChatPage = () => {
             {imageWidget && <ImageWidget />}
 
             {logoutLoading && (
-                <div className="fixed top-[40%] left-[45%] md:top-[40%] md:left-[50%] z-50">
-                    <LoadingIndicator />
+                <div className="fixed inset-0 flex items-center justify-center bg-background/50 backdrop-blur-xs z-50 pointer-events-none">
+                    <LoadingIndicator size="lg" />
                 </div>
             )}
 
             {/* Desktop / Tablet side-by-side view */}
-            <div className={`hidden md:flex md:flex-row ${isDimmed ? "opacity-70" : ""}`}>
+            <div className={`hidden md:flex md:flex-row h-[100dvh] w-full bg-background text-foreground overflow-hidden ${isDimmed ? "opacity-70" : ""}`}>
                 <DesktopNavigation />
-                <MobileNavigation />
                 <Users />
                 <Chats />
             </div>
 
             {/* Mobile full-screen chat view */}
-            <div className={`flex flex-col md:hidden w-full h-[100dvh] ${isDimmed ? "opacity-70" : ""}`}>
+            <div className={`flex flex-col md:hidden w-full h-[100dvh] bg-background text-foreground overflow-hidden ${isDimmed ? "opacity-70" : ""}`}>
                 <Chats />
             </div>
         </>

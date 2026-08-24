@@ -9,7 +9,7 @@ const EmptyModal: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="hidden md:flex flex-col justify-center items-center flex-1 h-[100vh] border-l border-border bg-background/40 backdrop-blur-md p-8 text-center relative overflow-hidden transition-colors">
+        <div className="hidden md:flex flex-col justify-center items-center flex-1 h-[100dvh] border-l border-border bg-background/40 backdrop-blur-md p-8 text-center relative overflow-hidden transition-colors">
             {/* Ambient subtle glow orb */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[300px] bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full" />
 

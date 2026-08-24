@@ -17,14 +17,13 @@ const HomePage = () => {
 
             {groupChatWidget && <GroupChatWidget />}
 
-            {logoutLoading &&
-                <div className="fixed top-[40%] left-[45%] md:top-[40%] md:left-[50%] z-50">
-                    {/* <span className="loading loading-spinner loading-lg text-info"></span> */}
-                    <LoadingIndicator />
+            {logoutLoading && (
+                <div className="fixed inset-0 flex items-center justify-center bg-background/50 backdrop-blur-xs z-50 pointer-events-none">
+                    <LoadingIndicator size="lg" />
                 </div>
-            }
+            )}
 
-            <div className={`h-screen w-full bg-background text-foreground overflow-hidden md:flex md:flex-row transition-colors ${(groupChatWidget || logoutLoading) && "opacity-70"}`}>
+            <div className={`h-[100dvh] w-full bg-background text-foreground overflow-hidden md:flex md:flex-row transition-colors ${(groupChatWidget || logoutLoading) && "opacity-70"}`}>
                 <DesktopNavigation />
                 <MobileNavigation />
                 <Users />

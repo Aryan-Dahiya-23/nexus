@@ -19,8 +19,8 @@ import ProtectedRoute from "./components/Routes/ProtectedRoute";
 import PublicOnlyRoute from "./components/Routes/PublicOnlyRoute";
 
 const PageFallback = () => (
-  <div className="flex justify-center items-center h-screen w-full bg-slate-950 text-white">
-    <LoadingIndicator />
+  <div className="flex justify-center items-center h-[100dvh] w-full bg-background text-foreground">
+    <LoadingIndicator size="lg" />
   </div>
 );
 

@@ -133,7 +133,7 @@ const PeopleItems: React.FC<PeopleItemsProps> = ({
                 ) : (
                     <button
                         type="button"
-                        className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                        className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
                         aria-label={`Chat with ${username}`}
                     >
                         <MessageSquare className="h-3.5 w-3.5" />

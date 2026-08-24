@@ -378,6 +378,9 @@ export const LandingPage: React.FC = () => {
                                                                 src={msg.avatar}
                                                                 alt={msg.name}
                                                                 className="h-6 w-6 sm:h-7 sm:w-7 rounded-full object-cover border border-border shrink-0"
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLImageElement).src = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
+                                                                }}
                                                             />
                                                         )}
                                                         <div
@@ -453,6 +456,7 @@ export const LandingPage: React.FC = () => {
                                                 onClick={() => handleSendMessage('Sent a photo!')}
                                                 className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg sm:rounded-xl hover:bg-muted cursor-pointer shrink-0"
                                                 title="Attach image"
+                                                aria-label="Attach image"
                                             >
                                                 <ImageIcon className="h-4 w-4" />
                                             </button>
@@ -504,6 +508,9 @@ export const LandingPage: React.FC = () => {
                                                             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80"
                                                             alt="Sarah"
                                                             className="h-14 w-14 sm:h-20 sm:w-20 rounded-2xl sm:rounded-3xl object-cover border-2 border-emerald-500 shadow-2xl"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
+                                                            }}
                                                         />
                                                         <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-emerald-500 text-white">
                                                             <Mic className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -560,6 +567,7 @@ export const LandingPage: React.FC = () => {
                                                         : 'bg-muted/80 hover:bg-muted border-border text-foreground'
                                                 }`}
                                                 title={isMuted ? "Unmute" : "Mute"}
+                                                aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
                                             >
                                                 {isMuted ? <MicOff className="h-4.5 w-4.5 sm:h-5 sm:w-5" /> : <Mic className="h-4.5 w-4.5 sm:h-5 sm:w-5" />}
                                             </button>
@@ -573,6 +581,7 @@ export const LandingPage: React.FC = () => {
                                                         : 'bg-muted/80 hover:bg-muted border-border text-foreground'
                                                 }`}
                                                 title={isVideoOff ? "Turn Camera On" : "Turn Camera Off"}
+                                                aria-label={isVideoOff ? "Turn camera on" : "Turn camera off"}
                                             >
                                                 {isVideoOff ? <CameraOff className="h-4.5 w-4.5 sm:h-5 sm:w-5" /> : <Camera className="h-4.5 w-4.5 sm:h-5 sm:w-5" />}
                                             </button>
@@ -586,6 +595,7 @@ export const LandingPage: React.FC = () => {
                                                         : 'bg-muted/80 hover:bg-muted border-border text-foreground'
                                                 }`}
                                                 title="Share Screen"
+                                                aria-label={isScreenSharing ? "Stop sharing screen" : "Share screen"}
                                             >
                                                 <Monitor className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                                             </button>
@@ -594,6 +604,7 @@ export const LandingPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setActiveTab('chat')}
                                                 className="px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-destructive hover:bg-destructive/90 text-white text-xs font-semibold flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-md shadow-destructive/20 transition-all"
+                                                aria-label="End demo call"
                                             >
                                                 <PhoneOff className="h-4 w-4" />
                                                 <span><span className="hidden sm:inline">End </span>Call</span>

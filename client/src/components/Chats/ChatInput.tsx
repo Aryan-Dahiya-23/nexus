@@ -238,7 +238,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                     type="button"
                     id="emojiIcon"
                     onClick={() => setShowEmojis(!showEmojis)}
-                    className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0"
+                    className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer"
                     aria-label="Toggle emoji picker"
                 >
                     <Smile className="h-5 w-5" />

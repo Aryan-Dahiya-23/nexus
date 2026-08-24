@@ -1,3 +1,5 @@
+const DEFAULT_AVATAR = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
+
 interface OfflineAvatarProps {
     height: string;
     width: string;
@@ -20,10 +22,15 @@ const OfflineAvatar: React.FC<OfflineAvatarProps> = ({ height, width, imgSrc }) 
     const size = sizeClasses[width] || sizeClasses[height] || "w-12 h-12";
 
     return (
-        <div className="avatar">
-            <div className={`${size} rounded-full overflow-hidden`}>
-                <img src={imgSrc} alt="profile" />
-            </div>
+        <div className={`${size} rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted`}>
+            <img
+                src={imgSrc || DEFAULT_AVATAR}
+                alt="profile"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                    (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                }}
+            />
         </div>
     );
 };
