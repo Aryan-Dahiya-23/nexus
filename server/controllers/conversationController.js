@@ -61,11 +61,22 @@ export const getZegoToken = async (req, res) => {
             });
         }
 
+        const payloadObject = {
+            room_id: roomId.toString(),
+            privilege: {
+                1: 1, // 1: PrivilegeKeyLogin (1 = allow)
+                2: 1  // 2: PrivilegeKeyPublish (1 = allow)
+            },
+            stream_id_list: null
+        };
+        const payload = JSON.stringify(payloadObject);
+
         const token = generateToken04(
             appID,
             currentUserId.toString(),
             serverSecret,
-            3600
+            3600,
+            payload
         );
 
         res.status(200).json({

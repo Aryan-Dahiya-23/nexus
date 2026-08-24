@@ -21,11 +21,15 @@ const Room = () => {
                 setIsLoading(true);
                 setError(null);
                 const targetRoomId = roomId || 'nexus_room';
+
+                // Ensure any previous static instance is cleared before creating a new one
+                ZegoUIKitPrebuilt.core = undefined;
+
                 const response = await apiClient.get(`/conversation/zego-token/${targetRoomId}`);
                 const { token, appID, userId, userName } = response.data;
 
                 if (!token || !appID) {
-                    throw new Error("Failed to obtain valid token from server");
+                    throw new Error(response.data?.message || "Failed to obtain valid token from server");
                 }
 
                 const kitToken = ZegoUIKitPrebuilt.generateKitTokenForProduction(
@@ -51,12 +55,15 @@ const Room = () => {
                         navigate('/chats');
                     },
                 });
-            } catch (err) {
+            } catch (err: unknown) {
                 console.error("Error initializing video room:", err);
-                setError("Failed to join video room. Redirecting...");
+                const errorMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                    || (err as Error)?.message
+                    || "Failed to join video room.";
+                setError(errorMsg);
                 setTimeout(() => {
                     navigate('/chats');
-                }, 2500);
+                }, 3500);
             }
         };
 
@@ -64,8 +71,13 @@ const Room = () => {
 
         return () => {
             if (zcInstance && typeof zcInstance.destroy === 'function') {
-                zcInstance.destroy();
+                try {
+                    zcInstance.destroy();
+                } catch {
+                    // Ignore cleanup errors
+                }
             }
+            ZegoUIKitPrebuilt.core = undefined;
         };
     }, [roomId, navigate]);
 
