@@ -414,11 +414,11 @@ const Chats: React.FC = () => {
                                 return (
                                     <React.Fragment key={message?._id || index}>
                                         {showDateSeparator && (
-                                             <div className="sticky top-2 z-10 flex justify-center my-3">
-                                                 <span className="px-3 py-1 text-[11px] font-semibold text-muted-foreground bg-card/85 backdrop-blur-md border border-border/80 rounded-full shadow-xs select-none">
-                                                     {formatMessageDate(message.createdAt || new Date().toISOString())}
-                                                 </span>
-                                             </div>
+                                            <div className="w-full flex items-center justify-center my-3.5 sm:my-4 select-none pointer-events-none">
+                                                <span className="px-3.5 py-1 text-[11px] font-medium text-muted-foreground/90 bg-muted/60 dark:bg-card/75 backdrop-blur-md border border-border/70 rounded-full shadow-2xs">
+                                                    {formatMessageDate(message.createdAt || new Date().toISOString())}
+                                                </span>
+                                            </div>
                                         )}
 
                                         <ChatBubble
