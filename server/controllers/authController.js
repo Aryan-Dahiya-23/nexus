@@ -148,19 +148,17 @@ export const people = async (req, res) => {
 export const logout = async (req, res) => {
     req.logout((err) => {
         if (err) {
-            return res.status(500).json({
-                error: true,
-                message: 'Internal Server Error during logout',
-            });
+            console.error("Passport logout error:", err);
         }
 
         if (req.session) {
-            req.session.destroy(() => {
-                res.clearCookie('connect.sid');
+            req.session.destroy((sessionErr) => {
+                if (sessionErr) console.error("Session destroy error:", sessionErr);
+                res.clearCookie('connect.sid', { path: '/' });
                 res.status(204).end();
             });
         } else {
-            res.clearCookie('connect.sid');
+            res.clearCookie('connect.sid', { path: '/' });
             res.status(204).end();
         }
     });

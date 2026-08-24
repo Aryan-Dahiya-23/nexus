@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { MessageSquare, Users, LogOut } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -11,28 +10,14 @@ import { fetchPeople } from "../../api/auth";
 
 import ThemeToggle from "../UI/ThemeToggle";
 
+import socket from "../../utils/socket";
+
 const DEFAULT_AVATAR = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
 
 const MobileNavigation = () => {
     const navigate = useNavigate();
-    const { user } = useContext(AuthContext);
+    const { user, setUser, setLoggedIn, setUserConnected, setConnectedUsers } = useContext(AuthContext);
     const { setLogoutLoading } = useContext(ThemeContext);
-
-    const { mutate } = useMutation({
-        mutationFn: logout,
-        onMutate: () => {
-            setLogoutLoading(true);
-        },
-        onSuccess: async () => {
-            queryClient.invalidateQueries();
-            navigate("/login");
-            toast.success("You've been successfully logged out.");
-        },
-        onSettled: async () => {
-            setLogoutLoading(false);
-            document.body.classList.remove('unclickable');
-        },
-    });
 
     const scrollToTop = () => {
         window.scrollTo({
@@ -54,8 +39,31 @@ const MobileNavigation = () => {
     };
 
     const handleLogout = () => {
-        mutate();
-        document.body.classList.add('unclickable');
+        // 1. Instantly reset client auth state
+        setUser(undefined);
+        setLoggedIn(false);
+        setUserConnected(false);
+        setConnectedUsers([]);
+
+        // 2. Clear React Query cache immediately
+        queryClient.removeQueries({ queryKey: ['user'] });
+        queryClient.clear();
+
+        // 3. Disconnect real-time socket
+        socket.disconnect();
+
+        // 4. Clean up any UI locks
+        setLogoutLoading(false);
+        document.body.classList.remove('unclickable');
+
+        // 5. Instantly redirect back to home page
+        navigate('/', { replace: true });
+        toast.success("You've been successfully logged out.");
+
+        // 6. Perform backend session teardown in the background
+        logout().catch((err) => {
+            console.error("Error logging out from server:", err);
+        });
     };
 
     const prefetch = () => {
