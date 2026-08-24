@@ -4,13 +4,15 @@ Nexus is a real-time collaboration app for direct messaging, group conversations
 
 ## Product preview
 
-Nexus includes a public landing page and an authenticated chat workspace:
+Nexus includes a public landing page, a sign-in flow, and a seeded chat demonstration:
 
 ![Nexus landing page](docs/screenshots/landing.jpg)
 
-![Nexus authenticated chat workspace](docs/screenshots/actual-chat.png)
+| Sign in | Public chat demo |
+| --- | --- |
+| ![Nexus sign-in page](docs/screenshots/sign-in.jpg) | ![Nexus public chat demonstration](docs/screenshots/public-chat-demo.jpg) |
 
-The chat screenshot is captured from the authenticated product. The landing image is the public entry point. Both assets are included in the repository so the README remains portable.
+All screenshots are public or seeded demo states. No production conversations or database-backed user messages are included in this repository preview.
 
 ## What is included
 
