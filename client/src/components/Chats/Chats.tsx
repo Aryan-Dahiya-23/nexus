@@ -292,22 +292,29 @@ const Chats: React.FC = () => {
     useEffect(() => {
         if (user && Array.isArray(user.conversations)) {
             user.conversations.forEach((userConv: UserConversationRef) => {
-                if (userConv.conversation._id === id) {
+                if (userConv?.conversation?._id === id) {
                     if (userConv.conversation.type === 'personal') {
-                        setReceiverName(userConv.conversation.participants[0].fullName);
-                        setReceiverAvatarSrc([userConv.conversation.participants[0].picture]);
+                        const otherParticipant = userConv.conversation.participants?.[0];
+                        const pName = otherParticipant?.fullName || 'Nexus User';
+                        const pPic = otherParticipant?.picture || '';
+                        setReceiverName(pName);
+                        setReceiverAvatarSrc(pPic ? [pPic] : []);
                         setConversationType('personal');
-                        if (connectedUsers.length > 0 && connectedUsers.includes(userConv.conversation.participants[0]._id)) {
+                        if (otherParticipant?._id && connectedUsers.length > 0 && connectedUsers.includes(otherParticipant._id)) {
                             setReceiverOnline(true);
                         } else {
                             setReceiverOnline(false);
                         }
                     } else {
-                        setReceiverName(userConv.conversation.name || '');
+                        setReceiverName(userConv.conversation.name || 'Group Chat');
+                        const participantPics = Array.isArray(userConv.conversation.participants)
+                            ? userConv.conversation.participants.map((participant: Participant) => participant?.picture).filter(Boolean)
+                            : [];
                         setReceiverAvatarSrc([
-                            ...userConv.conversation.participants.map((participant: Participant) => participant.picture),
-                            user.picture
+                            ...participantPics,
+                            user.picture || ''
                         ]);
+                        setConversationType('group');
                     }
                 }
             });

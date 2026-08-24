@@ -28,7 +28,7 @@ const GroupChatWidget = () => {
     const [nameError, setNameError] = useState<string | null>(null);
     const [membersError, setMembersError] = useState<string | null>(null);
 
-    const isOpen = groupChatWidget || true;
+    const isOpen = Boolean(groupChatWidget);
 
     const {
         data,

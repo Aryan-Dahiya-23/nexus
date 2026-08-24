@@ -165,7 +165,7 @@ describe('Tier 1: Feature Coverage — Edit & Delete Message Lifecycle & IDOR Bo
                 clientA.close();
                 clientB.close();
                 reject(new Error('Timeout waiting for message edited socket event'));
-            }, 1000);
+            }, 2000);
 
             clientB.on('message edited', (convId, updatedMsg) => {
                 try {
@@ -184,11 +184,19 @@ describe('Tier 1: Feature Coverage — Edit & Delete Message Lifecycle & IDOR Bo
                 }
             });
 
-            clientA.emit('edit message', conversationAB._id.toString(), {
-                _id: messageA._id.toString(),
-                content: 'Realtime edited text',
-                isEdited: true
-            });
+            const tryEmit = () => {
+                if (clientA.connected && clientB.connected) {
+                    clientA.emit('edit message', conversationAB._id.toString(), {
+                        _id: messageA._id.toString(),
+                        content: 'Realtime edited text',
+                        isEdited: true
+                    });
+                }
+            };
+
+            clientA.on('connect', tryEmit);
+            clientB.on('connect', tryEmit);
+            tryEmit();
         });
     });
 
@@ -201,7 +209,7 @@ describe('Tier 1: Feature Coverage — Edit & Delete Message Lifecycle & IDOR Bo
                 clientA.close();
                 clientB.close();
                 reject(new Error('Timeout waiting for message deleted socket event'));
-            }, 1000);
+            }, 2000);
 
             clientB.on('message deleted', (convId, deletedMsg) => {
                 try {
@@ -220,11 +228,19 @@ describe('Tier 1: Feature Coverage — Edit & Delete Message Lifecycle & IDOR Bo
                 }
             });
 
-            clientA.emit('delete message', conversationAB._id.toString(), {
-                _id: messageA._id.toString(),
-                isDeleted: true,
-                content: 'This message was deleted'
-            });
+            const tryEmit = () => {
+                if (clientA.connected && clientB.connected) {
+                    clientA.emit('delete message', conversationAB._id.toString(), {
+                        _id: messageA._id.toString(),
+                        isDeleted: true,
+                        content: 'This message was deleted'
+                    });
+                }
+            };
+
+            clientA.on('connect', tryEmit);
+            clientB.on('connect', tryEmit);
+            tryEmit();
         });
     });
 });

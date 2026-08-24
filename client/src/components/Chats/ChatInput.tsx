@@ -171,7 +171,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
             return { previousData: data };
         },
         onSuccess: (res) => {
-            if (user?._id) {
+            if (user?._id && res?.data) {
+                socket.emit('chat message', user._id, res.data, conversationId);
+                socket.emit('message sent', user._id, conversationId);
+            } else if (user?._id) {
                 socket.emit('message sent', user._id, conversationId);
             }
             if (res && res.data && res.data._id) {

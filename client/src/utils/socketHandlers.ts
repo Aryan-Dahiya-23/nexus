@@ -15,12 +15,19 @@ export const handleChatMessage = (
 
         queryClient.cancelQueries({ queryKey: ['chats', conversationId] });
 
-        if (conversation) {
-            const newConversation: Conversation = {
-                ...conversation,
-                messages: [...(conversation.messages || []), newMessage],
-            };
-            queryClient.setQueryData(['chats', conversationId], newConversation);
+        if (conversation && Array.isArray(conversation.messages)) {
+            const alreadyExists = conversation.messages.some(
+                (m) => (m._id && newMessage._id && m._id === newMessage._id) ||
+                       (!m._id && m.content === newMessage.content && m.type === newMessage.type)
+            );
+            if (!alreadyExists) {
+                const newConversation: Conversation = {
+                    ...conversation,
+                    messages: [...conversation.messages, newMessage],
+                    lastMessage: newMessage,
+                };
+                queryClient.setQueryData(['chats', conversationId], newConversation);
+            }
         }
     }
 };
