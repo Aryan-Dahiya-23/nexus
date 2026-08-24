@@ -40,7 +40,7 @@ const People = () => {
     }, [data, searchTerm, activeTab, connectedUsers]);
 
     return (
-        <div className="flex flex-col mb-16 md:mb-0 w-full md:w-[40%] lg:w-[25%] md:h-[100dvh] border-r border-border/80 bg-card/30 backdrop-blur-md">
+        <div className="flex flex-col h-[calc(100dvh-4rem)] md:h-[100dvh] w-full md:w-[40%] lg:w-[25%] border-r border-border/80 bg-card/30 backdrop-blur-md overflow-hidden">
             <Header message="People" />
 
             {/* Search and Filter Section */}

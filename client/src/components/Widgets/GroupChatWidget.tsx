@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -108,30 +109,30 @@ const GroupChatWidget = () => {
     const isPending = status === 'pending';
     const remainingNeeded = Math.max(0, 2 - selectedMembers.length);
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+    const modalContent = (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 12 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="w-full max-w-md bg-card text-card-foreground border border-border/80 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col my-auto max-h-[90dvh]"
+                className="w-full max-w-md bg-card text-card-foreground border border-border/80 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden flex flex-col my-auto max-h-[90dvh]"
             >
                 {/* Top cyan gradient accent bar */}
                 <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 z-10" />
 
                 {/* Modal Header */}
-                <div className="p-5 sm:p-6 pb-4 border-b border-border/60 flex items-center justify-between shrink-0 bg-card/80">
-                    <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-sky-500/15 to-blue-600/20 border border-primary/25 flex items-center justify-center text-primary shrink-0 shadow-xs">
-                            <Users className="h-5 w-5" />
+                <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 flex items-center justify-between shrink-0 bg-card/80">
+                    <div className="flex items-center space-x-2.5 sm:space-x-3">
+                        <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-sky-500/15 to-blue-600/20 border border-primary/25 flex items-center justify-center text-primary shrink-0 shadow-xs">
+                            <Users className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                         </div>
                         <div>
                             <div className="inline-flex items-center gap-1 text-primary font-bold text-[10px] uppercase tracking-wider mb-0.5">
                                 <Sparkles className="h-3 w-3" />
                                 <span>Collaborative Workspace</span>
                             </div>
-                            <h3 className="font-extrabold text-lg sm:text-xl text-foreground tracking-tight leading-tight">
+                            <h3 className="font-extrabold text-base sm:text-xl text-foreground tracking-tight leading-tight">
                                 Create Group Channel
                             </h3>
                         </div>
@@ -139,7 +140,7 @@ const GroupChatWidget = () => {
 
                     <button
                         type="button"
-                        className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
+                        className="p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
                         onClick={() => setGroupChatWidget(false)}
                         aria-label="Close dialog"
                     >
@@ -149,7 +150,7 @@ const GroupChatWidget = () => {
 
                 {/* Scrollable Form Body */}
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-                    <div className="p-5 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                    <div className="p-4 sm:p-6 space-y-3.5 sm:space-y-4 overflow-y-auto custom-scrollbar flex-1">
                         {/* Channel Name Field */}
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
@@ -318,7 +319,7 @@ const GroupChatWidget = () => {
                     </div>
 
                     {/* Modal Footer */}
-                    <div className="p-4 sm:p-5 border-t border-border/80 bg-muted/20 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                    <div className="p-3.5 sm:p-5 border-t border-border/80 bg-muted/20 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
                         <div className="text-xs text-muted-foreground w-full sm:w-auto text-center sm:text-left">
                             {remainingNeeded > 0 ? (
                                 <span className="text-amber-500 font-medium">
@@ -363,6 +364,8 @@ const GroupChatWidget = () => {
             </motion.div>
         </div>
     );
+
+    return typeof document !== "undefined" ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export default GroupChatWidget;

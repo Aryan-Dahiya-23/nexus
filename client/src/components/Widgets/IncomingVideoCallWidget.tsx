@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Video, PhoneOff, Sparkles } from "lucide-react";
@@ -79,9 +80,9 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
 
     const primaryAvatar = Array.isArray(avatarSrc) ? avatarSrc[0] : avatarSrc;
 
-    return (
+    const widgetContent = (
         <AnimatePresence>
-            <div className="fixed z-[9999] inset-x-4 top-4 md:inset-x-auto md:top-auto md:bottom-6 md:right-6 md:w-96">
+            <div className="fixed z-[100] inset-x-3 top-3 sm:inset-x-4 sm:top-4 md:inset-x-auto md:top-auto md:bottom-6 md:right-6 md:w-96">
                 <motion.div
                     initial={{ opacity: 0, y: -20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -92,15 +93,15 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
                     {/* Top cyan pulse accent */}
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500 animate-pulse" />
 
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
                         {/* Radar Avatar with Pulsing Rings */}
                         <div className="relative shrink-0 flex items-center justify-center">
-                            <span className="absolute h-14 w-14 rounded-full bg-emerald-500/30 animate-ping" />
-                            <span className="absolute h-16 w-16 rounded-full bg-cyan-500/20 animate-pulse" />
+                            <span className="absolute h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-emerald-500/30 animate-ping" />
+                            <span className="absolute h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-cyan-500/20 animate-pulse" />
                             <img
                                 src={primaryAvatar || DEFAULT_AVATAR}
                                 alt={name}
-                                className="relative z-10 h-13 w-13 rounded-2xl object-cover ring-2 ring-emerald-400 shadow-md"
+                                className="relative z-10 h-11 w-11 sm:h-13 sm:w-13 rounded-2xl object-cover ring-2 ring-emerald-400 shadow-md"
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
                                 }}
@@ -146,6 +147,8 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
             </div>
         </AnimatePresence>
     );
+
+    return typeof document !== "undefined" ? createPortal(widgetContent, document.body) : widgetContent;
 };
 
 export default IncomingVideoCallWidget;

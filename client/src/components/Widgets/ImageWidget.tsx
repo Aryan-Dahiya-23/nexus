@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { X, ExternalLink } from "lucide-react";
 import { Cloudinary } from "@cloudinary/url-gen";
@@ -34,9 +35,9 @@ const ImageWidget: React.FC = () => {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [handleClose]);
 
-    return (
+    const widgetContent = (
         <div
-            className="fixed inset-0 z-[9999] bg-slate-950/92 backdrop-blur-lg flex items-center justify-center p-3 sm:p-8 animate-in fade-in duration-200"
+            className="fixed inset-0 z-[100] bg-black/92 backdrop-blur-lg flex items-center justify-center p-3 sm:p-8 animate-in fade-in duration-200"
             onClick={handleClose}
         >
             {/* Top Toolbar */}
@@ -95,6 +96,8 @@ const ImageWidget: React.FC = () => {
             </motion.div>
         </div>
     );
+
+    return typeof document !== "undefined" ? createPortal(widgetContent, document.body) : widgetContent;
 };
 
 export default ImageWidget;

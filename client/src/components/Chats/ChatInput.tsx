@@ -214,13 +214,15 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
             {/* Emoji Picker Popover */}
             {showEmojis && (
                 <div
-                    className="absolute bottom-20 left-2 sm:left-6 z-50 shadow-2xl rounded-2xl overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200"
+                    className="absolute bottom-20 left-2 sm:left-6 z-50 max-w-[calc(100vw-20px)] sm:max-w-none shadow-2xl rounded-2xl overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200"
                     id="emojis"
                 >
                     <Suspense fallback={<div className="p-4 bg-card text-card-foreground text-xs">Loading emojis...</div>}>
                         <EmojiPicker
                             onEmojiClick={handleEmojiClick}
                             lazyLoadEmojis
+                            width={typeof window !== 'undefined' && window.innerWidth < 380 ? Math.min(window.innerWidth - 30, 320) : 340}
+                            height={380}
                             theme={isDark ? ('dark' as EmojiTheme) : ('light' as EmojiTheme)}
                         />
                     </Suspense>

@@ -64,28 +64,28 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
 
             <div className="flex flex-row justify-between items-center h-16 px-3 sm:px-5 border-b border-border bg-card/60 backdrop-blur-xl shrink-0 transition-colors z-20">
                 {/* Left: Back Arrow (Mobile) & Avatar + Info */}
-                <div className="flex items-center space-x-3 overflow-hidden">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 overflow-hidden mr-2">
                     <button
                         type="button"
                         onClick={handleClick}
-                        className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 md:hidden transition-colors"
+                        className="p-2 -ml-1 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 md:hidden transition-colors shrink-0 cursor-pointer"
                         aria-label="Back to messages"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </button>
 
-                    <div className="flex items-center space-x-3 cursor-pointer">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 cursor-pointer">
                         {/* Avatar */}
                         <div className="relative shrink-0">
                             {isGroup ? (
-                                <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-sky-500/20 border border-border flex items-center justify-center overflow-hidden">
+                                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-sky-500/20 border border-border flex items-center justify-center overflow-hidden">
                                     <div className="flex -space-x-2">
                                         {avatarSrc.slice(0, 2).map((src, i) => (
                                             <img
                                                 key={i}
                                                 src={src || "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png"}
                                                 alt=""
-                                                className="h-6 w-6 rounded-full border border-background object-cover"
+                                                className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border border-background object-cover"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).src = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
                                                 }}
@@ -98,26 +98,26 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
                                     <img
                                         src={avatarSrc[0] || "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png"}
                                         alt={name}
-                                        className="h-10 w-10 rounded-2xl object-cover border border-border"
+                                        className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl object-cover border border-border"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
                                         }}
                                     />
                                     {online ? (
-                                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
+                                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
                                     ) : (
-                                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-slate-400 ring-2 ring-background" />
+                                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-slate-400 ring-2 ring-background" />
                                     )}
                                 </div>
                             )}
                         </div>
 
                         {/* Title & Status */}
-                        <div className="flex flex-col min-w-0">
+                        <div className="flex flex-col min-w-0 flex-1">
                             <h2 className="font-bold text-sm sm:text-base text-foreground truncate tracking-tight">
                                 {name || "Conversation"}
                             </h2>
-                            <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
+                            <div className="flex items-center space-x-1.5 text-[11px] sm:text-xs text-muted-foreground truncate">
                                 {isGroup ? (
                                     <span>{avatarSrc.length} members</span>
                                 ) : online ? (
@@ -134,11 +134,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
                 </div>
 
                 {/* Right: Actions (Video Call & Details Drawer) */}
-                <div className="flex items-center space-x-2 shrink-0">
+                <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
                     <button
                         type="button"
                         onClick={handleVideoCall}
-                        className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all cursor-pointer group shadow-sm"
+                        className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all cursor-pointer group shadow-xs"
                         title="Start 1080p Video Call"
                     >
                         <Video className="h-4 w-4 group-hover:scale-110 transition-transform" />

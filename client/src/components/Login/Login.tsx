@@ -70,7 +70,7 @@ const Login: React.FC = () => {
                 transition={{ duration: 0.3 }}
                 className="w-full max-w-md my-auto z-10"
             >
-                <div className="rounded-3xl border border-border bg-card/90 backdrop-blur-2xl p-7 sm:p-9 shadow-2xl text-center">
+                <div className="rounded-3xl border border-border bg-card/90 backdrop-blur-2xl p-5 sm:p-8 shadow-2xl text-center">
                     {/* Brand Logo & Header */}
                     <div className="flex flex-col items-center mb-6">
                         <NexusLogo className="h-14 w-14 mb-3" size={56} />

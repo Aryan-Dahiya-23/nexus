@@ -1,19 +1,20 @@
 import React, { useContext, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AlertTriangle, X, Loader2, Trash2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { ThemeContext } from "../../contexts/ThemeContext";
+import { AuthContext } from "../../contexts/AuthContext";
 import { queryClient } from "../../api/auth";
 import { deleteConversation } from "../../api/conversation";
 import { toast } from "react-toastify";
-import { User } from "../../types";
 
 const ChatDeleteModal: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const user = queryClient.getQueryData<User>(['user']);
+    const { user } = useContext(AuthContext);
     const { setDeleteModal } = useContext(ThemeContext);
 
     const handleDeleteModal = useCallback(() => {
@@ -50,9 +51,9 @@ const ChatDeleteModal: React.FC = () => {
 
     const isPending = status === 'pending';
 
-    return (
+    const modalContent = (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-200"
             onClick={handleDeleteModal}
         >
             <motion.div
@@ -60,7 +61,7 @@ const ChatDeleteModal: React.FC = () => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 15 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="w-full max-w-md bg-card text-card-foreground border border-border rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden"
+                className="w-full max-w-md bg-card text-card-foreground border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Top danger accent bar */}
@@ -75,13 +76,13 @@ const ChatDeleteModal: React.FC = () => {
                     <X className="h-5 w-5" />
                 </button>
 
-                <div className="flex items-start space-x-4">
-                    <div className="p-3 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 shrink-0">
-                        <AlertTriangle className="h-6 w-6" />
+                <div className="flex items-start space-x-3.5 sm:space-x-4">
+                    <div className="p-2.5 sm:p-3 rounded-2xl bg-destructive/10 text-destructive border border-destructive/20 shrink-0">
+                        <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
 
                     <div>
-                        <h3 className="font-extrabold text-lg sm:text-xl text-foreground tracking-tight">
+                        <h3 className="font-extrabold text-base sm:text-xl text-foreground tracking-tight">
                             Delete Conversation?
                         </h3>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 leading-relaxed">
@@ -90,7 +91,7 @@ const ChatDeleteModal: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="mt-8 flex items-center justify-end space-x-2.5">
+                <div className="mt-6 sm:mt-8 flex items-center justify-end space-x-2.5">
                     <button
                         type="button"
                         className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer"
@@ -120,6 +121,8 @@ const ChatDeleteModal: React.FC = () => {
             </motion.div>
         </div>
     );
+
+    return typeof document !== "undefined" ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export default ChatDeleteModal;

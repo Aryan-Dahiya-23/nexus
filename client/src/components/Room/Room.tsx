@@ -70,7 +70,7 @@ const Room = () => {
     }, [roomId, navigate]);
 
     return (
-        <div className="relative w-screen h-[100dvh] bg-slate-950 text-white overflow-hidden">
+        <div className="relative w-full h-[100dvh] bg-slate-950 text-white overflow-hidden">
             {/* Top Floating Glass HUD */}
             <div className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
                 <div className="flex items-center space-x-2 pointer-events-auto">

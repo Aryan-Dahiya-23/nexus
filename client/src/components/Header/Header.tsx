@@ -20,8 +20,6 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
     const navigate = useNavigate();
     const { id } = useParams();
 
-    const pathname = window.location.pathname;
-
     const { setGroupChatWidget } = useContext(ThemeContext);
     const { incomingVideoCall, setIncomingVideoCall } = useContext(ThemeContext);
     const { videoCallName, setVideoCallName } = useContext(ThemeContext);
@@ -189,8 +187,8 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                 />
             )}
 
-            <div className={`flex flex-row justify-between items-center px-4 py-4 border-b border-border/80 ${pathname.substring(1, 6) === 'chats' && "hidden md:flex"}`}>
-                <div className="text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">
+            <div className="flex flex-row justify-between items-center px-4 py-3.5 sm:py-4 border-b border-border/80 shrink-0">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">
                     <p>{message}</p>
                 </div>
 
