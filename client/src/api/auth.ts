@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import apiClient from "./client";
+import { Participant } from "../types";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -20,10 +21,41 @@ export const verify = async () => {
     throw new Error(response.data?.reason || "Verification failed");
 };
 
-export const fetchPeople = async (userId?: string) => {
-    const response = await apiClient.get("/auth/people", {
-        params: userId ? { userId } : {},
-    });
+export interface PaginatedPeopleResponse {
+    error: boolean;
+    users: Participant[];
+    totalUsers: number;
+    totalPages: number;
+    currentPage: number;
+    hasMore: boolean;
+}
+
+export interface FetchPeopleOptions {
+    page?: number;
+    limit?: number;
+    search?: string;
+    tab?: 'all' | 'online' | string;
+}
+
+export const fetchPeople = async (userId?: string, options?: FetchPeopleOptions): Promise<PaginatedPeopleResponse> => {
+    const params: Record<string, string | number> = {};
+    if (userId) params.userId = userId;
+    if (options?.page) params.page = options.page;
+    if (options?.limit) params.limit = options.limit;
+    if (options?.search) params.search = options.search;
+    if (options?.tab) params.tab = options.tab;
+
+    const response = await apiClient.get("/auth/people", { params });
+    if (Array.isArray(response.data)) {
+        return {
+            error: false,
+            users: response.data,
+            totalUsers: response.data.length,
+            totalPages: 1,
+            currentPage: 1,
+            hasMore: false,
+        };
+    }
     return response.data;
 };
 

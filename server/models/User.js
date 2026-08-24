@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ googleId: 1 }, { sparse: true });
 userSchema.index({ facebookId: 1 }, { sparse: true });
 userSchema.index({ email: 1 }, { sparse: true });
+userSchema.index({ fullName: 1 });
 
 const User = mongoose.model('User', userSchema);
 export default User;

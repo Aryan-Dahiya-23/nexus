@@ -1,15 +1,15 @@
-import { useContext, useEffect, useState, useMemo } from "react";
+import { useContext, useEffect, useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Users, X, Search, Check, Loader2, Hash, Sparkles, UserPlus } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
-import { fetchPeople } from "../../api/auth";
+import { fetchPeople, queryClient } from "../../api/auth";
 import { createGroupConversation } from "../../api/conversation";
-import { queryClient } from "../../api/auth";
 import { Participant } from "../../types";
+import { useDebounce } from "../../hooks/useDebounce";
 
 interface SelectedMember {
     id: string;
@@ -20,20 +20,59 @@ interface SelectedMember {
 const DEFAULT_AVATAR = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
 
 const GroupChatWidget = () => {
-    const { setGroupChatWidget } = useContext(ThemeContext);
+    const { groupChatWidget, setGroupChatWidget } = useContext(ThemeContext);
     const { user, connectedUsers } = useContext(AuthContext);
     const [groupName, setGroupName] = useState("");
-    const [memberSearch, setMemberSearch] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearch = useDebounce(searchQuery, 300);
     const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
 
-    const { data: people, isLoading } = useQuery<Participant[]>({
-        queryKey: ['people'],
-        queryFn: () => {
-            if (!user?._id) return [];
-            return fetchPeople(user._id);
-        },
-        enabled: Boolean(user?._id),
+    const isOpen = groupChatWidget || true;
+
+    const {
+        data,
+        isLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteQuery({
+        queryKey: ['group-people', debouncedSearch],
+        queryFn: ({ pageParam = 1 }) =>
+            fetchPeople(user?._id, {
+                page: pageParam as number,
+                limit: 15,
+                search: debouncedSearch.trim() || undefined,
+            }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.currentPage + 1 : undefined),
+        enabled: isOpen && !!user?._id,
     });
+
+    const availableUsers = useMemo(() => {
+        return data?.pages.flatMap((page) => page.users) ?? [];
+    }, [data]);
+
+    const observerTarget = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const currentTarget = observerTarget.current;
+        if (!currentTarget) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        observer.observe(currentTarget);
+
+        return () => {
+            observer.unobserve(currentTarget);
+        };
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const { mutate, status } = useMutation({
         mutationFn: () => {
@@ -62,13 +101,6 @@ const GroupChatWidget = () => {
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [setGroupChatWidget]);
-
-    const filteredPeople = useMemo(() => {
-        if (!people) return [];
-        return people.filter(person =>
-            person.fullName.toLowerCase().includes(memberSearch.toLowerCase())
-        );
-    }, [people, memberSearch]);
 
     const toggleMember = (person: Participant) => {
         const isSelected = selectedMembers.some(m => m.id === person._id);
@@ -234,15 +266,15 @@ const GroupChatWidget = () => {
                                 <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                                 <input
                                     type="text"
-                                    value={memberSearch}
-                                    onChange={(e) => setMemberSearch(e.target.value)}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search directory by name..."
                                     className="w-full bg-transparent text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                                 />
-                                {memberSearch && (
+                                {searchQuery && (
                                     <button
                                         type="button"
-                                        onClick={() => setMemberSearch("")}
+                                        onClick={() => setSearchQuery("")}
                                         className="p-1 rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
                                     >
                                         <X className="h-3.5 w-3.5" />
@@ -259,59 +291,89 @@ const GroupChatWidget = () => {
                                     </div>
                                 )}
 
-                                {!isLoading && filteredPeople.length > 0 && (
-                                    filteredPeople.map((person: Participant) => {
-                                        const isSelected = selectedMembers.some(m => m.id === person._id);
-                                        const isOnline = connectedUsers.includes(person._id);
+                                {!isLoading && availableUsers.length > 0 && (
+                                    <>
+                                        {availableUsers.map((person: Participant) => {
+                                            const isSelected = selectedMembers.some(m => m.id === person._id);
+                                            const isOnline = connectedUsers.includes(person._id);
 
-                                        return (
-                                            <div
-                                                key={person._id}
-                                                onClick={() => toggleMember(person)}
-                                                className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                                                    isSelected
-                                                        ? "bg-primary/15 text-primary border border-primary/30 font-semibold"
-                                                        : "hover:bg-muted/70 text-foreground border border-transparent"
-                                                }`}
-                                            >
-                                                <div className="flex items-center space-x-3 min-w-0">
-                                                    <div className="relative shrink-0">
-                                                        <img
-                                                            src={person.picture || DEFAULT_AVATAR}
-                                                            alt={person.fullName}
-                                                            className="h-8 w-8 rounded-full object-cover ring-1 ring-border/50"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
-                                                            }}
-                                                        />
-                                                        {isOnline && (
-                                                            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-1 ring-background" />
-                                                        )}
+                                            return (
+                                                <div
+                                                    key={person._id}
+                                                    onClick={() => toggleMember(person)}
+                                                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                                                        isSelected
+                                                            ? "bg-primary/15 text-primary border border-primary/30 font-semibold"
+                                                            : "hover:bg-muted/70 text-foreground border border-transparent"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center space-x-3 min-w-0">
+                                                        <div className="relative shrink-0">
+                                                            <img
+                                                                src={person.picture || DEFAULT_AVATAR}
+                                                                alt={person.fullName}
+                                                                className="h-8 w-8 rounded-full object-cover ring-1 ring-border/50"
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                                                                }}
+                                                            />
+                                                            {isOnline && (
+                                                                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-1 ring-background" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-xs font-semibold truncate leading-tight">{person.fullName}</span>
+                                                            <span className="text-[10px] text-muted-foreground/80 truncate mt-0.5">
+                                                                {isOnline ? "Active now" : "Offline"}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-col min-w-0">
-                                                        <span className="text-xs font-semibold truncate leading-tight">{person.fullName}</span>
-                                                        <span className="text-[10px] text-muted-foreground/80 truncate mt-0.5">
-                                                            {isOnline ? "Active now" : "Offline"}
-                                                        </span>
+
+                                                    <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                                        isSelected
+                                                            ? "bg-primary border-primary text-primary-foreground shadow-xs scale-105"
+                                                            : "border-muted-foreground/40 bg-background/50 group-hover:border-primary/50"
+                                                    }`}>
+                                                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                                                     </div>
                                                 </div>
+                                            );
+                                        })}
 
-                                                <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                                                    isSelected
-                                                        ? "bg-primary border-primary text-primary-foreground shadow-xs scale-105"
-                                                        : "border-muted-foreground/40 bg-background/50 group-hover:border-primary/50"
-                                                }`}>
-                                                    {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                                                </div>
+                                        {/* Sentinel target for infinite scrolling */}
+                                        <div ref={observerTarget} className="h-4 w-full" />
+
+                                        {/* Loading indicator for next page */}
+                                        {isFetchingNextPage && (
+                                            <div className="flex items-center justify-center py-2 text-muted-foreground">
+                                                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                                <span className="text-xs ml-1.5 text-muted-foreground">Loading more people...</span>
                                             </div>
-                                        );
-                                    })
+                                        )}
+
+                                        {/* Load more button fallback */}
+                                        {hasNextPage && !isFetchingNextPage && (
+                                            <div className="text-center py-1.5">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fetchNextPage()}
+                                                    className="text-xs text-primary font-medium hover:underline cursor-pointer"
+                                                >
+                                                    Load more
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
 
-                                {!isLoading && filteredPeople.length === 0 && (
+                                {!isLoading && availableUsers.length === 0 && (
                                     <div className="flex flex-col items-center justify-center h-28 text-center px-4 text-xs text-muted-foreground">
                                         <UserPlus className="h-5 w-5 mb-1 text-muted-foreground/50" />
-                                        <p>No teammates found matching "{memberSearch}"</p>
+                                        <p>
+                                            {debouncedSearch
+                                                ? `No teammates found matching "${debouncedSearch}"`
+                                                : "No teammates available"}
+                                        </p>
                                     </div>
                                 )}
                             </div>

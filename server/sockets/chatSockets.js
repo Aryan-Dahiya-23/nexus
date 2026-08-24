@@ -3,7 +3,7 @@ import Conversation from "../models/Conversation.js";
 // Multi-tab tracking: Map<userId, Set<socketId>>
 const userSocketMap = new Map();
 
-const getOnlineUserIds = () => Array.from(userSocketMap.keys());
+export const getOnlineUserIds = () => Array.from(userSocketMap.keys());
 
 const initializeChatSockets = (io) => {
     // Socket authentication middleware: extracts user identity from session

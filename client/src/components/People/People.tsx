@@ -1,43 +1,78 @@
-import { useState, useMemo, useContext } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Search, X, Users, Wifi } from "lucide-react";
+import { useState, useMemo, useContext, useEffect, useRef } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Search, X, Users, Wifi, Loader2 } from "lucide-react";
 import Header from "../Header/Header";
 import PeopleItems from "./PeopleItems";
 import PeopleItemsLoading from "../UI/PeopleItemsLoading";
 import { fetchPeople } from "../../api/auth";
 import { AuthContext } from "../../contexts/AuthContext";
 import { Participant } from "../../types";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const People = () => {
     const { connectedUsers, user } = useContext(AuthContext);
     const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearch = useDebounce(searchTerm, 300);
     const [activeTab, setActiveTab] = useState<"all" | "online">("all");
 
     const userId = user?._id;
 
-    const { data, isLoading } = useQuery<Participant[]>({
-        queryKey: ['people'],
-        queryFn: () => fetchPeople(userId),
-        staleTime: 5 * 60 * 1000,
+    const {
+        data,
+        isLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteQuery({
+        queryKey: ['people', activeTab, debouncedSearch],
+        queryFn: ({ pageParam = 1 }) =>
+            fetchPeople(userId, {
+                page: pageParam as number,
+                limit: 20,
+                search: debouncedSearch.trim() || undefined,
+                tab: activeTab === 'online' ? 'online' : 'all',
+            }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.currentPage + 1 : undefined),
         enabled: !!userId,
     });
 
-    // Compute online and total counts
-    const totalCount = data?.length || 0;
-    const onlineCount = useMemo(() => {
-        if (!data) return 0;
-        return data.filter((person: Participant) => connectedUsers.includes(person._id)).length;
-    }, [data, connectedUsers]);
+    const users = useMemo(() => {
+        return data?.pages.flatMap((page) => page.users) ?? [];
+    }, [data]);
 
-    // Filter people by search term and active tab
-    const filteredPeople = useMemo(() => {
-        if (!data) return [];
-        return data.filter((person: Participant) => {
-            const matchesSearch = person.fullName.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesTab = activeTab === "all" || connectedUsers.includes(person._id);
-            return matchesSearch && matchesTab;
-        });
-    }, [data, searchTerm, activeTab, connectedUsers]);
+    const observerTarget = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        const currentTarget = observerTarget.current;
+        if (currentTarget) {
+            observer.observe(currentTarget);
+        }
+
+        return () => {
+            if (currentTarget) {
+                observer.unobserve(currentTarget);
+            }
+        };
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    // Compute counts for tabs
+    const totalCount = data?.pages[0]?.totalUsers ?? users.length;
+    const onlineCount = useMemo(() => {
+        if (activeTab === "online") {
+            return data?.pages[0]?.totalUsers ?? users.length;
+        }
+        return connectedUsers.filter((id) => id !== userId).length;
+    }, [data, activeTab, users.length, connectedUsers, userId]);
 
     return (
         <div className="flex flex-col h-[calc(100dvh-4rem)] md:h-[100dvh] w-full md:w-[40%] lg:w-[25%] border-r border-border/80 bg-card/30 backdrop-blur-md overflow-hidden">
@@ -108,20 +143,40 @@ const People = () => {
             <div className="flex-1 overflow-y-auto px-2 py-1 space-y-1 custom-scrollbar" id="people">
                 {isLoading && <PeopleItemsLoading />}
 
-                {!isLoading && filteredPeople.length > 0 && (
-                    filteredPeople.map((person: Participant) => (
-                        <PeopleItems
-                            key={person._id}
-                            userId={person._id}
-                            username={person.fullName}
-                            avatarSrc={person.picture}
-                            isOnline={connectedUsers.includes(person._id)}
-                        />
-                    ))
+                {!isLoading && users.length > 0 && (
+                    <>
+                        {users.map((person: Participant) => (
+                            <PeopleItems
+                                key={person._id}
+                                userId={person._id}
+                                username={person.fullName}
+                                avatarSrc={person.picture}
+                                isOnline={connectedUsers.includes(person._id)}
+                            />
+                        ))}
+
+                        {/* Sentinel target for infinite scrolling */}
+                        <div ref={observerTarget} className="h-4 w-full" />
+
+                        {/* Loading indicator for next page */}
+                        {isFetchingNextPage && (
+                            <div className="flex items-center justify-center py-3 text-muted-foreground">
+                                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                <span className="text-xs ml-2 text-muted-foreground">Loading more people...</span>
+                            </div>
+                        )}
+
+                        {/* End of list indicator */}
+                        {!hasNextPage && (
+                            <div className="py-4 text-center text-xs text-muted-foreground/60">
+                                You've reached the end of the directory
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* Empty State: No results found */}
-                {!isLoading && filteredPeople.length === 0 && (
+                {!isLoading && users.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-52 text-center px-4">
                         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-3">
                             {activeTab === "online" ? (
@@ -131,15 +186,15 @@ const People = () => {
                             )}
                         </div>
                         <p className="text-sm font-semibold text-foreground">
-                            {searchTerm
+                            {debouncedSearch
                                 ? "No matching people"
                                 : activeTab === "online"
                                 ? "No teammates online"
                                 : "Directory is empty"}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
-                            {searchTerm
-                                ? `No results found for "${searchTerm}". Try a different name.`
+                            {debouncedSearch
+                                ? `No results found for "${debouncedSearch}". Try a different name.`
                                 : activeTab === "online"
                                 ? "Check back later or invite your team to join Nexus."
                                 : "When new teammates sign up, they will appear here."}
@@ -152,3 +207,4 @@ const People = () => {
 };
 
 export default People;
+

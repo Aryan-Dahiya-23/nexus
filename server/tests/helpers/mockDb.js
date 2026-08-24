@@ -36,6 +36,10 @@ class MockQuery {
         this.selectedFields = null;
         this.isLean = false;
         this.sortOption = null;
+        this.limitCount = undefined;
+        this.skipCount = undefined;
+        this._limit = undefined;
+        this._skip = undefined;
     }
 
     populate(opts) {
@@ -62,8 +66,15 @@ class MockQuery {
         return this;
     }
 
+    skip(skipCount) {
+        this.skipCount = skipCount;
+        this._skip = skipCount;
+        return this;
+    }
+
     limit(limitCount) {
         this.limitCount = limitCount;
+        this._limit = limitCount;
         return this;
     }
 
@@ -73,7 +84,8 @@ class MockQuery {
 
     then(resolve, reject) {
         return Promise.resolve(this.resolver()).then((res) => {
-            if (!res) return resolve(res);
+            if (res === null || res === undefined) return resolve(res);
+            if (typeof res === 'number') return resolve(res);
             let result = clone(res);
 
             // Apply populate
@@ -99,18 +111,33 @@ class MockQuery {
                         result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
                     } else if (this.sortOption.createdAt === -1) {
                         result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    } else if (this.sortOption.fullName === 1) {
+                        result.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
+                    } else if (this.sortOption.fullName === -1) {
+                        result.sort((a, b) => (b.fullName || '').localeCompare(a.fullName || ''));
                     }
                 } else if (typeof this.sortOption === 'string') {
                     if (this.sortOption === 'createdAt') {
                         result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
                     } else if (this.sortOption === '-createdAt') {
                         result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    } else if (this.sortOption === 'fullName') {
+                        result.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
+                    } else if (this.sortOption === '-fullName') {
+                        result.sort((a, b) => (b.fullName || '').localeCompare(a.fullName || ''));
                     }
                 }
             }
 
-            if (Array.isArray(result) && this.limitCount) {
-                result = result.slice(0, this.limitCount);
+            if (Array.isArray(result)) {
+                const skipVal = typeof this.skipCount === 'number' ? this.skipCount : (typeof this._skip === 'number' ? this._skip : 0);
+                const limitVal = typeof this.limitCount === 'number' ? this.limitCount : (typeof this._limit === 'number' ? this._limit : undefined);
+                const start = Math.max(0, skipVal);
+                if (limitVal !== undefined && limitVal >= 0) {
+                    result = result.slice(start, start + limitVal);
+                } else if (start > 0) {
+                    result = result.slice(start);
+                }
             }
 
             return resolve(result);
@@ -232,6 +259,73 @@ const origMsgCreate = Message.create;
 const origMsgUpdateMany = Message.updateMany;
 const origMsgFindByIdAndUpdate = Message.findByIdAndUpdate;
 
+function matchesUserFilter(user, query = {}) {
+    if (!query || Object.keys(query).length === 0) return true;
+
+    // _id checks
+    if (query._id !== undefined) {
+        if (typeof query._id === 'object' && query._id !== null && !(query._id instanceof mongoose.Types.ObjectId)) {
+            if (query._id.$ne !== undefined) {
+                if (matchesId(user._id, query._id.$ne)) return false;
+            }
+            if (query._id.$in !== undefined) {
+                const inList = Array.isArray(query._id.$in) ? query._id.$in : [query._id.$in];
+                if (!inList.some(id => matchesId(user._id, id))) return false;
+            }
+            if (query._id.$nin !== undefined) {
+                const ninList = Array.isArray(query._id.$nin) ? query._id.$nin : [query._id.$nin];
+                if (ninList.some(id => matchesId(user._id, id))) return false;
+            }
+            if (query._id.$eq !== undefined) {
+                if (!matchesId(user._id, query._id.$eq)) return false;
+            }
+        } else {
+            if (!matchesId(user._id, query._id)) return false;
+        }
+    }
+
+    // fullName checks
+    if (query.fullName !== undefined) {
+        if (query.fullName instanceof RegExp) {
+            if (!query.fullName.test(user.fullName || '')) return false;
+        } else if (typeof query.fullName === 'object' && query.fullName !== null) {
+            if (query.fullName.$regex !== undefined) {
+                let regex;
+                if (query.fullName.$regex instanceof RegExp) {
+                    regex = query.fullName.$regex;
+                } else {
+                    const flags = query.fullName.$options || '';
+                    regex = new RegExp(query.fullName.$regex, flags);
+                }
+                if (!regex.test(user.fullName || '')) return false;
+            } else if (query.fullName.$eq !== undefined) {
+                if (user.fullName !== query.fullName.$eq) return false;
+            } else if (query.fullName.$ne !== undefined) {
+                if (user.fullName === query.fullName.$ne) return false;
+            }
+        } else {
+            if (user.fullName !== query.fullName) return false;
+        }
+    }
+
+    // email checks
+    if (query.email !== undefined && user.email !== query.email) {
+        return false;
+    }
+
+    // googleId checks
+    if (query.googleId !== undefined && user.googleId !== query.googleId) {
+        return false;
+    }
+
+    // facebookId checks
+    if (query.facebookId !== undefined && user.facebookId !== query.facebookId) {
+        return false;
+    }
+
+    return true;
+}
+
 export function setupMockDb() {
     // Setup User model mocks
     User.findById = function (id) {
@@ -245,11 +339,7 @@ export function setupMockDb() {
     User.findOne = function (query = {}) {
         return new MockQuery(() => {
             for (const doc of usersStore.values()) {
-                let match = true;
-                if (query.email && doc.email !== query.email) match = false;
-                if (query.googleId && doc.googleId !== query.googleId) match = false;
-                if (query.facebookId && doc.facebookId !== query.facebookId) match = false;
-                if (match) return clone(doc);
+                if (matchesUserFilter(doc, query)) return clone(doc);
             }
             return null;
         });
@@ -257,10 +347,7 @@ export function setupMockDb() {
 
     User.find = function (query = {}) {
         return new MockQuery(() => {
-            let results = Array.from(usersStore.values());
-            if (query._id && query._id.$ne) {
-                results = results.filter(u => !matchesId(u._id, query._id.$ne));
-            }
+            const results = Array.from(usersStore.values()).filter(u => matchesUserFilter(u, query));
             return results.map(clone);
         });
     };
@@ -281,16 +368,10 @@ export function setupMockDb() {
         return clone(doc);
     };
 
-    User.countDocuments = async function (query = {}) {
-        if (query._id && query._id.$in) {
-            const requestedIds = query._id.$in.map(id => id.toString());
-            let count = 0;
-            for (const id of requestedIds) {
-                if (usersStore.has(id)) count++;
-            }
-            return count;
-        }
-        return usersStore.size;
+    User.countDocuments = function (query = {}) {
+        return new MockQuery(() => {
+            return Array.from(usersStore.values()).filter(u => matchesUserFilter(u, query)).length;
+        });
     };
 
     User.updateMany = async function (filter = {}, update = {}) {
