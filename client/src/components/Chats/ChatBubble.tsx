@@ -77,9 +77,9 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className={`flex w-full my-1 sm:my-1.5 ${isRight ? "justify-end" : "justify-start"}`}
         >
             <div className={`flex items-end gap-2 max-w-[88%] sm:max-w-[78%] md:max-w-[68%] lg:max-w-[60%] ${isRight ? "flex-row-reverse" : "flex-row"}`}>

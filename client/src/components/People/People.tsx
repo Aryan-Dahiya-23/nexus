@@ -4,27 +4,21 @@ import { Search, X, Users, Wifi } from "lucide-react";
 import Header from "../Header/Header";
 import PeopleItems from "./PeopleItems";
 import PeopleItemsLoading from "../UI/PeopleItemsLoading";
-import { verify, fetchPeople } from "../../api/auth";
+import { fetchPeople } from "../../api/auth";
 import { AuthContext } from "../../contexts/AuthContext";
-import { Participant, User } from "../../types";
+import { Participant } from "../../types";
 
 const People = () => {
-    const { connectedUsers } = useContext(AuthContext);
+    const { connectedUsers, user } = useContext(AuthContext);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState<"all" | "online">("all");
-
-    const { data: user } = useQuery<User>({
-        queryKey: ['user'],
-        queryFn: () => verify(),
-        staleTime: 10000,
-    });
 
     const userId = user?._id;
 
     const { data, isLoading } = useQuery<Participant[]>({
         queryKey: ['people'],
         queryFn: () => fetchPeople(userId),
-        staleTime: 10000,
+        staleTime: 5 * 60 * 1000,
         enabled: !!userId,
     });
 

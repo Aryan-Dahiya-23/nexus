@@ -12,7 +12,7 @@ export const PublicOnlyRoute: React.FC = () => {
     const { data, isLoading, isSuccess } = useQuery<User>({
         queryKey: ['user'],
         queryFn: verify,
-        staleTime: 30000,
+        staleTime: 5 * 60 * 1000,
         retry: false,
     });
 

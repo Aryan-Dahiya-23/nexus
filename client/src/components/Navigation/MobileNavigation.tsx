@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { MessageSquare, Users, LogOut } from "lucide-react";
@@ -67,8 +67,9 @@ const MobileNavigation = () => {
         });
     };
 
-    const isHomeActive = window.location.pathname.startsWith('/chats');
-    const isPeopleActive = window.location.pathname === '/people';
+    const location = useLocation();
+    const isHomeActive = location.pathname.startsWith('/chats');
+    const isPeopleActive = location.pathname === '/people';
 
     return (
         <div className="flex fixed bottom-0 h-16 bg-card/90 backdrop-blur-xl z-50 px-4 border-t border-border flex-row justify-around items-center w-full md:hidden transition-colors">

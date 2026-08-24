@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC = () => {
     const { data, isLoading, isError } = useQuery<User>({
         queryKey: ['user'],
         queryFn: verify,
-        staleTime: 30000,
+        staleTime: 5 * 60 * 1000,
         retry: false,
     });
 

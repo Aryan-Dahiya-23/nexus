@@ -7,13 +7,14 @@ import { GlobalProvider } from "./contexts/GlobalContext";
 import { queryClient } from "./api/auth";
 import LoadingIndicator from "./components/UI/LoadingIndicator/LoadingIndicator";
 
-const HomePage = lazy(() => import("./pages/HomePage"));
-const PeoplePage = lazy(() => import("./pages/PeoplePage"));
-const ChatPage = lazy(() => import("./pages/ChatPage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
+import HomePage from "./pages/HomePage";
+import PeoplePage from "./pages/PeoplePage";
+import ChatPage from "./pages/ChatPage";
+import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import LandingPage from "./pages/LandingPage";
+
 const RoomPage = lazy(() => import("./pages/RoomPage"));
-const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
-const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 import ProtectedRoute from "./components/Routes/ProtectedRoute";
 import PublicOnlyRoute from "./components/Routes/PublicOnlyRoute";
