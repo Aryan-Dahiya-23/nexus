@@ -201,7 +201,7 @@ const GroupChatWidget = () => {
                                     value={groupName}
                                     onChange={(e) => setGroupName(e.target.value)}
                                     placeholder="core-engineering or design-sync"
-                                    className="w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                                    className="w-full bg-transparent text-base sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                                 />
                             </div>
                         </div>
@@ -269,7 +269,7 @@ const GroupChatWidget = () => {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search directory by name..."
-                                    className="w-full bg-transparent text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                                    className="w-full bg-transparent text-base sm:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                                 />
                                 {searchQuery && (
                                     <button

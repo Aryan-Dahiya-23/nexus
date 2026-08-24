@@ -260,7 +260,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                 {/* Expanding Textarea */}
                 <textarea
                     placeholder="Type a message (Shift+Enter for newline)..."
-                    className="flex-1 max-h-32 min-h-[36px] sm:min-h-[40px] py-1.5 sm:py-2 px-2 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none custom-scrollbar leading-relaxed"
+                    className="flex-1 max-h-32 min-h-[36px] sm:min-h-[40px] py-1.5 sm:py-2 px-2 bg-transparent text-base text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none custom-scrollbar leading-relaxed"
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}
                     value={text}

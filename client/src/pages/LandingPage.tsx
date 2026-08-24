@@ -465,7 +465,7 @@ export const LandingPage: React.FC = () => {
                                                 value={inputText}
                                                 onChange={(e) => setInputText(e.target.value)}
                                                 placeholder="Type a real-time message..."
-                                                className="flex-1 bg-transparent text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none px-1"
+                                                className="flex-1 bg-transparent text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none px-1"
                                             />
                                             <Button
                                                 type="submit"
