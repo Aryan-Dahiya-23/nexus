@@ -290,33 +290,47 @@ const Users = () => {
                                 )}
                             </div>
                         ) : (
-                            // Global Empty State: No Conversations
-                            <div className="flex flex-col items-center justify-center py-12 px-6 text-center my-auto flex-1">
-                                <div className="h-16 w-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 shadow-xs">
-                                    <MessageSquare className="h-8 w-8" />
+                            // Global Empty State when user has no conversations
+                            <>
+                                {/* Desktop Minimal Sidebar Placeholder (avoids duplicating the right Hero dashboard) */}
+                                <div className="hidden md:flex flex-col items-center justify-center flex-1 py-12 px-6 text-center text-muted-foreground my-auto select-none">
+                                    <div className="h-12 w-12 rounded-2xl bg-muted/60 border border-border/60 flex items-center justify-center text-muted-foreground/70 mb-3 shadow-2xs">
+                                        <MessageSquare className="h-5 w-5" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-foreground/80">No active chats</p>
+                                    <p className="text-xs text-muted-foreground mt-1 max-w-[200px] leading-relaxed">
+                                        Choose an action on the right to start messaging.
+                                    </p>
                                 </div>
-                                <p className="text-base font-bold text-foreground tracking-tight">No conversations yet</p>
-                                <p className="text-xs text-muted-foreground mt-1.5 max-w-[240px] leading-relaxed">
-                                    Start a 1-on-1 chat from the directory or create a group channel.
-                                </p>
-                                <div className="flex flex-col sm:flex-row items-center gap-2 mt-5 w-full max-w-[260px]">
-                                    <Link
-                                        to="/people"
-                                        className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
-                                    >
-                                        <UsersIcon className="h-3.5 w-3.5" />
-                                        <span>Browse People</span>
-                                    </Link>
-                                    <button
-                                        type="button"
-                                        onClick={() => setGroupChatWidget(true)}
-                                        className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold border border-border transition-all cursor-pointer"
-                                    >
-                                        <UserPlus className="h-3.5 w-3.5 text-primary" />
-                                        <span>New Group</span>
-                                    </button>
+
+                                {/* Mobile Actionable Empty State (since right pane is hidden on mobile) */}
+                                <div className="md:hidden flex flex-col items-center justify-center flex-1 py-12 px-6 text-center my-auto select-none">
+                                    <div className="h-16 w-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-4 shadow-xs">
+                                        <MessageSquare className="h-8 w-8" />
+                                    </div>
+                                    <h3 className="text-base font-bold text-foreground tracking-tight">No conversations yet</h3>
+                                    <p className="text-xs text-muted-foreground mt-1.5 max-w-[240px] leading-relaxed">
+                                        Start a 1-on-1 chat from the directory or create a group channel.
+                                    </p>
+                                    <div className="flex flex-col items-stretch gap-2.5 mt-6 w-full max-w-[260px]">
+                                        <Link
+                                            to="/people"
+                                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+                                        >
+                                            <UsersIcon className="h-4 w-4" />
+                                            <span>Browse People</span>
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => setGroupChatWidget(true)}
+                                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold border border-border transition-all cursor-pointer"
+                                        >
+                                            <UserPlus className="h-4 w-4 text-primary" />
+                                            <span>New Group</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            </>
                         )}
                     </div>
                 </>
