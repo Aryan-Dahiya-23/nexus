@@ -1,9 +1,10 @@
-import { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useContext } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { GlobalProvider } from "./contexts/GlobalContext";
+import { ThemeContext } from "./contexts/ThemeContext";
 import { queryClient } from "./api/auth";
 import LoadingIndicator from "./components/UI/LoadingIndicator/LoadingIndicator";
 
@@ -25,11 +26,22 @@ const PageFallback = () => (
   </div>
 );
 
+const GlobalLogoutOverlay: React.FC = () => {
+  const { logoutLoading } = useContext(ThemeContext);
+  if (!logoutLoading) return null;
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-background/60 backdrop-blur-xs z-[9999] pointer-events-none animate-in fade-in duration-150">
+      <LoadingIndicator size="lg" />
+    </div>
+  );
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <GlobalProvider>
         <BrowserRouter>
+          <GlobalLogoutOverlay />
           <ToastContainer
             position="top-center"
             autoClose={2000}

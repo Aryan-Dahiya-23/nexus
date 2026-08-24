@@ -9,7 +9,7 @@ import LoadingIndicator from '../UI/LoadingIndicator/LoadingIndicator';
 export const PublicOnlyRoute: React.FC = () => {
     const { user, setUser, setLoggedIn } = useContext(AuthContext);
 
-    const { data, isLoading, isSuccess } = useQuery<User>({
+    const { data, isLoading } = useQuery<User>({
         queryKey: ['user'],
         queryFn: verify,
         staleTime: 5 * 60 * 1000,
@@ -31,7 +31,7 @@ export const PublicOnlyRoute: React.FC = () => {
         );
     }
 
-    if (isSuccess || user) {
+    if (user || (data && data._id)) {
         const destination = (data?.conversations && data.conversations.length > 0) || (user?.conversations && user.conversations.length > 0)
             ? '/chats'
             : '/people';

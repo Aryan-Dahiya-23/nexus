@@ -40,31 +40,38 @@ const DesktopNavigation = () => {
         navigate("/people");
     };
 
-    const handleLogout = () => {
-        // 1. Instantly reset client auth state
-        setUser(undefined);
-        setLoggedIn(false);
-        setUserConnected(false);
-        setConnectedUsers([]);
+    const handleLogout = async () => {
+        // 1. Show the loading overlay spinner until redirection completes
+        setLogoutLoading(true);
+        document.body.classList.add('unclickable');
 
-        // 2. Clear React Query cache immediately
-        queryClient.removeQueries({ queryKey: ['user'] });
-        queryClient.clear();
+        try {
+            // 2. Disconnect real-time socket
+            socket.disconnect();
 
-        // 3. Disconnect real-time socket
-        socket.disconnect();
-
-        // 4. Clean up any UI locks
-        setLogoutLoading(false);
-        document.body.classList.remove('unclickable');
-
-        // 5. Instantly redirect back to home page
-        navigate('/', { replace: true });
-
-        // 6. Perform backend session teardown in the background
-        logout().catch((err) => {
+            // 3. Perform backend session teardown
+            await logout();
+        } catch (err) {
             console.error("Error logging out from server:", err);
-        });
+        } finally {
+            // 4. Cancel queries and set query cache to logged-out state
+            queryClient.cancelQueries();
+            queryClient.setQueryData(['user'], null);
+            queryClient.clear();
+
+            // 5. Reset local auth state
+            setUser(undefined);
+            setLoggedIn(false);
+            setUserConnected(false);
+            setConnectedUsers([]);
+
+            // 6. Clean up UI locks
+            setLogoutLoading(false);
+            document.body.classList.remove('unclickable');
+
+            // 7. Instantly redirect back to home page
+            navigate('/', { replace: true });
+        }
     };
 
     const prefetch = () => {
