@@ -56,10 +56,6 @@ const Login: React.FC = () => {
         window.open(`${backendUrl}/auth/google`, "_self");
     }, [backendUrl]);
 
-    const facebookAuth = useCallback(() => {
-        window.open(`${backendUrl}/auth/facebook`, "_self");
-    }, [backendUrl]);
-
     const validateField = (field: "fullName" | "email" | "password", value: string, mode: "signin" | "signup" = authMode) => {
         let error = "";
         if (field === "fullName" && mode === "signup") {
@@ -475,16 +471,15 @@ const Login: React.FC = () => {
                         <div className="flex-1 h-px bg-border" />
                     </div>
 
-                    {/* SSO Providers */}
-                    <div className="space-y-3">
-                        {/* Google Button */}
+                    {/* Google SSO Button */}
+                    <div>
                         <button
                             type="button"
                             onClick={googleAuth}
-                            className="w-full flex items-center justify-center gap-3 h-11 px-4 rounded-2xl bg-background hover:bg-muted text-foreground font-semibold text-sm border border-input hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
+                            className="w-full flex items-center justify-center gap-3 h-11 px-4 rounded-2xl bg-background hover:bg-muted/80 text-foreground font-semibold text-sm border border-input hover:border-primary/40 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer group"
                         >
                             <svg
-                                className="w-5 h-5 shrink-0"
+                                className="w-5 h-5 shrink-0 transition-transform group-hover:scale-105"
                                 viewBox="0 0 24 24"
                                 style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
                             >
@@ -506,22 +501,6 @@ const Login: React.FC = () => {
                                 />
                             </svg>
                             <span className="whitespace-nowrap">Continue with Google</span>
-                        </button>
-
-                        {/* Facebook / Meta Button */}
-                        <button
-                            type="button"
-                            onClick={facebookAuth}
-                            className="w-full flex items-center justify-center gap-3 h-11 px-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-xs transition-all cursor-pointer group"
-                        >
-                            <svg
-                                className="w-5 h-5 fill-current shrink-0"
-                                viewBox="0 0 24 24"
-                                style={{ width: 20, height: 20, minWidth: 20, minHeight: 20 }}
-                            >
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                            <span className="whitespace-nowrap">Continue with Facebook</span>
                         </button>
                     </div>
 
