@@ -20,6 +20,7 @@ interface ParsedConversationItem {
     isSentByMe: boolean;
     isSeenByRecipient: boolean;
     mediaType: "text" | "image" | "video";
+    isDeleted?: boolean;
 }
 
 const Users = () => {
@@ -56,7 +57,11 @@ const Users = () => {
 
                 let lastMessage = "Started a conversation";
                 if (lastMsg) {
-                    if (lastMsg.type === "text") {
+                    if (lastMsg.isDeleted) {
+                        lastMessage = conv.type === "group" && !isSentByMe && typeof lastMsg.senderId === "object" && lastMsg.senderId !== null
+                            ? `${(lastMsg.senderId as Participant).fullName?.split(" ")[0] || "User"}: This message was deleted`
+                            : "This message was deleted";
+                    } else if (lastMsg.type === "text") {
                         lastMessage = conv.type === "group" && !isSentByMe && typeof lastMsg.senderId === "object" && lastMsg.senderId !== null
                             ? `${(lastMsg.senderId as Participant).fullName?.split(" ")[0] || "User"}: ${lastMsg.content}`
                             : isSentByMe
@@ -80,6 +85,7 @@ const Users = () => {
                 const messageUnseen = Boolean(
                     user._id &&
                     lastMsg &&
+                    !lastMsg.isDeleted &&
                     lastMsgSenderId !== user._id &&
                     !lastMsg.seenBy?.includes(user._id)
                 );
@@ -97,6 +103,7 @@ const Users = () => {
                     isSentByMe,
                     isSeenByRecipient,
                     mediaType,
+                    isDeleted: Boolean(lastMsg?.isDeleted),
                 };
             });
     }, [user, connectedUsers]);
@@ -237,6 +244,7 @@ const Users = () => {
                                     isSentByMe={item.isSentByMe}
                                     isSeenByRecipient={item.isSeenByRecipient}
                                     mediaType={item.mediaType}
+                                    isDeleted={item.isDeleted}
                                 />
                             ))
                         ) : hasAnyConversations ? (

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Image as ImageIcon, Video as VideoIcon, Users as GroupIcon, CheckCheck, Check } from "lucide-react";
+import { Image as ImageIcon, Video as VideoIcon, Users as GroupIcon, CheckCheck, Check, Ban } from "lucide-react";
 import OfflineAvatar from "../Avatar/OfflineAvatar";
 import OnlineAvatar from "../Avatar/OnlineAvatar";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -21,6 +21,7 @@ interface UsersItemsProps {
     isSentByMe?: boolean;
     isSeenByRecipient?: boolean;
     mediaType?: "text" | "image" | "video";
+    isDeleted?: boolean;
 }
 
 const UsersItems: React.FC<UsersItemsProps> = ({
@@ -35,6 +36,7 @@ const UsersItems: React.FC<UsersItemsProps> = ({
     isSentByMe = false,
     isSeenByRecipient = false,
     mediaType = "text",
+    isDeleted = false,
 }) => {
     const navigate = useNavigate();
     const { id: activeId } = useParams<{ id?: string }>();
@@ -159,7 +161,7 @@ const UsersItems: React.FC<UsersItemsProps> = ({
                     ) : (
                         <div className="flex items-center gap-1 min-w-0 text-xs text-muted-foreground">
                             {/* Sent checkmark status for user's own sent messages */}
-                            {isSentByMe && (
+                            {isSentByMe && !isDeleted && (
                                 <span className="shrink-0">
                                     {isSeenByRecipient ? (
                                         <CheckCheck className="h-3.5 w-3.5 text-cyan-500 dark:text-cyan-400" />
@@ -169,16 +171,23 @@ const UsersItems: React.FC<UsersItemsProps> = ({
                                 </span>
                             )}
 
+                            {/* Deleted message icon */}
+                            {isDeleted && (
+                                <Ban className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
+                            )}
+
                             {/* Media type icon */}
-                            {mediaType === 'image' && (
+                            {!isDeleted && mediaType === 'image' && (
                                 <ImageIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                             )}
-                            {mediaType === 'video' && (
+                            {!isDeleted && mediaType === 'video' && (
                                 <VideoIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                             )}
 
                             <p className={`truncate text-xs ${
-                                messageUnseen
+                                isDeleted
+                                    ? "italic text-muted-foreground/75"
+                                    : messageUnseen
                                     ? "text-foreground font-semibold dark:text-primary"
                                     : "text-muted-foreground/90 group-hover:text-foreground/80"
                             }`}>

@@ -1,12 +1,13 @@
 import express from 'express';
 import dotenv from "dotenv";
 import passport from 'passport';
-import { verify, logout, people } from '../controllers/authController.js';
+import { verify, logout, people, register, login } from '../controllers/authController.js';
 import { ensureAuthenticated } from '../middleware/auth.js';
 
 const router = express.Router();
 dotenv.config();
 
+// OAuth Routes
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], state: true }));
 
 router.get(
@@ -35,6 +36,11 @@ router.get(
     }
 );
 
+// Email & Password Auth Routes
+router.post("/register", register);
+router.post("/login", login);
+
+// Session Verification & User Directory
 router.get("/verify", verify);
 router.get("/people", ensureAuthenticated, people);
 router.post("/logout", logout);

@@ -9,8 +9,9 @@ import TypingBubble from "./TypingBubble";
 import NexusLogo from "../UI/NexusLogo";
 import { AuthContext } from "../../contexts/AuthContext";
 import { queryClient, verify } from "../../api/auth";
-import { getConversation, readMessage, fetchConversationMessages } from "../../api/conversation";
+import { getConversation, readMessage, fetchConversationMessages, editMessage, deleteMessage } from "../../api/conversation";
 import { Conversation, Message, Participant, User, UserConversationRef, TypingUser } from "../../types";
+import { handleMessageEdited, handleMessageDeleted } from "../../utils/socketHandlers";
 import socket from "../../utils/socket";
 
 function formatMessageDate(dateString: string): string {
@@ -307,12 +308,37 @@ const Chats: React.FC = () => {
                             ...userConv.conversation.participants.map((participant: Participant) => participant.picture),
                             user.picture
                         ]);
-                        setConversationType('group');
                     }
                 }
             });
         }
     }, [user, conversation, connectedUsers, id]);
+
+    const handleEditMessage = async (messageId: string, newContent: string) => {
+        if (!id || !messageId || !newContent.trim()) return;
+        try {
+            const res = await editMessage(id, messageId, newContent.trim());
+            if (res && res.data) {
+                handleMessageEdited(id, res.data);
+                socket.emit('edit message', id, res.data);
+            }
+        } catch (err) {
+            console.error('Failed to edit message:', err);
+        }
+    };
+
+    const handleDeleteMessage = async (messageId: string) => {
+        if (!id || !messageId) return;
+        try {
+            const res = await deleteMessage(id, messageId);
+            if (res && res.data) {
+                handleMessageDeleted(id, res.data);
+                socket.emit('delete message', id, res.data);
+            }
+        } catch (err) {
+            console.error('Failed to delete message:', err);
+        }
+    };
 
     return (
         <div className="flex flex-col h-[100dvh] flex-1 bg-background text-foreground md:border-l border-border transition-colors relative overflow-hidden">
@@ -407,6 +433,11 @@ const Chats: React.FC = () => {
                                             online={connectedUsers.length > 0 && connectedUsers.includes(msgSenderId)}
                                             messageType={message.type}
                                             messageSeen={messageSeen}
+                                            messageId={message._id}
+                                            isDeleted={message.isDeleted}
+                                            isEdited={message.isEdited}
+                                            onEditSave={handleEditMessage}
+                                            onDeleteConfirm={handleDeleteMessage}
                                         />
                                     </React.Fragment>
                                 );

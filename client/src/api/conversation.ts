@@ -48,6 +48,27 @@ export const deleteConversation = async (userId: string, conversationId: string 
     return response.data;
 };
 
+export const editMessage = async (
+    conversationId: string | undefined,
+    messageId: string | undefined,
+    content: string
+) => {
+    if (!conversationId || !messageId) throw new Error("Conversation ID and Message ID are required");
+    const response = await apiClient.put(`/conversation/${conversationId}/message/${messageId}`, {
+        content
+    });
+    return response.data;
+};
+
+export const deleteMessage = async (
+    conversationId: string | undefined,
+    messageId: string | undefined
+) => {
+    if (!conversationId || !messageId) throw new Error("Conversation ID and Message ID are required");
+    const response = await apiClient.delete(`/conversation/${conversationId}/message/${messageId}`);
+    return response.data;
+};
+
 export const fetchConversationMessages = async (
     conversationId: string | undefined,
     before?: string | null,

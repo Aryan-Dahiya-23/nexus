@@ -101,6 +101,24 @@ class MockQuery {
                 }
             }
 
+            if (result && typeof result === 'object' && !Array.isArray(result) && result._id && messagesStore.has(result._id.toString())) {
+                result.save = async function () {
+                    const existing = messagesStore.get(this._id.toString()) || {};
+                    const updated = {
+                        ...existing,
+                        content: this.content,
+                        isDeleted: Boolean(this.isDeleted),
+                        deletedAt: this.deletedAt || null,
+                        isEdited: Boolean(this.isEdited),
+                        editedAt: this.editedAt || null,
+                        type: this.type || existing.type || 'text',
+                        seenBy: (this.seenBy || existing.seenBy || []).map(s => s.toString())
+                    };
+                    messagesStore.set(this._id.toString(), updated);
+                    return this;
+                };
+            }
+
             if (result && typeof result === 'object' && result.senderId && typeof result.senderId === 'string') {
                 result.senderId = new mongoose.Types.ObjectId(result.senderId);
             }
@@ -358,6 +376,7 @@ export function setupMockDb() {
             _id: _id.toString(),
             fullName: data.fullName || 'Test User',
             email: data.email || `user_${_id}@test.com`,
+            password: data.password !== undefined ? data.password : null,
             picture: data.picture || 'https://example.com/pic.jpg',
             conversations: data.conversations || [],
             createdAt: data.createdAt || new Date(),
@@ -482,6 +501,20 @@ export function setupMockDb() {
             if (res.senderId) {
                 res.senderId = new mongoose.Types.ObjectId(res.senderId.toString());
             }
+            res.save = async function () {
+                const updated = {
+                    ...clone(doc),
+                    content: this.content,
+                    isDeleted: Boolean(this.isDeleted),
+                    deletedAt: this.deletedAt || null,
+                    isEdited: Boolean(this.isEdited),
+                    editedAt: this.editedAt || null,
+                    type: this.type || 'text',
+                    seenBy: (this.seenBy || []).map(s => s.toString())
+                };
+                messagesStore.set(this._id.toString(), updated);
+                return this;
+            };
             return res;
         });
     };
@@ -620,6 +653,10 @@ export function seedMessage(msgData) {
         content: msgData.content || 'Test message content',
         type: msgData.type || 'text',
         seenBy: (msgData.seenBy || []).map(s => (s._id ? s._id.toString() : s.toString())),
+        isDeleted: Boolean(msgData.isDeleted),
+        deletedAt: msgData.deletedAt || null,
+        isEdited: Boolean(msgData.isEdited),
+        editedAt: msgData.editedAt || null,
         createdAt: msgData.createdAt || new Date(),
     };
     messagesStore.set(_id, doc);

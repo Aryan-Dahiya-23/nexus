@@ -11,6 +11,10 @@ export interface Message {
     content: string;
     type: 'text' | 'image' | 'video';
     seenBy: string[];
+    isDeleted?: boolean;
+    deletedAt?: string;
+    isEdited?: boolean;
+    editedAt?: string;
     createdAt?: string;
     updatedAt?: string;
 }

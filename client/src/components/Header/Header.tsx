@@ -6,7 +6,7 @@ import IncomingVideoCallWidget from "../Widgets/IncomingVideoCallWidget";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { AuthContext } from "../../contexts/AuthContext";
 import { verify } from "../../api/auth";
-import { handleChatMessage, handleMessageSent, handleSeenMessage, handleNewConversation } from "../../utils/socketHandlers";
+import { handleChatMessage, handleMessageSent, handleSeenMessage, handleNewConversation, handleMessageEdited, handleMessageDeleted } from "../../utils/socketHandlers";
 import { Message, User, UserConversationRef } from "../../types";
 import socket from "../../utils/socket";
 
@@ -150,6 +150,62 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
             }
         });
 
+        socket.on('message edited', (conversationId: string, updatedMessage: Message) => {
+            handleMessageEdited(conversationId, updatedMessage);
+            setUser((prevUser: User | undefined) => {
+                if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
+                const conversationIndex = prevUser.conversations.findIndex(
+                    (conv: UserConversationRef) => conv?.conversation?._id === conversationId
+                );
+                if (conversationIndex === -1) return prevUser;
+                const targetConv = prevUser.conversations[conversationIndex];
+                if (targetConv?.conversation?.lastMessage?._id === updatedMessage._id) {
+                    const newConvs = [...prevUser.conversations];
+                    newConvs[conversationIndex] = {
+                        ...targetConv,
+                        conversation: {
+                            ...targetConv.conversation,
+                            lastMessage: {
+                                ...targetConv.conversation.lastMessage,
+                                ...updatedMessage
+                            }
+                        }
+                    };
+                    return { ...prevUser, conversations: newConvs };
+                }
+                return prevUser;
+            });
+        });
+
+        socket.on('message deleted', (conversationId: string, deletedMessage: Message) => {
+            handleMessageDeleted(conversationId, deletedMessage);
+            setUser((prevUser: User | undefined) => {
+                if (!prevUser || !Array.isArray(prevUser.conversations)) return prevUser;
+                const conversationIndex = prevUser.conversations.findIndex(
+                    (conv: UserConversationRef) => conv?.conversation?._id === conversationId
+                );
+                if (conversationIndex === -1) return prevUser;
+                const targetConv = prevUser.conversations[conversationIndex];
+                if (targetConv?.conversation?.lastMessage?._id === deletedMessage._id) {
+                    const newConvs = [...prevUser.conversations];
+                    newConvs[conversationIndex] = {
+                        ...targetConv,
+                        conversation: {
+                            ...targetConv.conversation,
+                            lastMessage: {
+                                ...targetConv.conversation.lastMessage,
+                                ...deletedMessage,
+                                isDeleted: true,
+                                content: 'This message was deleted'
+                            } as Message
+                        }
+                    };
+                    return { ...prevUser, conversations: newConvs };
+                }
+                return prevUser;
+            });
+        });
+
         socket.on('seen message', (conversationId: string) => {
             handleSeenMessage(id, conversationId);
         });
@@ -183,6 +239,8 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
         return () => {
             socket.off('connected users');
             socket.off('chat message');
+            socket.off('message edited');
+            socket.off('message deleted');
             socket.off('user typing');
             socket.off('user stop typing');
             socket.off('message sent');

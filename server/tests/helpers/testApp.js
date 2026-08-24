@@ -16,6 +16,7 @@ import { io as ClientIO } from 'socket.io-client';
 import conversationRouter from '../../routes/conversation.js';
 import authRouter from '../../routes/auth.js';
 import initializeChatSockets from '../../sockets/chatSockets.js';
+import '../../config/passport.js';
 import mongoose from 'mongoose';
 
 // Whitelist origins from specifications

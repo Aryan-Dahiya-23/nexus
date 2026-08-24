@@ -1,41 +1,207 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, ShieldCheck, Zap, Video, Lock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    ArrowLeft,
+    Mail,
+    Lock,
+    User as UserIcon,
+    Camera,
+    Eye,
+    EyeOff,
+    Loader2,
+    Check,
+    X,
+    AlertCircle,
+    ShieldCheck,
+    Sparkles,
+} from "lucide-react";
+import { toast } from "react-toastify";
 import ThemeToggle from "../UI/ThemeToggle";
 import NexusLogo from "../UI/NexusLogo";
+import { AuthContext } from "../../contexts/AuthContext";
+import { loginWithEmail, registerWithEmail, queryClient } from "../../api/auth";
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
-    const url = import.meta.env.VITE_URL || 'http://localhost:4000';
+    const { setUser, setLoggedIn } = useContext(AuthContext);
 
+    const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // Form inputs
+    const [fullName, setFullName] = useState<string>("");
+    const [email, setEmail] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [avatarUrl, setAvatarUrl] = useState<string>("");
+    const [avatarUploading, setAvatarUploading] = useState<boolean>(false);
+    const [cloudinaryReady, setCloudinaryReady] = useState<boolean>(false);
+
+    const backendUrl = import.meta.env.VITE_URL || "http://localhost:4000";
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    // Load Cloudinary script dynamically
+    useEffect(() => {
+        if (!window.cloudinary) {
+            const existingScript = document.getElementById("cloudinary-upload-script");
+            if (!existingScript) {
+                const script = document.createElement("script");
+                script.id = "cloudinary-upload-script";
+                script.src = "https://upload-widget.cloudinary.com/global/all.js";
+                script.async = true;
+                script.onload = () => setCloudinaryReady(true);
+                document.body.appendChild(script);
+            } else {
+                existingScript.addEventListener("load", () => setCloudinaryReady(true));
+            }
+        } else {
+            setCloudinaryReady(true);
+        }
+    }, []);
+
+    // Social Auth Handlers
     const googleAuth = useCallback(() => {
-        window.open(`${url}/auth/google`, "_self");
-    }, [url]);
+        window.open(`${backendUrl}/auth/google`, "_self");
+    }, [backendUrl]);
 
     const facebookAuth = useCallback(() => {
-        window.open(`${url}/auth/facebook`, "_self");
-    }, [url]);
+        window.open(`${backendUrl}/auth/facebook`, "_self");
+    }, [backendUrl]);
 
-    // Keyboard Shortcut: Esc for Home
+    // Avatar Upload via Cloudinary
+    const handleAvatarUpload = () => {
+        if (!cloudName || !uploadPreset) {
+            toast.warn("Cloudinary configuration missing. A default avatar will be generated.");
+            return;
+        }
+
+        if (window.cloudinary) {
+            setAvatarUploading(true);
+            const widget = window.cloudinary.createUploadWidget(
+                {
+                    cloudName,
+                    uploadPreset,
+                    multiple: false,
+                    maxFiles: 1,
+                    resourceType: "image",
+                    clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "gif"],
+                    maxFileSize: 10 * 1024 * 1024, // 10MB
+                    sources: ["local", "url", "camera"],
+                    cropping: true,
+                    croppingAspectRatio: 1,
+                    croppingShowDimensions: true,
+                    theme: "minimal",
+                },
+                (error, result) => {
+                    setAvatarUploading(false);
+                    if (!error && result && result.event === "success") {
+                        const uploadedUrl = result.info.secure_url || "";
+                        setAvatarUrl(uploadedUrl);
+                        toast.success("Profile photo uploaded!");
+                    }
+                }
+            );
+            widget.open();
+        } else {
+            toast.info("Upload widget is initializing. Please try again in a moment.");
+        }
+    };
+
+    // Remove uploaded avatar
+    const handleRemoveAvatar = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setAvatarUrl("");
+    };
+
+    // Submit handler
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setErrorMessage(null);
+
+        // Validation
+        if (!email.trim()) {
+            setErrorMessage("Please enter your email address.");
+            return;
+        }
+
+        if (!password) {
+            setErrorMessage("Please enter your password.");
+            return;
+        }
+
+        if (authMode === "signup") {
+            if (!fullName.trim()) {
+                setErrorMessage("Please enter your full name.");
+                return;
+            }
+            if (password.length < 6) {
+                setErrorMessage("Password must be at least 6 characters long.");
+                return;
+            }
+        }
+
+        try {
+            setLoading(true);
+            if (authMode === "signin") {
+                const response = await loginWithEmail({
+                    email: email.trim(),
+                    password,
+                });
+                if (response && response.user) {
+                    setUser(response.user);
+                    setLoggedIn(true);
+                    queryClient.setQueryData(["user"], response.user);
+                    toast.success("Welcome back!");
+                    navigate(response.user.conversations && response.user.conversations.length > 0 ? "/chats" : "/people");
+                }
+            } else {
+                const response = await registerWithEmail({
+                    fullName: fullName.trim(),
+                    email: email.trim(),
+                    password,
+                    picture: avatarUrl || undefined,
+                });
+                if (response && response.user) {
+                    setUser(response.user);
+                    setLoggedIn(true);
+                    queryClient.setQueryData(["user"], response.user);
+                    toast.success("Account created successfully!");
+                    navigate("/people");
+                }
+            }
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } }; message?: string };
+            const msg = error.response?.data?.message || error.message || "Authentication failed. Please try again.";
+            setErrorMessage(msg);
+            toast.error(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Keyboard navigation (Escape to Home)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-
-            if (e.key === 'Escape') {
+            if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
+            if (e.key === "Escape") {
                 e.preventDefault();
-                navigate('/');
+                navigate("/");
             }
         };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [navigate]);
 
     return (
         <div className="relative min-h-[100dvh] w-full bg-background text-foreground flex flex-col justify-between items-center px-4 py-6 sm:py-8 font-sans selection:bg-primary/20 selection:text-primary transition-colors duration-300 overflow-x-hidden">
             {/* Subtle Dot Grid Background */}
             <div className="absolute inset-0 bg-dot-grid pointer-events-none opacity-50 dark:opacity-30 -z-10" />
+
+            {/* Ambient Background Gradient Orbs */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-gradient-to-tr from-primary/15 via-blue-500/10 to-indigo-500/5 blur-[120px] pointer-events-none -z-10 rounded-full dark:opacity-100 opacity-60" />
 
             {/* Top Navigation Bar */}
             <div className="w-full max-w-4xl flex items-center justify-between z-10">
@@ -68,27 +234,239 @@ const Login: React.FC = () => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-md my-auto z-10"
+                className="w-full max-w-md my-auto z-10 py-4"
             >
-                <div className="rounded-3xl border border-border bg-card/90 backdrop-blur-2xl p-5 sm:p-8 shadow-2xl text-center">
+                <div className="rounded-3xl border border-border bg-card/95 backdrop-blur-2xl p-6 sm:p-8 shadow-2xl text-center">
                     {/* Brand Logo & Header */}
                     <div className="flex flex-col items-center mb-6">
-                        <NexusLogo className="h-14 w-14 mb-3" size={56} />
+                        <NexusLogo className="h-12 w-12 mb-2.5" size={48} />
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-                            Sign in to Nexus
+                            {authMode === "signin" ? "Welcome back" : "Create your account"}
                         </h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 max-w-xs">
-                            Direct, passwordless access to your conversations.
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-xs">
+                            {authMode === "signin"
+                                ? "Sign in to access your chats and video rooms."
+                                : "Join Nexus for real-time collaboration."}
                         </p>
                     </div>
 
+                    {/* Mode Toggle Tabs */}
+                    <div className="flex p-1 rounded-2xl bg-muted/70 border border-border mb-6">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAuthMode("signin");
+                                setErrorMessage(null);
+                            }}
+                            className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all ${
+                                authMode === "signin"
+                                    ? "bg-card text-foreground shadow-xs"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAuthMode("signup");
+                                setErrorMessage(null);
+                            }}
+                            className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all ${
+                                authMode === "signup"
+                                    ? "bg-card text-foreground shadow-xs"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                            Create Account
+                        </button>
+                    </div>
+
+                    {/* Error Banner */}
+                    <AnimatePresence>
+                        {errorMessage && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -6, height: 0 }}
+                                animate={{ opacity: 1, y: 0, height: "auto" }}
+                                exit={{ opacity: 0, y: -6, height: 0 }}
+                                className="mb-5 p-3 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium flex items-center gap-2 text-left"
+                            >
+                                <AlertCircle className="h-4 w-4 shrink-0" />
+                                <span>{errorMessage}</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Auth Form */}
+                    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                        {/* Profile Picture Uploader (Signup Mode Only) */}
+                        {authMode === "signup" && (
+                            <div className="flex flex-col items-center justify-center pb-2">
+                                <div
+                                    onClick={handleAvatarUpload}
+                                    className="relative group cursor-pointer"
+                                    title="Click to upload profile photo via Cloudinary"
+                                >
+                                    <div className="h-20 w-20 rounded-full ring-2 ring-primary/40 ring-offset-2 ring-offset-background overflow-hidden bg-muted/80 flex items-center justify-center transition-all group-hover:ring-primary shadow-sm">
+                                        {avatarUrl ? (
+                                            <img
+                                                src={avatarUrl}
+                                                alt="Avatar Preview"
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : avatarUploading ? (
+                                            <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                                <Camera className="h-6 w-6" />
+                                                <span className="text-[9px] font-semibold mt-0.5">Upload</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Upload Badge or Remove Badge */}
+                                    {avatarUrl ? (
+                                        <button
+                                            type="button"
+                                            onClick={handleRemoveAvatar}
+                                            className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-xs hover:scale-110 transition-transform"
+                                            title="Remove photo"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    ) : (
+                                        <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+                                            <Camera className="h-3.5 w-3.5" />
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[11px] text-muted-foreground mt-2 text-center">
+                                    {avatarUrl ? (
+                                        <span className="text-emerald-500 font-medium flex items-center gap-1">
+                                            <Check className="h-3 w-3" /> Custom photo attached
+                                        </span>
+                                    ) : (
+                                        <span>Optional profile photo (or generated by default)</span>
+                                    )}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Full Name Input (Signup Mode Only) */}
+                        {authMode === "signup" && (
+                            <div>
+                                <label className="block text-xs font-semibold text-foreground mb-1.5 ml-1">
+                                    Full Name
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                                        <UserIcon className="h-4 w-4" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        placeholder="Aryan Dahiya"
+                                        required
+                                        disabled={loading}
+                                        className="h-11 w-full pl-10 pr-4 rounded-2xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Email Address Input */}
+                        <div>
+                            <label className="block text-xs font-semibold text-foreground mb-1.5 ml-1">
+                                Email Address
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                                    <Mail className="h-4 w-4" />
+                                </div>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="aryan@example.com"
+                                    required
+                                    disabled={loading}
+                                    className="h-11 w-full pl-10 pr-4 rounded-2xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password Input */}
+                        <div>
+                            <div className="flex items-center justify-between mb-1.5 ml-1">
+                                <label className="block text-xs font-semibold text-foreground">
+                                    Password
+                                </label>
+                                {authMode === "signup" && (
+                                    <span className="text-[10px] text-muted-foreground">Min. 6 characters</span>
+                                )}
+                            </div>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                                    <Lock className="h-4 w-4" />
+                                </div>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder={authMode === "signup" ? "Create a strong password" : "Enter your password"}
+                                    required
+                                    disabled={loading}
+                                    className="h-11 w-full pl-10 pr-11 rounded-2xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full mt-2 h-11 rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:opacity-95 active:scale-[0.99] text-white font-semibold text-sm shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span>{authMode === "signin" ? "Signing In..." : "Creating Account..."}</span>
+                                </>
+                            ) : (
+                                <span>{authMode === "signin" ? "Sign In with Email" : "Create Free Account"}</span>
+                            )}
+                        </button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="my-6 flex items-center">
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="px-3 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                            Or continue with
+                        </span>
+                        <div className="flex-1 h-px bg-border" />
+                    </div>
+
                     {/* SSO Providers */}
-                    <div className="space-y-3 mt-6">
+                    <div className="space-y-3">
                         {/* Google Button */}
                         <button
                             type="button"
                             onClick={googleAuth}
-                            className="w-full flex items-center justify-center gap-3 h-12 px-4 rounded-2xl bg-background hover:bg-muted text-foreground font-semibold text-sm border border-input hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
+                            className="w-full flex items-center justify-center gap-3 h-11 px-4 rounded-2xl bg-background hover:bg-muted text-foreground font-semibold text-sm border border-input hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
                         >
                             <svg
                                 className="w-5 h-5 shrink-0"
@@ -119,7 +497,7 @@ const Login: React.FC = () => {
                         <button
                             type="button"
                             onClick={facebookAuth}
-                            className="w-full flex items-center justify-center gap-3 h-12 px-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-sm transition-all cursor-pointer group"
+                            className="w-full flex items-center justify-center gap-3 h-11 px-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] active:bg-[#125ec7] text-white font-semibold text-sm shadow-xs transition-all cursor-pointer group"
                         >
                             <svg
                                 className="w-5 h-5 fill-current shrink-0"
@@ -135,31 +513,50 @@ const Login: React.FC = () => {
                     {/* Trust Footnote */}
                     <div className="mt-6 pt-5 border-t border-border/80 flex items-center justify-center space-x-2 text-xs text-muted-foreground">
                         <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-                        <span>OAuth 2.0 • Encrypted HTTP-only cookies</span>
+                        <span>Encrypted sessions • No plaintext passwords</span>
                     </div>
                 </div>
 
-                {/* Feature Highlights Pill Row */}
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                        <Zap className="h-3.5 w-3.5 text-cyan-500" />
-                        <span>WebSocket Sync</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Video className="h-3.5 w-3.5 text-emerald-500" />
-                        <span>1080p Rooms</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Lock className="h-3.5 w-3.5 text-blue-500" />
-                        <span>Passwordless</span>
-                    </div>
+                {/* Switch hint below card */}
+                <div className="mt-4 text-center">
+                    <p className="text-xs text-muted-foreground">
+                        {authMode === "signin" ? (
+                            <>
+                                Don't have an account yet?{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAuthMode("signup");
+                                        setErrorMessage(null);
+                                    }}
+                                    className="font-semibold text-primary hover:underline cursor-pointer"
+                                >
+                                    Create one free
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                Already have an account?{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAuthMode("signin");
+                                        setErrorMessage(null);
+                                    }}
+                                    className="font-semibold text-primary hover:underline cursor-pointer"
+                                >
+                                    Sign in here
+                                </button>
+                            </>
+                        )}
+                    </p>
                 </div>
             </motion.div>
 
             {/* Footer */}
-            <div className="text-center z-10">
+            <div className="text-center z-10 pt-2">
                 <p className="text-[11px] text-muted-foreground">
-                    By signing in, you agree to Nexus terms of service and privacy policy.
+                    By continuing, you agree to Nexus terms of service and privacy policy.
                 </p>
             </div>
         </div>

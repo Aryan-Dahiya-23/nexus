@@ -510,3 +510,122 @@ export const getConversationMessages = async (req, res) => {
         res.status(500).json({ error: true, message: 'Internal Server Error' });
     }
 };
+
+export const editMessage = async (req, res) => {
+    try {
+        const { conversationId, messageId } = req.params;
+        const currentUserId = req.user._id;
+        const { content } = req.body;
+
+        if (!isValidObjectId(conversationId) || !isValidObjectId(messageId)) {
+            return res.status(400).json({ error: true, message: 'Invalid conversation or message ID' });
+        }
+
+        if (!content || typeof content !== 'string' || !content.trim()) {
+            return res.status(400).json({ error: true, message: 'Message content is required' });
+        }
+
+        if (content.length > 5000) {
+            return res.status(400).json({ error: true, message: 'Message exceeds maximum length of 5000 characters' });
+        }
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) {
+            return res.status(404).json({ error: true, message: 'Conversation not found' });
+        }
+
+        const isParticipant = conversation.participants.some(
+            p => (p._id ? p._id.toString() : p.toString()) === currentUserId.toString()
+        );
+        if (!isParticipant) {
+            return res.status(403).json({ error: true, message: 'Forbidden: You are not a participant in this conversation' });
+        }
+
+        const message = await Message.findById(messageId);
+        if (!message) {
+            return res.status(404).json({ error: true, message: 'Message not found' });
+        }
+
+        if (message.senderId.toString() !== currentUserId.toString()) {
+            return res.status(403).json({ error: true, message: 'Forbidden: You can only edit your own messages' });
+        }
+
+        if (message.isDeleted) {
+            return res.status(400).json({ error: true, message: 'Cannot edit a deleted message' });
+        }
+
+        if (message.type !== 'text') {
+            return res.status(400).json({ error: true, message: 'Only text messages can be edited' });
+        }
+
+        message.content = content.trim();
+        message.isEdited = true;
+        message.editedAt = new Date();
+        await message.save();
+
+        const populatedMessage = await Message.findById(message._id).populate({
+            path: 'senderId',
+            select: 'fullName picture'
+        });
+
+        res.status(200).json({
+            error: false,
+            message: 'Message edited successfully',
+            data: populatedMessage
+        });
+    } catch (error) {
+        console.error('Error editing message:', error);
+        res.status(500).json({ error: true, message: 'Internal Server Error' });
+    }
+};
+
+export const deleteMessage = async (req, res) => {
+    try {
+        const { conversationId, messageId } = req.params;
+        const currentUserId = req.user._id;
+
+        if (!isValidObjectId(conversationId) || !isValidObjectId(messageId)) {
+            return res.status(400).json({ error: true, message: 'Invalid conversation or message ID' });
+        }
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) {
+            return res.status(404).json({ error: true, message: 'Conversation not found' });
+        }
+
+        const isParticipant = conversation.participants.some(
+            p => (p._id ? p._id.toString() : p.toString()) === currentUserId.toString()
+        );
+        if (!isParticipant) {
+            return res.status(403).json({ error: true, message: 'Forbidden: You are not a participant in this conversation' });
+        }
+
+        const message = await Message.findById(messageId);
+        if (!message) {
+            return res.status(404).json({ error: true, message: 'Message not found' });
+        }
+
+        if (message.senderId.toString() !== currentUserId.toString()) {
+            return res.status(403).json({ error: true, message: 'Forbidden: You can only delete your own messages' });
+        }
+
+        message.isDeleted = true;
+        message.deletedAt = new Date();
+        message.content = "This message was deleted";
+        await message.save();
+
+        const populatedMessage = await Message.findById(message._id).populate({
+            path: 'senderId',
+            select: 'fullName picture'
+        });
+
+        res.status(200).json({
+            error: false,
+            message: 'Message deleted successfully',
+            data: populatedMessage
+        });
+    } catch (error) {
+        console.error('Error deleting message:', error);
+        res.status(500).json({ error: true, message: 'Internal Server Error' });
+    }
+};

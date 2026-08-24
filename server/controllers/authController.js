@@ -1,5 +1,187 @@
+import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { getOnlineUserIds } from "../sockets/chatSockets.js";
+
+export const register = async (req, res) => {
+    try {
+        const { fullName, email, password, picture } = req.body || {};
+
+        if (!fullName || typeof fullName !== 'string' || !fullName.trim()) {
+            return res.status(400).json({
+                error: true,
+                message: "Full name is required",
+            });
+        }
+
+        if (!email || typeof email !== 'string' || !email.trim()) {
+            return res.status(400).json({
+                error: true,
+                message: "Email address is required",
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!emailRegex.test(normalizedEmail)) {
+            return res.status(400).json({
+                error: true,
+                message: "Please enter a valid email address",
+            });
+        }
+
+        if (!password || typeof password !== 'string' || password.length < 6) {
+            return res.status(400).json({
+                error: true,
+                message: "Password must be at least 6 characters long",
+            });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+            if (existingUser.password) {
+                return res.status(409).json({
+                    error: true,
+                    message: "An account with this email already exists. Please sign in.",
+                });
+            } else {
+                return res.status(400).json({
+                    error: true,
+                    message: "This email is associated with a social account. Please sign in using Google or Facebook.",
+                });
+            }
+        }
+
+        // Determine profile picture (use uploaded picture or default generated avatar)
+        const cleanFullName = fullName.trim();
+        let userPicture = (picture && typeof picture === 'string' && picture.trim()) ? picture.trim() : null;
+        if (!userPicture) {
+            userPicture = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanFullName)}&background=0284c7&color=fff&size=256`;
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newUser = await User.create({
+            fullName: cleanFullName,
+            email: normalizedEmail,
+            password: hashedPassword,
+            picture: userPicture,
+            conversations: [],
+        });
+
+        // Establish passport session
+        req.login(newUser, (err) => {
+            if (err) {
+                console.error("Session login error during registration:", err);
+                return res.status(500).json({
+                    error: true,
+                    message: "Registration succeeded but session could not be established. Please sign in.",
+                });
+            }
+
+            const sanitizedUser = {
+                _id: newUser._id,
+                fullName: newUser.fullName,
+                email: newUser.email,
+                picture: newUser.picture,
+                conversations: newUser.conversations || [],
+                createdAt: newUser.createdAt,
+            };
+
+            return res.status(201).json({
+                error: false,
+                message: "Account created successfully",
+                user: sanitizedUser,
+            });
+        });
+    } catch (error) {
+        console.error("Registration error:", error);
+        return res.status(500).json({
+            error: true,
+            message: "An error occurred during registration. Please try again.",
+        });
+    }
+};
+
+export const login = async (req, res) => {
+    try {
+        const { email, password } = req.body || {};
+
+        if (!email || typeof email !== 'string' || !email.trim()) {
+            return res.status(400).json({
+                error: true,
+                message: "Email address is required",
+            });
+        }
+
+        if (!password || typeof password !== 'string') {
+            return res.status(400).json({
+                error: true,
+                message: "Password is required",
+            });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await User.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            return res.status(401).json({
+                error: true,
+                message: "Invalid email or password",
+            });
+        }
+
+        // Check if user was registered via OAuth only without password
+        if (!user.password) {
+            return res.status(400).json({
+                error: true,
+                message: "This account was created using Google or Facebook. Please sign in using your social provider.",
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
+                error: true,
+                message: "Invalid email or password",
+            });
+        }
+
+        // Log into passport session
+        req.login(user, (err) => {
+            if (err) {
+                console.error("Session login error during login:", err);
+                return res.status(500).json({
+                    error: true,
+                    message: "Login failed to establish session. Please try again.",
+                });
+            }
+
+            const sanitizedUser = {
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                picture: user.picture,
+                conversations: user.conversations || [],
+                createdAt: user.createdAt,
+            };
+
+            return res.status(200).json({
+                error: false,
+                message: "Logged in successfully",
+                user: sanitizedUser,
+            });
+        });
+    } catch (error) {
+        console.error("Login error:", error);
+        return res.status(500).json({
+            error: true,
+            message: "An error occurred during login. Please try again.",
+        });
+    }
+};
 
 export const verify = async (req, res) => {
     try {

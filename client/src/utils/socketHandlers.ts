@@ -45,3 +45,47 @@ export const handleNewConversation = (userId: string, currentUserId: string) => 
         queryClient.invalidateQueries({ queryKey: ['user'] });
     }
 };
+
+export const handleMessageEdited = (
+    conversationId: string,
+    updatedMessage: Message
+) => {
+    const conversation: Conversation | undefined = queryClient.getQueryData(['chats', conversationId]);
+    if (conversation && Array.isArray(conversation.messages)) {
+        const updatedMessages = conversation.messages.map((m: Message) =>
+            m._id === updatedMessage._id ? { ...m, ...updatedMessage } : m
+        );
+        const lastMsg = conversation.lastMessage?._id === updatedMessage._id
+            ? { ...conversation.lastMessage, ...updatedMessage }
+            : conversation.lastMessage;
+
+        queryClient.setQueryData(['chats', conversationId], {
+            ...conversation,
+            messages: updatedMessages,
+            lastMessage: lastMsg
+        });
+    }
+};
+
+export const handleMessageDeleted = (
+    conversationId: string,
+    deletedMessage: Message
+) => {
+    const conversation: Conversation | undefined = queryClient.getQueryData(['chats', conversationId]);
+    if (conversation && Array.isArray(conversation.messages)) {
+        const updatedMessages = conversation.messages.map((m: Message) =>
+            m._id === deletedMessage._id
+                ? { ...m, isDeleted: true, content: 'This message was deleted', deletedAt: deletedMessage.deletedAt }
+                : m
+        );
+        const lastMsg = conversation.lastMessage?._id === deletedMessage._id
+            ? { ...conversation.lastMessage, isDeleted: true, content: 'This message was deleted', deletedAt: deletedMessage.deletedAt }
+            : conversation.lastMessage;
+
+        queryClient.setQueryData(['chats', conversationId], {
+            ...conversation,
+            messages: updatedMessages,
+            lastMessage: lastMsg
+        });
+    }
+};

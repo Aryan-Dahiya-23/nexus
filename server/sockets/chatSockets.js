@@ -114,21 +114,37 @@ const initializeChatSockets = (io) => {
             }
         });
 
-        socket.on('seen message', async (conversationId) => {
-            if (!conversationId) return;
+        socket.on('edit message', async (conversationId, updatedMessage) => {
             const actorId = socket.userId || socket.data?.userId;
-            if (!actorId) return;
+            if (!conversationId || !actorId || !updatedMessage?._id) return;
 
             try {
                 const conv = await Conversation.findById(conversationId).select('participants');
                 if (conv && conv.participants.some(p => (p._id ? p._id.toString() : p.toString()) === actorId)) {
                     conv.participants.forEach((pId) => {
                         const targetId = (pId._id ? pId._id.toString() : pId.toString());
-                        io.to(`user:${targetId}`).emit('seen message', conversationId);
+                        io.to(`user:${targetId}`).emit('message edited', conversationId, updatedMessage);
                     });
                 }
             } catch (err) {
-                console.error("Error broadcasting seen message:", err);
+                console.error("Error broadcasting message edited:", err);
+            }
+        });
+
+        socket.on('delete message', async (conversationId, deletedMessage) => {
+            const actorId = socket.userId || socket.data?.userId;
+            if (!conversationId || !actorId || !deletedMessage?._id) return;
+
+            try {
+                const conv = await Conversation.findById(conversationId).select('participants');
+                if (conv && conv.participants.some(p => (p._id ? p._id.toString() : p.toString()) === actorId)) {
+                    conv.participants.forEach((pId) => {
+                        const targetId = (pId._id ? pId._id.toString() : pId.toString());
+                        io.to(`user:${targetId}`).emit('message deleted', conversationId, deletedMessage);
+                    });
+                }
+            } catch (err) {
+                console.error("Error broadcasting message deleted:", err);
             }
         });
 

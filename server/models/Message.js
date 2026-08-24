@@ -16,6 +16,20 @@ const messageSchema = new mongoose.Schema({
         default: 'text',
     },
     seenBy: [],
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
+    deletedAt: {
+        type: Date,
+    },
+    isEdited: {
+        type: Boolean,
+        default: false,
+    },
+    editedAt: {
+        type: Date,
+    },
     createdAt: {
         type: Date,
         default: Date.now,

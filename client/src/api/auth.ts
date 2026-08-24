@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import apiClient from "./client";
-import { Participant } from "../types";
+import { Participant, User } from "../types";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -13,7 +13,35 @@ export const queryClient = new QueryClient({
     },
 });
 
-export const verify = async () => {
+export interface RegisterPayload {
+    fullName: string;
+    email: string;
+    password: string;
+    picture?: string;
+}
+
+export interface LoginPayload {
+    email: string;
+    password: string;
+}
+
+export interface AuthResponse {
+    error: boolean;
+    message: string;
+    user: User;
+}
+
+export const registerWithEmail = async (payload: RegisterPayload): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>("/auth/register", payload);
+    return response.data;
+};
+
+export const loginWithEmail = async (payload: LoginPayload): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>("/auth/login", payload);
+    return response.data;
+};
+
+export const verify = async (): Promise<User> => {
     const response = await apiClient.get("/auth/verify");
     if (response.data && response.data.error === false) {
         return response.data.user;
