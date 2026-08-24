@@ -512,7 +512,7 @@ export function setupMockDb() {
                     type: this.type || 'text',
                     seenBy: (this.seenBy || []).map(s => s.toString())
                 };
-                messagesStore.set(this._id.toString(), updated);
+                messagesStore.set((this._id || doc._id).toString(), updated);
                 return this;
             };
             return res;
