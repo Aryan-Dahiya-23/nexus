@@ -276,7 +276,7 @@ const Login: React.FC = () => {
                         {/* Full Name Input (Signup Mode Only) */}
                         {authMode === "signup" && (
                             <div>
-                                <label className="block text-xs font-semibold text-foreground mb-1.5 ml-1">
+                                <label htmlFor="fullName" className="block text-xs font-semibold text-foreground mb-1.5 ml-1">
                                     Full Name
                                 </label>
                                 <div className="relative">
@@ -284,7 +284,10 @@ const Login: React.FC = () => {
                                         <UserIcon className={`h-4 w-4 ${errors.fullName ? "text-destructive" : ""}`} />
                                     </div>
                                     <input
+                                        id="fullName"
+                                        name="name"
                                         type="text"
+                                        autoComplete="name"
                                         value={fullName}
                                         onChange={(e) => handleChange("fullName", e.target.value)}
                                         onBlur={() => handleBlur("fullName")}
@@ -315,7 +318,7 @@ const Login: React.FC = () => {
 
                         {/* Email Address Input */}
                         <div>
-                            <label className="block text-xs font-semibold text-foreground mb-1.5 ml-1">
+                            <label htmlFor="email" className="block text-xs font-semibold text-foreground mb-1.5 ml-1">
                                 Email Address
                             </label>
                             <div className="relative">
@@ -323,7 +326,10 @@ const Login: React.FC = () => {
                                     <Mail className={`h-4 w-4 ${errors.email ? "text-destructive" : ""}`} />
                                 </div>
                                 <input
+                                    id="email"
+                                    name="username"
                                     type="email"
+                                    autoComplete="username email"
                                     value={email}
                                     onChange={(e) => handleChange("email", e.target.value)}
                                     onBlur={() => handleBlur("email")}
@@ -354,7 +360,7 @@ const Login: React.FC = () => {
                         {/* Password Input */}
                         <div>
                             <div className="flex items-center justify-between mb-1.5 ml-1">
-                                <label className="block text-xs font-semibold text-foreground">
+                                <label htmlFor="password" className="block text-xs font-semibold text-foreground">
                                     Password
                                 </label>
                                 {authMode === "signup" && (
@@ -366,7 +372,10 @@ const Login: React.FC = () => {
                                     <Lock className={`h-4 w-4 ${errors.password ? "text-destructive" : ""}`} />
                                 </div>
                                 <input
+                                    id="password"
+                                    name="password"
                                     type={showPassword ? "text" : "password"}
+                                    autoComplete={authMode === "signup" ? "new-password" : "current-password"}
                                     value={password}
                                     onChange={(e) => handleChange("password", e.target.value)}
                                     onBlur={() => handleBlur("password")}
