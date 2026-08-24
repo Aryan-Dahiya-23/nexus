@@ -25,7 +25,20 @@ const Login: React.FC = () => {
     const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+    const [isSlowAuth, setIsSlowAuth] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // Track if authentication request is taking longer than 2.5s (cold-start)
+    useEffect(() => {
+        if (loading) {
+            const timer = setTimeout(() => {
+                setIsSlowAuth(true);
+            }, 2500);
+            return () => clearTimeout(timer);
+        } else {
+            setIsSlowAuth(false);
+        }
+    }, [loading]);
 
     // Form inputs
     const [fullName, setFullName] = useState<string>("");
@@ -271,6 +284,21 @@ const Login: React.FC = () => {
                         )}
                     </AnimatePresence>
 
+                    {/* Cold-start notification banner */}
+                    <AnimatePresence>
+                        {isSlowAuth && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-xs font-medium flex items-center gap-2 mb-3 shadow-2xs text-left"
+                            >
+                                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                                <span>Cloud backend is booting up from sleep mode (Render Free Tier ~30-40s). Please hold on...</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
                     {/* Auth Form (noValidate disables browser native error bubbles) */}
                     <form noValidate onSubmit={handleSubmit} className="space-y-4 text-left">
                         {/* Full Name Input (Signup Mode Only) */}
@@ -424,7 +452,13 @@ const Login: React.FC = () => {
                             {loading ? (
                                 <>
                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                    <span>{authMode === "signin" ? "Signing In..." : "Creating Account..."}</span>
+                                    <span>
+                                        {isSlowAuth
+                                            ? "Connecting to Cloud Server..."
+                                            : authMode === "signin"
+                                            ? "Signing In..."
+                                            : "Creating Account..."}
+                                    </span>
                                 </>
                             ) : (
                                 <span>{authMode === "signin" ? "Sign In with Email" : "Create Free Account"}</span>

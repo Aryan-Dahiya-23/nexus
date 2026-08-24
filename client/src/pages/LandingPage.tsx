@@ -24,6 +24,7 @@ import { Button } from '@/components/UI/button';
 import ThemeToggle from '@/components/UI/ThemeToggle';
 import NexusLogo from '@/components/UI/NexusLogo';
 import { AuthContext } from '../contexts/AuthContext';
+import { pingServerHealth } from '../api/auth';
 
 interface DemoMessage {
     id: string;
@@ -77,9 +78,11 @@ export const LandingPage: React.FC = () => {
 
     const chatScrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // Ensure page loads at the top on initial mount
+    // Ensure page loads at the top on initial mount & send background server wakeup ping
     useEffect(() => {
         window.scrollTo(0, 0);
+        // Proactive backend wakeup probe for Render free-tier cold starts
+        pingServerHealth().catch(() => {});
     }, []);
 
     // Live Simulated Ping Jitter

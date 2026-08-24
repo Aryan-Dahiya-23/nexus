@@ -41,6 +41,13 @@ router.post("/register", register);
 router.post("/login", login);
 
 // Session Verification & User Directory
+router.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        uptime: process.uptime(),
+        timestamp: Date.now()
+    });
+});
 router.get("/verify", verify);
 router.get("/people", ensureAuthenticated, people);
 router.post("/logout", logout);

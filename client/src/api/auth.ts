@@ -91,3 +91,12 @@ export const logout = async () => {
     const response = await apiClient.post("/auth/logout", {});
     return response.status;
 };
+
+export const pingServerHealth = async (): Promise<boolean> => {
+    try {
+        const response = await apiClient.get("/auth/health", { timeout: 60000 });
+        return response.status === 200;
+    } catch {
+        return false;
+    }
+};
