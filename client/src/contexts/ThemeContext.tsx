@@ -24,6 +24,9 @@ interface ThemeContextProps {
     setOutgoingCall: Dispatch<SetStateAction<boolean>>;
     deleteModal: boolean;
     setDeleteModal: Dispatch<SetStateAction<boolean>>;
+    deleteTarget: { id: string; name?: string } | null;
+    setDeleteTarget: Dispatch<SetStateAction<{ id: string; name?: string } | null>>;
+    openDeleteConversationModal: (target: { id: string; name?: string }) => void;
     imageWidget: boolean;
     setImageWidget: Dispatch<SetStateAction<boolean>>;
     imgSrc: string;
@@ -53,6 +56,9 @@ const defaultThemeContext: ThemeContextProps = {
     setOutgoingCall: () => { },
     deleteModal: false,
     setDeleteModal: () => { },
+    deleteTarget: null,
+    setDeleteTarget: () => { },
+    openDeleteConversationModal: () => { },
     imageWidget: false,
     setImageWidget: () => { },
     imgSrc: "",
@@ -84,8 +90,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [videoCallId, setVideoCallId] = useState<string>('');
     const [outgoingCall, setOutgoingCall] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name?: string } | null>(null);
     const [imageWidget, setImageWidget] = useState<boolean>(false);
     const [imgSrc, setImgSrc] = useState<string>("");
+
+    const openDeleteConversationModal = (target: { id: string; name?: string }) => {
+        setDeleteTarget(target);
+        setDeleteModal(true);
+    };
 
     useEffect(() => {
         try {
@@ -112,6 +124,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 theme, setTheme, chatHeight, setChatHeight, groupChatWidget, setGroupChatWidget, logoutLoading, setLogoutLoading,
                 incomingVideoCall, setIncomingVideoCall, videoCallName, setVideoCallName, videoCallUserId, setVideoCallUserId,
                 videoCallAvatarSrc, setVideoCallAvatarSrc, videoCallId, setVideoCallId, outgoingCall, setOutgoingCall, deleteModal, setDeleteModal,
+                deleteTarget, setDeleteTarget, openDeleteConversationModal,
                 imageWidget, setImageWidget, imgSrc, setImgSrc
             }}
         >

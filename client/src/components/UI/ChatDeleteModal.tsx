@@ -10,25 +10,31 @@ import { queryClient } from "../../api/auth";
 import { deleteConversation } from "../../api/conversation";
 
 const ChatDeleteModal: React.FC = () => {
-    const { id } = useParams();
+    const { id: urlId } = useParams<{ id?: string }>();
     const navigate = useNavigate();
 
     const { user } = useContext(AuthContext);
-    const { setDeleteModal } = useContext(ThemeContext);
+    const { setDeleteModal, deleteTarget, setDeleteTarget } = useContext(ThemeContext);
+
+    const targetConvId = deleteTarget?.id || urlId;
+    const targetConvName = deleteTarget?.name;
 
     const handleDeleteModal = useCallback(() => {
         setDeleteModal(false);
-    }, [setDeleteModal]);
+        setDeleteTarget(null);
+    }, [setDeleteModal, setDeleteTarget]);
 
     const { mutate, status } = useMutation({
         mutationFn: () => {
-            if (!user?._id || !id) throw new Error("User and conversation ID required");
-            return deleteConversation(user._id, id);
+            if (!user?._id || !targetConvId) throw new Error("User and conversation ID required");
+            return deleteConversation(user._id, targetConvId);
         },
         onSettled: async () => {
             await queryClient.invalidateQueries({ queryKey: ['user'] });
             handleDeleteModal();
-            navigate("/chats");
+            if (urlId === targetConvId) {
+                navigate("/chats");
+            }
         }
     });
 
@@ -62,7 +68,6 @@ const ChatDeleteModal: React.FC = () => {
                 className="w-full max-w-md bg-card text-card-foreground border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
-
                 <button
                     type="button"
                     className="absolute right-4 top-4 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
@@ -82,7 +87,9 @@ const ChatDeleteModal: React.FC = () => {
                             Delete Conversation?
                         </h3>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                            Are you sure you want to remove this chat from your active conversations list?
+                            {targetConvName
+                                ? `Are you sure you want to remove your conversation with "${targetConvName}" from your active chat list?`
+                                : "Are you sure you want to remove this conversation from your active chats list?"}
                         </p>
                     </div>
                 </div>
@@ -90,7 +97,8 @@ const ChatDeleteModal: React.FC = () => {
                 <div className="mt-6 sm:mt-8 flex items-center justify-end space-x-2.5">
                     <button
                         type="button"
-                        className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer"
+                        disabled={isPending}
+                        className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                         onClick={handleDeleteModal}
                     >
                         Cancel
