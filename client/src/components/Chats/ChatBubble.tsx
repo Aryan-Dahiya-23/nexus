@@ -1,10 +1,6 @@
 import React, { useContext } from "react";
 import { motion } from "framer-motion";
 import { Check, CheckCheck, Maximize2 } from "lucide-react";
-import { Cloudinary } from "@cloudinary/url-gen";
-import { AdvancedImage, AdvancedVideo, responsive, lazyload } from "@cloudinary/react";
-import { videoCodec } from "@cloudinary/url-gen/actions/transcode";
-import { auto, vp9 } from '@cloudinary/url-gen/qualifiers/videoCodec';
 import { ThemeContext } from "../../contexts/ThemeContext";
 
 interface ChatBubbleProps {
@@ -47,31 +43,15 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
     const isRight = position === "right";
     const isMedia = messageType === 'image' || messageType === 'video';
     const isHttpUrl = typeof message === 'string' && (message.startsWith('http://') || message.startsWith('https://'));
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k';
 
-    const cld = new Cloudinary({
-        cloud: {
-            cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k'
-        }
-    });
-
-    const sources = [
-        {
-            type: 'mp4',
-            codecs: ['avc1.4d002a'],
-            transcode: videoCodec(auto())
-        },
-        {
-            type: 'webm',
-            codecs: ['vp8', 'vorbis'],
-            transcode: videoCodec(vp9())
-        }
-    ];
-
-    const myImage = messageType === 'image' && !isHttpUrl ? cld.image(message) : null;
-    const myVideo = messageType === 'video' && !isHttpUrl ? cld.video(message) : null;
+    // High quality uncompressed Cloudinary delivery URL with optimal format and quality
+    const highResMediaUrl = isHttpUrl
+        ? message
+        : `https://res.cloudinary.com/${cloudName}/${messageType === 'video' ? 'video' : 'image'}/upload/q_auto:best,f_auto/${message}`;
 
     const handleImageClick = () => {
-        setImgSrc(message);
+        setImgSrc(highResMediaUrl);
         setImageWidget(true);
     };
 
@@ -109,15 +89,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                         </span>
                     )}
 
-                    {/* Speech Bubble Container with integrated Tail */}
+                    {/* Speech Bubble Container */}
                     <div className="relative group">
                         {/* THE MESSAGE BUBBLE */}
                         <div
-                            className={`relative text-sm sm:text-[15px] leading-relaxed break-words shadow-sm transition-all ${
+                            className={`relative text-sm sm:text-[15px] leading-relaxed break-words transition-all ${
                                 isMedia
-                                    ? isRight
-                                        ? "p-1 sm:p-1.5 bg-primary rounded-2xl rounded-br-sm shadow-sm"
-                                        : "p-1 sm:p-1.5 bg-card border border-border rounded-2xl rounded-bl-sm shadow-xs"
+                                    ? "p-0 bg-transparent border-0 shadow-none"
                                     : isRight
                                         ? "px-4 py-2.5 bg-primary text-primary-foreground rounded-2xl rounded-br-sm shadow-sm"
                                         : "px-4 py-2.5 bg-card text-card-foreground border border-border rounded-2xl rounded-bl-sm shadow-xs"
@@ -149,38 +127,26 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                             {/* --- IMAGE MESSAGE --- */}
                             {messageType === 'image' && (
                                 <div
-                                    className="relative rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group/img max-w-[360px] sm:max-w-[460px] md:max-w-[500px]"
+                                    className="relative rounded-2xl overflow-hidden cursor-pointer group/img max-w-[320px] sm:max-w-[440px] md:max-w-[500px] border border-border/60 bg-muted/20 shadow-xs"
                                     onClick={handleImageClick}
                                 >
-                                    {isHttpUrl ? (
-                                        <img
-                                            src={message}
-                                            alt="Sent media"
-                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl transition-transform duration-300 group-hover/img:scale-[1.015]"
-                                        />
-                                    ) : myImage ? (
-                                        <AdvancedImage
-                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl transition-transform duration-300 group-hover/img:scale-[1.015]"
-                                            cldImg={myImage}
-                                            plugins={[responsive()]}
-                                        />
-                                    ) : (
-                                        <img
-                                            src={`https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k'}/image/upload/${message}`}
-                                            alt="Sent media"
-                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl transition-transform duration-300 group-hover/img:scale-[1.015]"
-                                        />
-                                    )}
+                                    <img
+                                        src={highResMediaUrl}
+                                        alt="Sent media"
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full max-h-[440px] sm:max-h-[520px] object-contain rounded-2xl transition-transform duration-300 group-hover/img:scale-[1.01] select-none bg-black/5 dark:bg-white/5"
+                                    />
 
                                     {/* Hover overlay hint */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                         <div className="p-2.5 rounded-full bg-black/60 text-white backdrop-blur-md shadow-lg transform scale-90 group-hover/img:scale-100 transition-transform">
                                             <Maximize2 className="h-4 w-4" />
                                         </div>
                                     </div>
 
                                     {/* Floating Glassmorphic Timestamp Pill */}
-                                    <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold flex items-center gap-1 shadow-md select-none pointer-events-none">
+                                    <div className="absolute bottom-2 right-2 px-2.5 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold flex items-center gap-1 shadow-md select-none pointer-events-none">
                                         <span>{formattedTime}</span>
                                         {isRight && (
                                             messageSeen ? (
@@ -195,33 +161,17 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
                             {/* --- VIDEO MESSAGE --- */}
                             {messageType === 'video' && (
-                                <div className="relative rounded-xl sm:rounded-2xl overflow-hidden max-w-[360px] sm:max-w-[460px] md:max-w-[500px]">
-                                    {isHttpUrl ? (
-                                        <video
-                                            src={message}
-                                            controls
-                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl bg-black"
-                                        />
-                                    ) : myVideo ? (
-                                        <AdvancedVideo
-                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl bg-black"
-                                            cldVid={myVideo}
-                                            cldPoster="auto"
-                                            sources={sources}
-                                            plugins={[lazyload()]}
-                                            preload="metadata"
-                                            controls
-                                        />
-                                    ) : (
-                                        <video
-                                            src={`https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dwyx9715k'}/video/upload/${message}`}
-                                            controls
-                                            className="w-full max-h-[420px] sm:max-h-[500px] object-cover rounded-xl bg-black"
-                                        />
-                                    )}
+                                <div className="relative rounded-2xl overflow-hidden max-w-[320px] sm:max-w-[440px] md:max-w-[500px] border border-border/60 bg-black shadow-xs">
+                                    <video
+                                        src={highResMediaUrl}
+                                        controls
+                                        playsInline
+                                        preload="metadata"
+                                        className="w-full max-h-[440px] sm:max-h-[520px] object-contain rounded-2xl bg-black"
+                                    />
 
                                     {/* Floating Glassmorphic Timestamp Pill */}
-                                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold flex items-center gap-1 shadow-md select-none pointer-events-none">
+                                    <div className="absolute top-2 right-2 px-2.5 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-semibold flex items-center gap-1 shadow-md select-none pointer-events-none">
                                         <span>{formattedTime}</span>
                                         {isRight && (
                                             messageSeen ? (
@@ -235,23 +185,25 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                             )}
                         </div>
 
-                        {/* SPEECH BUBBLE TAIL (SVG) */}
-                        {isRight ? (
-                            /* Outgoing Message Tail (Bottom-Right) */
-                            <svg
-                                className="absolute -bottom-[2px] -right-[6px] w-[11px] h-[14px] pointer-events-none text-blue-600 dark:text-blue-600 fill-current"
-                                viewBox="0 0 11 14"
-                            >
-                                <path d="M0,0 C2,4 6,10 11,14 C8,13 3,11 0,8 Z" />
-                            </svg>
-                        ) : (
-                            /* Incoming Message Tail (Bottom-Left) */
-                            <svg
-                                className="absolute -bottom-[2px] -left-[6px] w-[11px] h-[14px] pointer-events-none fill-card stroke-border/70"
-                                viewBox="0 0 11 14"
-                            >
-                                <path d="M11,0 C9,4 5,10 0,14 C3,13 8,11 11,8 Z" />
-                            </svg>
+                        {/* SPEECH BUBBLE TAIL (SVG) - Only for text messages */}
+                        {!isMedia && (
+                            isRight ? (
+                                /* Outgoing Message Tail (Bottom-Right) */
+                                <svg
+                                    className="absolute -bottom-[2px] -right-[6px] w-[11px] h-[14px] pointer-events-none text-primary fill-current"
+                                    viewBox="0 0 11 14"
+                                >
+                                    <path d="M0,0 C2,4 6,10 11,14 C8,13 3,11 0,8 Z" />
+                                </svg>
+                            ) : (
+                                /* Incoming Message Tail (Bottom-Left) */
+                                <svg
+                                    className="absolute -bottom-[2px] -left-[6px] w-[11px] h-[14px] pointer-events-none fill-card stroke-border/70"
+                                    viewBox="0 0 11 14"
+                                >
+                                    <path d="M11,0 C9,4 5,10 0,14 C3,13 8,11 11,8 Z" />
+                                </svg>
+                            )
                         )}
                     </div>
 
