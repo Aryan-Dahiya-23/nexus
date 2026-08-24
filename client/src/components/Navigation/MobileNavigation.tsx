@@ -72,13 +72,13 @@ const MobileNavigation = () => {
     const isPeopleActive = location.pathname === '/people';
 
     return (
-        <div className="flex fixed bottom-0 h-16 bg-card/90 backdrop-blur-xl z-50 px-4 border-t border-border flex-row justify-around items-center w-full md:hidden transition-colors">
+        <div className="flex fixed bottom-0 h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] bg-card/90 dark:bg-card/95 backdrop-blur-xl z-50 px-4 border-t border-border/80 flex-row justify-around items-center w-full md:hidden transition-colors shadow-lg">
             <button
                 type="button"
                 aria-label="Messages"
-                className={`p-2.5 rounded-xl cursor-pointer transition-all ${
+                className={`p-2.5 rounded-xl cursor-pointer transition-all active:scale-95 ${
                     isHomeActive
-                        ? 'bg-primary/15 text-primary scale-105'
+                        ? 'bg-primary/15 text-primary shadow-xs border border-primary/20 scale-105'
                         : 'text-muted-foreground hover:text-foreground'
                 }`}
                 onClick={navigateHome}
@@ -89,9 +89,9 @@ const MobileNavigation = () => {
             <button
                 type="button"
                 aria-label="People Directory"
-                className={`p-2.5 rounded-xl cursor-pointer transition-all ${
+                className={`p-2.5 rounded-xl cursor-pointer transition-all active:scale-95 ${
                     isPeopleActive
-                        ? 'bg-primary/15 text-primary scale-105'
+                        ? 'bg-primary/15 text-primary shadow-xs border border-primary/20 scale-105'
                         : 'text-muted-foreground hover:text-foreground'
                 }`}
                 onClick={navigatePeople}
@@ -106,7 +106,7 @@ const MobileNavigation = () => {
 
             <button
                 type="button"
-                className="p-2.5 rounded-xl cursor-pointer text-muted-foreground hover:text-rose-500 transition-colors"
+                className="p-2.5 rounded-xl cursor-pointer text-muted-foreground hover:text-rose-500 active:scale-95 transition-colors"
                 onClick={handleLogout}
                 title="Log Out"
                 aria-label="Log Out"

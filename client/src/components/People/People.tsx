@@ -75,7 +75,7 @@ const People = () => {
     }, [data, activeTab, users.length, connectedUsers, userId]);
 
     return (
-        <div className="flex flex-col h-[calc(100dvh-4rem)] md:h-[100dvh] w-full md:w-[350px] lg:w-[380px] xl:w-[410px] shrink-0 border-r border-border/80 bg-background/95 md:bg-card/40 backdrop-blur-xl overflow-hidden transition-all">
+        <div className="flex flex-col h-[calc(100dvh-4rem-env(safe-area-inset-bottom,0px))] md:h-[100dvh] w-full md:w-[350px] lg:w-[380px] xl:w-[410px] shrink-0 border-r border-border/80 bg-background/95 md:bg-card/40 backdrop-blur-xl overflow-hidden transition-all">
             <Header message="People" />
 
             {/* Search and Filter Section */}
