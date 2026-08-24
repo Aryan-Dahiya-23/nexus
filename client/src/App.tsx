@@ -43,12 +43,10 @@ const App = () => {
           />
           <Suspense fallback={<PageFallback />}>
             <Routes>
-              {/* Public landing page at root */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/landing" element={<LandingPage />} />
-
-              {/* Public-only authentication route */}
+              {/* Public-only routes (accessible only for logged out users) */}
               <Route element={<PublicOnlyRoute />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
               </Route>
 
