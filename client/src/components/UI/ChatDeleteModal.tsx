@@ -1,6 +1,7 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { AlertTriangle, X, Loader2, Trash2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
@@ -14,6 +15,10 @@ const ChatDeleteModal: React.FC = () => {
 
     const user = queryClient.getQueryData<User>(['user']);
     const { setDeleteModal } = useContext(ThemeContext);
+
+    const handleDeleteModal = useCallback(() => {
+        setDeleteModal(false);
+    }, [setDeleteModal]);
 
     const { mutate, status } = useMutation({
         mutationFn: () => {
@@ -33,16 +38,37 @@ const ChatDeleteModal: React.FC = () => {
         mutate();
     };
 
-    const handleDeleteModal = () => {
-        setDeleteModal(false);
-    };
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                handleDeleteModal();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleDeleteModal]);
+
+    const isPending = status === 'pending';
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-md bg-card text-card-foreground border border-border rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-in fade-in duration-200"
+            onClick={handleDeleteModal}
+        >
+            <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 15 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="w-full max-w-md bg-card text-card-foreground border border-border rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Top danger accent bar */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-red-500 to-amber-500" />
+
                 <button
                     type="button"
-                    className="absolute right-4 top-4 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+                    className="absolute right-4 top-4 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                     onClick={handleDeleteModal}
                     aria-label="Close dialog"
                 >
@@ -64,24 +90,34 @@ const ChatDeleteModal: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="mt-8 flex items-center justify-end space-x-3">
+                <div className="mt-8 flex items-center justify-end space-x-2.5">
                     <button
                         type="button"
-                        className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl transition-colors cursor-pointer"
+                        className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer"
                         onClick={handleDeleteModal}
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
-                        disabled={status === 'pending'}
+                        disabled={isPending}
                         onClick={handleDeleteConversation}
-                        className="px-5 py-2.5 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold text-sm shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold text-xs shadow-md shadow-destructive/20 transition-all disabled:opacity-50 cursor-pointer"
                     >
-                        {status === 'pending' ? 'Deleting...' : 'Delete Chat'}
+                        {isPending ? (
+                            <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <span>Deleting...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Delete Chat</span>
+                            </>
+                        )}
                     </button>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

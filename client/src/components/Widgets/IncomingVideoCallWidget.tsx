@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import RingAvatar from "../Avatar/RingAvatar";
+import { motion, AnimatePresence } from "framer-motion";
+import { Video, PhoneOff, Sparkles } from "lucide-react";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import incomingRingtone from "../../assets/incomingRingtone.mp3";
 import socket from "../../utils/socket";
@@ -12,29 +13,27 @@ interface IncomingVideoCallProps {
     id: string;
 }
 
+const DEFAULT_AVATAR = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
+
 const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avatarSrc, userId, id }) => {
-
     const navigate = useNavigate();
-
     const { incomingVideoCall, setIncomingVideoCall } = useContext(ThemeContext);
-
     const [audio] = useState(new Audio(incomingRingtone));
-
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         audioRef.current = audio;
 
         const eventListener = () => {
-          if (audioRef.current) {
-            audioRef.current.play()
-              .then(() => console.log('Audio played successfully'))
-              .catch(error => console.error('Error playing audio:', error));
-          }
+            if (audioRef.current) {
+                audioRef.current.play()
+                    .then(() => {})
+                    .catch(error => console.error('Error playing audio:', error));
+            }
 
-          window.removeEventListener('click', eventListener);
-          window.removeEventListener('mousemove', eventListener);
-          window.removeEventListener('scroll', eventListener);
+            window.removeEventListener('click', eventListener);
+            window.removeEventListener('mousemove', eventListener);
+            window.removeEventListener('scroll', eventListener);
         };
 
         window.addEventListener('click', eventListener);
@@ -42,20 +41,20 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
         window.addEventListener('scroll', eventListener);
 
         return () => {
-          if (audioRef.current) {
-            audioRef.current.pause();
-          }
-          window.removeEventListener('click', eventListener);
-          window.removeEventListener('mousemove', eventListener);
-          window.removeEventListener('scroll', eventListener);
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            window.removeEventListener('click', eventListener);
+            window.removeEventListener('mousemove', eventListener);
+            window.removeEventListener('scroll', eventListener);
         };
-      }, [audio]);
+    }, [audio]);
 
-      useEffect(() => {
+    useEffect(() => {
         if (!incomingVideoCall && audioRef.current) {
-          audioRef.current.pause();
+            audioRef.current.pause();
         }
-      }, [incomingVideoCall]);
+    }, [incomingVideoCall]);
 
     const acceptCall = () => {
         audio.pause();
@@ -73,7 +72,7 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             rejectCall();
-        }, 15000);
+        }, 18000);
 
         return () => clearTimeout(timeoutId);
     }, [rejectCall]);
@@ -81,25 +80,71 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
     const primaryAvatar = Array.isArray(avatarSrc) ? avatarSrc[0] : avatarSrc;
 
     return (
-        <div className="flex flex-row items-center space-x-4 px-4 py-5 fixed z-[9999] w-full bg-gray-800 border-2 border-sky-500 md:w-72 md:bottom-24 md:right-4">
+        <AnimatePresence>
+            <div className="fixed z-[9999] inset-x-4 top-4 md:inset-x-auto md:top-auto md:bottom-6 md:right-6 md:w-96">
+                <motion.div
+                    initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className="relative overflow-hidden bg-slate-900/95 dark:bg-slate-900/98 backdrop-blur-2xl text-slate-100 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-2xl shadow-cyan-500/10"
+                >
+                    {/* Top cyan pulse accent */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500 animate-pulse" />
 
-            <div className="ml-6 lg:ml-0.5">
-                <RingAvatar imgSrc={primaryAvatar} type="incomingVideoCall" />
+                    <div className="flex items-center space-x-4">
+                        {/* Radar Avatar with Pulsing Rings */}
+                        <div className="relative shrink-0 flex items-center justify-center">
+                            <span className="absolute h-14 w-14 rounded-full bg-emerald-500/30 animate-ping" />
+                            <span className="absolute h-16 w-16 rounded-full bg-cyan-500/20 animate-pulse" />
+                            <img
+                                src={primaryAvatar || DEFAULT_AVATAR}
+                                alt={name}
+                                className="relative z-10 h-13 w-13 rounded-2xl object-cover ring-2 ring-emerald-400 shadow-md"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
+                                }}
+                            />
+                        </div>
+
+                        {/* Caller Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1 text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">
+                                <Sparkles className="h-3 w-3 animate-spin" style={{ animationDuration: '4s' }} />
+                                <span>Incoming Video Call</span>
+                            </div>
+                            <h4 className="text-sm sm:text-base font-extrabold text-white truncate tracking-tight">
+                                {name}
+                            </h4>
+                            <p className="text-xs text-slate-400 truncate mt-0.5">
+                                Encrypted WebRTC Stage
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Action Controls */}
+                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center gap-2.5">
+                        <button
+                            type="button"
+                            onClick={rejectCall}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 font-semibold text-xs transition-all cursor-pointer active:scale-95"
+                        >
+                            <PhoneOff className="h-4 w-4" />
+                            <span>Decline</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={acceptCall}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-xs shadow-lg shadow-emerald-500/25 transition-all cursor-pointer active:scale-95 animate-pulse"
+                        >
+                            <Video className="h-4 w-4" />
+                            <span>Accept</span>
+                        </button>
+                    </div>
+                </motion.div>
             </div>
-
-            <div className="flex flex-col space-y-2.5">
-
-                <div className="flex flex-col ml-1">
-                    <span className="text-white">{name}</span>
-                    <span className="text-white text-sm">Incoming video call</span>
-                </div>
-
-                <div className="flex flex-row space-x-4">
-                    <button className="btn btn-sm btn-accent rounded-2xl text-white" onClick={acceptCall}>Accept</button>
-                    <button className="btn btn-sm btn-error rounded-2xl text-white hover:opacity-75" onClick={rejectCall}>Reject</button>
-                </div>
-            </div>
-        </div>
+        </AnimatePresence>
     );
 };
 
