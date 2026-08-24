@@ -4,17 +4,13 @@ Nexus is a real-time collaboration app for direct messaging, group conversations
 
 ## Product preview
 
-The public landing page includes an interactive product sandbox for the main Nexus surfaces:
+Nexus includes a public landing page and an authenticated chat workspace:
 
 ![Nexus landing page](docs/screenshots/landing.jpg)
 
-| Direct chat | 1080p video stage |
-| --- | --- |
-| ![Nexus direct chat](docs/screenshots/chat-demo.jpg) | ![Nexus video stage](docs/screenshots/video-stage.jpg) |
+![Nexus authenticated chat workspace](docs/screenshots/actual-chat.png)
 
-![Nexus group channels](docs/screenshots/group-channels.jpg)
-
-The full product requires authentication. The screenshots above are captured from the public, interactive demo and are included as repository assets so the README remains portable.
+The chat screenshot is captured from the authenticated product. The landing image is the public entry point. Both assets are included in the repository so the README remains portable.
 
 ## What is included
 
