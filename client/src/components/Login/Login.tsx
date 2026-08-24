@@ -6,15 +6,11 @@ import {
     Mail,
     Lock,
     User as UserIcon,
-    Camera,
     Eye,
     EyeOff,
     Loader2,
-    Check,
-    X,
     AlertCircle,
     ShieldCheck,
-    Sparkles,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import ThemeToggle from "../UI/ThemeToggle";
@@ -35,32 +31,8 @@ const Login: React.FC = () => {
     const [fullName, setFullName] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-    const [avatarUrl, setAvatarUrl] = useState<string>("");
-    const [avatarUploading, setAvatarUploading] = useState<boolean>(false);
-    const [cloudinaryReady, setCloudinaryReady] = useState<boolean>(false);
 
     const backendUrl = import.meta.env.VITE_URL || "http://localhost:4000";
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-    // Load Cloudinary script dynamically
-    useEffect(() => {
-        if (!window.cloudinary) {
-            const existingScript = document.getElementById("cloudinary-upload-script");
-            if (!existingScript) {
-                const script = document.createElement("script");
-                script.id = "cloudinary-upload-script";
-                script.src = "https://upload-widget.cloudinary.com/global/all.js";
-                script.async = true;
-                script.onload = () => setCloudinaryReady(true);
-                document.body.appendChild(script);
-            } else {
-                existingScript.addEventListener("load", () => setCloudinaryReady(true));
-            }
-        } else {
-            setCloudinaryReady(true);
-        }
-    }, []);
 
     // Social Auth Handlers
     const googleAuth = useCallback(() => {
@@ -70,51 +42,6 @@ const Login: React.FC = () => {
     const facebookAuth = useCallback(() => {
         window.open(`${backendUrl}/auth/facebook`, "_self");
     }, [backendUrl]);
-
-    // Avatar Upload via Cloudinary
-    const handleAvatarUpload = () => {
-        if (!cloudName || !uploadPreset) {
-            toast.warn("Cloudinary configuration missing. A default avatar will be generated.");
-            return;
-        }
-
-        if (window.cloudinary) {
-            setAvatarUploading(true);
-            const widget = window.cloudinary.createUploadWidget(
-                {
-                    cloudName,
-                    uploadPreset,
-                    multiple: false,
-                    maxFiles: 1,
-                    resourceType: "image",
-                    clientAllowedFormats: ["png", "jpg", "jpeg", "webp", "gif"],
-                    maxFileSize: 10 * 1024 * 1024, // 10MB
-                    sources: ["local", "url", "camera"],
-                    cropping: true,
-                    croppingAspectRatio: 1,
-                    croppingShowDimensions: true,
-                    theme: "minimal",
-                },
-                (error, result) => {
-                    setAvatarUploading(false);
-                    if (!error && result && result.event === "success") {
-                        const uploadedUrl = result.info.secure_url || "";
-                        setAvatarUrl(uploadedUrl);
-                        toast.success("Profile photo uploaded!");
-                    }
-                }
-            );
-            widget.open();
-        } else {
-            toast.info("Upload widget is initializing. Please try again in a moment.");
-        }
-    };
-
-    // Remove uploaded avatar
-    const handleRemoveAvatar = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setAvatarUrl("");
-    };
 
     // Submit handler
     const handleSubmit = async (e: React.FormEvent) => {
@@ -162,7 +89,6 @@ const Login: React.FC = () => {
                     fullName: fullName.trim(),
                     email: email.trim(),
                     password,
-                    picture: avatarUrl || undefined,
                 });
                 if (response && response.user) {
                     setUser(response.user);
@@ -299,59 +225,6 @@ const Login: React.FC = () => {
 
                     {/* Auth Form */}
                     <form onSubmit={handleSubmit} className="space-y-4 text-left">
-                        {/* Profile Picture Uploader (Signup Mode Only) */}
-                        {authMode === "signup" && (
-                            <div className="flex flex-col items-center justify-center pb-2">
-                                <div
-                                    onClick={handleAvatarUpload}
-                                    className="relative group cursor-pointer"
-                                    title="Click to upload profile photo via Cloudinary"
-                                >
-                                    <div className="h-20 w-20 rounded-full ring-2 ring-primary/40 ring-offset-2 ring-offset-background overflow-hidden bg-muted/80 flex items-center justify-center transition-all group-hover:ring-primary shadow-sm">
-                                        {avatarUrl ? (
-                                            <img
-                                                src={avatarUrl}
-                                                alt="Avatar Preview"
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : avatarUploading ? (
-                                            <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                                <Camera className="h-6 w-6" />
-                                                <span className="text-[9px] font-semibold mt-0.5">Upload</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Upload Badge or Remove Badge */}
-                                    {avatarUrl ? (
-                                        <button
-                                            type="button"
-                                            onClick={handleRemoveAvatar}
-                                            className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-xs hover:scale-110 transition-transform"
-                                            title="Remove photo"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    ) : (
-                                        <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
-                                            <Camera className="h-3.5 w-3.5" />
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-[11px] text-muted-foreground mt-2 text-center">
-                                    {avatarUrl ? (
-                                        <span className="text-emerald-500 font-medium flex items-center gap-1">
-                                            <Check className="h-3 w-3" /> Custom photo attached
-                                        </span>
-                                    ) : (
-                                        <span>Optional profile photo (or generated by default)</span>
-                                    )}
-                                </span>
-                            </div>
-                        )}
-
                         {/* Full Name Input (Signup Mode Only) */}
                         {authMode === "signup" && (
                             <div>
