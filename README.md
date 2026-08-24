@@ -1,127 +1,184 @@
-# Nexus 💬 📹
+# Nexus
 
-**Nexus** is a real-time chat, group messaging, and video calling application built with **React**, **Express**, **Socket.IO**, and **MongoDB**.
+Nexus is a real-time collaboration app for direct messaging, group conversations, media sharing, and authenticated video rooms. The product combines a responsive React client with an Express/Socket.IO API and MongoDB-backed sessions and conversations.
 
----
+## Product preview
 
-## 🏛️ Architecture & System Topology
+The public landing page includes an interactive product sandbox for the main Nexus surfaces:
 
+![Nexus landing page](docs/screenshots/landing.jpg)
+
+| Direct chat | 1080p video stage |
+| --- | --- |
+| ![Nexus direct chat](docs/screenshots/chat-demo.jpg) | ![Nexus video stage](docs/screenshots/video-stage.jpg) |
+
+![Nexus group channels](docs/screenshots/group-channels.jpg)
+
+The full product requires authentication. The screenshots above are captured from the public, interactive demo and are included as repository assets so the README remains portable.
+
+## What is included
+
+- Direct and group conversations with real-time Socket.IO delivery.
+- Typing indicators, online presence, read receipts, and conversation list updates.
+- Text, image, and video messages with Cloudinary-backed media delivery.
+- Edit and delete actions for messages, including synchronized socket events and retryable UI feedback.
+- Authenticated 1:1 and group video rooms powered by ZEGOCLOUD WebRTC.
+- Email/password authentication and Google OAuth on the client.
+- Responsive desktop/mobile chat layouts with light and dark themes.
+- Protected REST and WebSocket flows with participant checks, session authentication, rate limits, security headers, and origin validation.
+
+## Architecture
+
+```text
+React + TypeScript + Vite + Tailwind CSS
+             │
+             │ REST (cookie session) + Socket.IO
+             ▼
+Express + Passport + Socket.IO + Mongoose
+             │
+             ├── MongoDB / MongoDB Atlas
+             ├── Cloudinary media uploads
+             └── ZEGOCLOUD token issuance and rooms
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (Vercel)                        │
-│             React + TypeScript + Tailwind CSS               │
-│                  Port: 5174 (Local)                         │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-            HTTP/S + Credentials (Session Cookie)
-            WebSocket + Session Handshake
-                               │
-┌──────────────────────────────▼──────────────────────────────┐
-│                    Backend (Render)                         │
-│             Express + Socket.IO + Mongoose                  │
-│                  Port: 4000 (Local)                         │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-            Mongoose ODM (Durable Sessions + Models)
-                               │
-┌──────────────────────────────▼──────────────────────────────┐
-│                  Database (MongoDB Atlas)                   │
-│      Collections: users, conversations, messages, sessions  │
-└─────────────────────────────────────────────────────────────┘
+
+### Repository layout
+
+```text
+.
+├── client/              React/Vite frontend
+│   ├── src/components/  Chat, navigation, room, and shared UI
+│   ├── src/pages/       Landing, auth, chats, people, and room routes
+│   └── public/          Static branding assets
+├── server/              Express/Socket.IO backend
+│   ├── controllers/     Auth and conversation logic
+│   ├── models/          User, conversation, and message models
+│   ├── routes/          Auth and conversation endpoints
+│   ├── sockets/         Authenticated real-time events
+│   └── tests/           Tiered API, security, and lifecycle tests
+└── docs/screenshots/    README product screenshots
 ```
 
----
+## Requirements
 
-## ⚙️ Local Development Setup
+- Node.js 18 or newer (Node 20 LTS recommended).
+- npm 9 or newer.
+- MongoDB locally or a MongoDB Atlas connection string.
+- Provider credentials for the features you enable: Google OAuth, Cloudinary, and ZEGOCLOUD.
 
-### 1. Prerequisites
-- **Node.js**: `v18+` or `v20+`
-- **npm**: `v9+`
-- **MongoDB**: MongoDB Atlas connection URI or local MongoDB daemon.
+## Quick start
 
-### 2. Local Port Requirements
-> [!IMPORTANT]
-> **Strict Port Rule:** The frontend must run on port **`5174`** and the backend must run on port **`4000`** to match OAuth provider callbacks and CORS configurations.
-
-### 3. Installation
-Clone the repository and install dependencies:
+Clone the repository and install each workspace:
 
 ```bash
-# Clone repository
 git clone git@github.com:Aryan-Dahiya-23/nexus.git
 cd nexus
 
-# Install backend dependencies
-cd server && npm install && cd ..
-
-# Install frontend dependencies
-cd client && npm install && cd ..
+npm install --prefix server
+npm install --prefix client
 ```
 
-### 4. Running the Application
+Create local environment files:
 
 ```bash
-# Run both frontend & backend concurrently from the root:
-npm run dev:client   # Starts Vite frontend on http://localhost:5174
-npm run dev:server   # Starts Express backend on http://localhost:4000
-
-# Or run tests across workspaces:
-npm test
+cp server/.env.example server/.env
+cp client/.env.example client/.env
 ```
 
----
+Fill in the values described below, then start the two services in separate terminals:
 
-## 🔐 Environment Configuration
+```bash
+# Terminal 1 — API and Socket.IO server
+npm run dev:server
 
-### Backend (`server/.env`)
+# Terminal 2 — Vite client
+npm run dev:client
+```
 
-| Variable | Description | Example (Local / Production) |
-| :--- | :--- | :--- |
-| `PORT` | HTTP Server port | `4000` |
-| `NODE_ENV` | Environment mode | `development` / `production` |
-| `CLIENT_URL` | Allowed frontend origin for CORS & Cookies | `http://localhost:5174` / `https://nexus-aryan.vercel.app` |
-| `MONGO_URL` | MongoDB connection URI | `mongodb+srv://...` |
-| `SECRET_KEY` | Session encryption secret | `your_secure_random_key` |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | `your_google_client_id` |
-| `GOOGLE_CLIENT_SECRET`| Google OAuth client secret | `your_google_client_secret` |
-| `GOOGLE_CALLBACK_URL` | Google OAuth callback URI | `http://localhost:4000/auth/google/callback` |
-| `FACEBOOK_CLIENT_ID` | Facebook OAuth app ID | `your_fb_app_id` |
-| `FACEBOOK_CLIENT_SECRET`| Facebook OAuth app secret | `your_fb_app_secret` |
-| `FACEBOOK_CALLBACK_URL`| Facebook OAuth callback URI | `http://localhost:4000/auth/facebook/callback` |
-| `ZEGO_APP_ID` | ZEGOCLOUD App ID (Token Minting) | `your_zego_app_id` |
-| `ZEGO_SERVER_SECRET` | ZEGOCLOUD Server Secret (Never expose to client) | `your_zego_server_secret` |
+Open [http://localhost:5174](http://localhost:5174). The client is intentionally pinned to port `5174`; keep the backend `CLIENT_URL` aligned with that origin so cookies, CORS, OAuth callbacks, and Socket.IO handshakes work locally.
 
-### Frontend (`client/.env`)
+## Environment variables
 
-| Variable | Description | Example (Local / Production) |
-| :--- | :--- | :--- |
-| `VITE_URL` | Backend API base URL | `http://localhost:4000` / `https://nexus-sqpn.onrender.com` |
-| `VITE_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `your_cloudinary_cloud_name` |
-| `VITE_CLOUDINARY_UPLOAD_PRESET` | Cloudinary upload preset | `your_cloudinary_upload_preset` |
+### Backend: `server/.env`
 
----
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `PORT` | Yes | API port; use `4000` locally. |
+| `NODE_ENV` | Yes | `development`, `test`, or `production`. |
+| `CLIENT_URL` | Yes | Allowed browser origin, usually `http://localhost:5174`. |
+| `MONGO_URL` | Yes | MongoDB connection string. |
+| `SECRET_KEY` | Yes | Session signing secret; use a long random value. |
+| `GOOGLE_CLIENT_ID` | For Google OAuth | Google OAuth client ID. |
+| `GOOGLE_CLIENT_SECRET` | For Google OAuth | Google OAuth client secret. |
+| `GOOGLE_CALLBACK_URL` | For Google OAuth | Local callback: `http://localhost:4000/auth/google/callback`. |
+| `FACEBOOK_CLIENT_ID` | Optional | Backend Facebook OAuth configuration. |
+| `FACEBOOK_CLIENT_SECRET` | Optional | Backend Facebook OAuth configuration. |
+| `FACEBOOK_CALLBACK_URL` | Optional | Backend Facebook OAuth callback. |
+| `ZEGO_APP_ID` | For video rooms | ZEGOCLOUD application ID. |
+| `ZEGO_SERVER_SECRET` | For video rooms | ZEGOCLOUD server secret; never expose it to the client. |
 
-## 🚀 Live Production Deployments
+### Frontend: `client/.env`
 
-* **Frontend (Vercel)**: [`https://nexus-aryan.vercel.app`](https://nexus-aryan.vercel.app)
-* **Backend (Render)**: [`https://nexus-sqpn.onrender.com`](https://nexus-sqpn.onrender.com)
-* **Health Check Endpoints**:
-  * `GET /health/live` — Returns `200 OK` (process alive)
-  * `GET /health/ready` — Returns `200 OK` when MongoDB is connected (`503` if disconnected)
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `VITE_URL` | Yes | Backend base URL, usually `http://localhost:4000`. |
+| `VITE_CLOUDINARY_CLOUD_NAME` | For media | Cloudinary cloud name. |
+| `VITE_CLOUDINARY_UPLOAD_PRESET` | For media | Cloudinary unsigned upload preset used by the client. |
 
----
+Do not commit either `.env` file. The checked-in `.env.example` files contain placeholders only.
 
-## 🛡️ Key Security Features Implemented
+## Useful commands
 
-1. **Durable Session Persistence**: Backed by `connect-mongo` (`MongoStore`) with a 7-day TTL and automated session cleanup.
-2. **Object-Level Authorization (IDOR)**: Strict participant validation on all conversation and message queries.
-3. **Session-Authenticated WebSockets**: Socket.IO connections share Express sessions and join isolated user & conversation rooms.
-4. **Backend ZEGOCLOUD Token Issuance**: Secret keys remain on the backend; browsers fetch short-lived tokens via authenticated REST API (`GET /conversation/zego-token/:roomId`).
-5. **Rate Limiting & Security Headers**: Helmet headers and Express rate limiting on `/auth` and `/conversation` routes.
-6. **Graceful Shutdown**: Intercepts `SIGTERM` / `SIGINT` signals with a 10s connection drain window for zero-downtime rolling deploys.
-7. **Bundle Optimization**: Route-level and component-level code splitting reduces the initial JS bundle from **7.5 MB down to ~270 kB** (96.4% reduction).
+Run commands from the repository root:
 
----
+```bash
+npm run dev:client       # Start Vite on port 5174
+npm run dev:server       # Start Express on port 4000
+npm run build:client     # Type-check and create the production client bundle
+npm run test:server      # Run the server test suite
+npm test                 # Server tests, followed by the client build
+```
 
-## 📄 License
-ISC License © [Aryan Dahiya](https://github.com/Aryan-Dahiya-23)
+Client-only checks:
+
+```bash
+npm run lint --prefix client
+npm run typecheck --prefix client
+npm run build --prefix client
+```
+
+Server syntax checks:
+
+```bash
+npm run test:syntax --prefix server
+```
+
+## API and health checks
+
+The backend exposes:
+
+- `GET /health/live` — process liveness; returns `200` when the server is running.
+- `GET /health/ready` — readiness; returns `200` when MongoDB is connected and `503` otherwise.
+- `GET /auth/health` — service health probe used by the landing page.
+- `/auth/*` — login, registration, OAuth, session verification, people directory, and logout.
+- `/conversation/*` — authenticated conversations, messages, read receipts, and ZEGOCLOUD token issuance.
+
+All conversation routes require an authenticated session. Socket.IO connections also require the same Passport session and are authorized before joining user or conversation rooms.
+
+## Security notes
+
+- Sessions use HTTP-only cookies and MongoDB-backed storage with a seven-day TTL.
+- Conversation and message operations validate participant membership and message ownership server-side.
+- Socket events derive the actor identity from the authenticated session rather than trusting client-supplied user IDs.
+- Helmet, rate limiting, CORS allowlists, and state-changing request origin validation are enabled by the server.
+- ZEGOCLOUD server credentials stay on the backend; the client receives room credentials through an authenticated endpoint.
+- Production deployments should use HTTPS, `NODE_ENV=production`, a strong `SECRET_KEY`, a production `CLIENT_URL`, and a managed MongoDB deployment.
+
+## Deployment
+
+The frontend can be deployed to Vercel using `client/` as the project root, `npm run build` as the build command, and `dist` as the output directory. The included `client/vercel.json` keeps client-side routes working on refresh.
+
+The backend can be deployed to Render or another Node host using `server/` as the service root and `npm start` as the start command. Configure the backend environment variables in the hosting provider, then set the frontend `VITE_URL` to the deployed API URL and the backend `CLIENT_URL` to the deployed frontend URL.
+
+## License
+
+ISC © [Aryan Dahiya](https://github.com/Aryan-Dahiya-23)
