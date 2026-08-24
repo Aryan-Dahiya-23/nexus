@@ -2,12 +2,16 @@ import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { MessageSquare, ArrowRight, Loader2 } from "lucide-react";
+import OnlineAvatar from "../Avatar/OnlineAvatar";
+import OfflineAvatar from "../Avatar/OfflineAvatar";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
 import { createConversation } from "../../api/conversation";
 import { Participant } from "../../types";
 import socket from "../../utils/socket";
+
+const DEFAULT_AVATAR = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
 
 interface PeopleItemsProps {
     username: string;
@@ -74,73 +78,69 @@ const PeopleItems: React.FC<PeopleItemsProps> = ({
 
     const isPending = status === 'pending';
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            navigateToChat();
+        }
+    };
+
     return (
         <div
-            className="group relative flex items-center justify-between w-full px-3 py-2.5 rounded-2xl hover:bg-muted/70 border border-transparent hover:border-border/60 transition-all duration-200 cursor-pointer"
+            role="button"
+            tabIndex={0}
+            aria-label={`Chat with ${username}`}
+            className="group relative flex items-center w-full px-3 py-2.5 rounded-2xl gap-3 cursor-pointer transition-all duration-150 select-none hover:bg-muted/70 active:bg-muted/90 border border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             onClick={navigateToChat}
+            onKeyDown={handleKeyDown}
         >
-            <div className="flex items-center space-x-3 min-w-0 flex-1">
-                {/* Avatar with Status Indicator */}
-                <div className="relative shrink-0">
-                    <img
-                        src={avatarSrc || "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png"}
-                        alt={username}
-                        className="h-11 w-11 rounded-full object-cover ring-1 ring-border/50"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://res.cloudinary.com/dwyx9715k/image/upload/v1723145455/nexus/avatars/default_avatar.png";
-                        }}
-                    />
-                    {isOnline ? (
-                        <span
-                            className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-background shadow-xs"
-                            title="Active now"
-                        />
-                    ) : (
-                        <span
-                            className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-slate-400 dark:bg-slate-600 ring-2 ring-background opacity-60"
-                            title="Offline"
-                        />
-                    )}
+            {/* Avatar Section */}
+            <div className="shrink-0 relative">
+                {isOnline ? (
+                    <OnlineAvatar height="12" width="12" imgSrc={avatarSrc || DEFAULT_AVATAR} />
+                ) : (
+                    <OfflineAvatar height="12" width="12" imgSrc={avatarSrc || DEFAULT_AVATAR} />
+                )}
+            </div>
+
+            {/* User Info Details */}
+            <div className="flex flex-col flex-1 min-w-0 justify-center py-0.5">
+                {/* Name & Presence Row */}
+                <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                        {username}
+                    </p>
+
+                    <span className={`text-[11px] shrink-0 font-medium ${
+                        isOnline ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-muted-foreground"
+                    }`}>
+                        {isOnline ? "Active now" : "Offline"}
+                    </span>
                 </div>
 
-                {/* User Info */}
-                <div className="flex flex-col min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                            {username}
+                {/* Subtitle / Action Row */}
+                <div className="flex items-center justify-between gap-2 mt-1">
+                    <div className="flex items-center gap-1 min-w-0 text-xs text-muted-foreground">
+                        <MessageSquare className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
+                        <p className="truncate text-xs text-muted-foreground/90 group-hover:text-foreground/80">
+                            Click to message
                         </p>
                     </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                        {isOnline ? (
-                            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                                Active now
-                            </span>
+
+                    {/* Quick Chat Action Indicator */}
+                    <div className="shrink-0">
+                        {isPending ? (
+                            <div className="p-1 text-primary">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            </div>
                         ) : (
-                            <span className="text-[11px] text-muted-foreground/80">
-                                Offline
+                            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span>Chat</span>
+                                <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                             </span>
                         )}
                     </div>
                 </div>
-            </div>
-
-            {/* Quick Action Button */}
-            <div className="shrink-0 ml-2">
-                {isPending ? (
-                    <div className="p-2 text-primary">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    </div>
-                ) : (
-                    <button
-                        type="button"
-                        className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-medium text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                        aria-label={`Chat with ${username}`}
-                    >
-                        <MessageSquare className="h-3.5 w-3.5" />
-                        <span>Chat</span>
-                        <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                    </button>
-                )}
             </div>
         </div>
     );
