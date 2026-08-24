@@ -37,12 +37,6 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
     });
 
     useEffect(() => {
-        if (isSuccess && data && data.conversations.length < 1) {
-            navigate('/people');
-        }
-    }, [isSuccess, data, navigate]);
-
-    useEffect(() => {
         if (isSuccess && data) {
             setUser(data);
         }

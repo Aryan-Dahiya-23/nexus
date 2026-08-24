@@ -82,7 +82,7 @@ const Login: React.FC = () => {
                     setLoggedIn(true);
                     queryClient.setQueryData(["user"], response.user);
                     toast.success("Welcome back!");
-                    navigate(response.user.conversations && response.user.conversations.length > 0 ? "/chats" : "/people");
+                    navigate("/chats");
                 }
             } else {
                 const response = await registerWithEmail({
@@ -95,7 +95,7 @@ const Login: React.FC = () => {
                     setLoggedIn(true);
                     queryClient.setQueryData(["user"], response.user);
                     toast.success("Account created successfully!");
-                    navigate("/people");
+                    navigate("/chats");
                 }
             }
         } catch (err: unknown) {

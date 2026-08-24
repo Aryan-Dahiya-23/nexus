@@ -92,8 +92,7 @@ export const LandingPage: React.FC = () => {
 
     const handleCta = useCallback(() => {
         if (loggedIn || user) {
-            const hasChats = user?.conversations && user.conversations.length > 0;
-            navigate(hasChats ? '/chats' : '/people');
+            navigate('/chats');
         } else {
             navigate('/login');
         }

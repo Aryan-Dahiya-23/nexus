@@ -32,10 +32,7 @@ export const PublicOnlyRoute: React.FC = () => {
     }
 
     if (user || (data && data._id)) {
-        const destination = (data?.conversations && data.conversations.length > 0) || (user?.conversations && user.conversations.length > 0)
-            ? '/chats'
-            : '/people';
-        return <Navigate to={destination} replace />;
+        return <Navigate to="/chats" replace />;
     }
 
     return <Outlet />;
