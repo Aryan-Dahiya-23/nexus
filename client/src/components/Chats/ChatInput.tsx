@@ -210,11 +210,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
     const isDark = theme === 'dark';
 
     return (
-        <div className="relative p-3 sm:p-4 border-t border-border bg-card/60 backdrop-blur-xl shrink-0 transition-colors z-20">
+        <div className="relative p-3 sm:p-4 border-t border-border bg-card/75 backdrop-blur-xl shrink-0 transition-colors z-20">
             {/* Emoji Picker Popover */}
             {showEmojis && (
                 <div
-                    className="absolute bottom-20 left-4 sm:left-12 z-50 shadow-2xl rounded-2xl overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200"
+                    className="absolute bottom-20 left-2 sm:left-6 z-50 shadow-2xl rounded-2xl overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200"
                     id="emojis"
                 >
                     <Suspense fallback={<div className="p-4 bg-card text-card-foreground text-xs">Loading emojis...</div>}>
@@ -227,18 +227,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                 </div>
             )}
 
-            <div className="flex items-end space-x-2 bg-background/80 border border-input rounded-2xl p-1.5 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-ring transition-all">
+            <div className="flex items-end gap-1.5 sm:gap-2 bg-background border border-input rounded-2xl p-1.5 sm:p-2 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 shadow-xs transition-all">
                 {/* File / Media Attachment */}
-                <div className="p-1 text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center shrink-0">
-                    <CloudinaryUploadWidget uwConfig={uwConfig} />
-                </div>
+                <CloudinaryUploadWidget uwConfig={uwConfig} />
 
                 {/* Emoji Trigger */}
                 <button
                     type="button"
                     id="emojiIcon"
                     onClick={() => setShowEmojis(!showEmojis)}
-                    className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer"
+                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer"
                     aria-label="Toggle emoji picker"
                 >
                     <Smile className="h-5 w-5" />
@@ -247,7 +245,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                 {/* Expanding Textarea */}
                 <textarea
                     placeholder="Type a message (Shift+Enter for newline)..."
-                    className="flex-1 max-h-32 min-h-[38px] py-2 px-1 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none custom-scrollbar"
+                    className="flex-1 max-h-32 min-h-[36px] sm:min-h-[40px] py-1.5 sm:py-2 px-2 bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none custom-scrollbar leading-relaxed"
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}
                     value={text}
@@ -261,7 +259,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                     type="button"
                     disabled={!text.trim() || status === 'pending'}
                     onClick={() => handleMessageSend(text, 'text')}
-                    className="p-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-md shadow-cyan-500/20 active:scale-95 transition-all shrink-0 cursor-pointer"
+                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-sm shadow-cyan-500/20 active:scale-95 transition-all shrink-0 cursor-pointer"
                     aria-label="Send message"
                 >
                     <Send className="h-4 w-4" />

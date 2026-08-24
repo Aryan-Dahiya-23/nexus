@@ -52,20 +52,20 @@ const People = () => {
             {/* Search and Filter Section */}
             <div className="px-4 pt-3 pb-2 space-y-3">
                 {/* Search Bar */}
-                <div className="relative flex items-center">
-                    <Search className="absolute left-3.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <div className="flex items-center gap-2.5 px-3.5 h-10 rounded-xl bg-background border border-input focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <Search className="h-4 w-4 text-muted-foreground shrink-0 pointer-events-none" />
                     <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search directory..."
-                        className="w-full h-10 pl-9.5 pr-8 text-sm rounded-xl bg-background border border-input focus:border-primary/50 focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground/70 transition-all outline-hidden"
+                        className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
                     />
                     {searchTerm && (
                         <button
                             type="button"
                             onClick={() => setSearchTerm("")}
-                            className="absolute right-2.5 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                            className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer shrink-0"
                             aria-label="Clear search"
                         >
                             <X className="h-3.5 w-3.5" />

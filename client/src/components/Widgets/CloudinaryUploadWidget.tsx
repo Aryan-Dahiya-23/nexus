@@ -103,7 +103,7 @@ const CloudinaryUploadWidget: React.FC<CloudinaryUploadWidgetProps> = ({ uwConfi
                 type="button"
                 aria-label="Upload photo or video"
                 onClick={() => initializeCloudinaryWidget('click')}
-                className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-muted/80 transition-colors cursor-pointer"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-muted/80 transition-colors shrink-0 cursor-pointer"
             >
                 {loading ? (
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
