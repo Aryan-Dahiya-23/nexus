@@ -70,7 +70,11 @@ const initializeChatSockets = (io) => {
 
         socket.on('leave conversation', (conversationId) => {
             if (conversationId) {
+                const actorId = socket.userId || socket.data?.userId;
                 socket.leave(`conversation:${conversationId}`);
+                if (actorId) {
+                    socket.to(`conversation:${conversationId}`).emit('stop typing', conversationId, actorId);
+                }
             }
         });
 
@@ -125,6 +129,57 @@ const initializeChatSockets = (io) => {
                 }
             } catch (err) {
                 console.error("Error broadcasting seen message:", err);
+            }
+        });
+
+        // Typing indicator: Broadcast to conversation room and other participants
+        socket.on('typing', async (conversationId, typingUser) => {
+            const actorId = socket.userId || socket.data?.userId;
+            if (!conversationId || !actorId) return;
+
+            try {
+                const conv = await Conversation.findById(conversationId).select('participants');
+                if (conv && conv.participants.some(p => (p._id ? p._id.toString() : p.toString()) === actorId)) {
+                    const typingPayload = {
+                        userId: actorId,
+                        userName: typingUser?.userName || socket.data?.user?.fullName || 'Someone',
+                        userPicture: typingUser?.userPicture || socket.data?.user?.picture || ''
+                    };
+
+                    // Broadcast to active conversation room (excluding sender)
+                    socket.to(`conversation:${conversationId}`).emit('typing', conversationId, typingPayload);
+
+                    // Broadcast to individual user rooms for sidebar indicators
+                    conv.participants.forEach((pId) => {
+                        const targetId = (pId._id ? pId._id.toString() : pId.toString());
+                        if (targetId !== actorId) {
+                            io.to(`user:${targetId}`).emit('user typing', conversationId, typingPayload);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error("Error broadcasting typing event:", err);
+            }
+        });
+
+        socket.on('stop typing', async (conversationId) => {
+            const actorId = socket.userId || socket.data?.userId;
+            if (!conversationId || !actorId) return;
+
+            try {
+                const conv = await Conversation.findById(conversationId).select('participants');
+                if (conv && conv.participants.some(p => (p._id ? p._id.toString() : p.toString()) === actorId)) {
+                    socket.to(`conversation:${conversationId}`).emit('stop typing', conversationId, actorId);
+
+                    conv.participants.forEach((pId) => {
+                        const targetId = (pId._id ? pId._id.toString() : pId.toString());
+                        if (targetId !== actorId) {
+                            io.to(`user:${targetId}`).emit('user stop typing', conversationId, actorId);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error("Error broadcasting stop typing event:", err);
             }
         });
 

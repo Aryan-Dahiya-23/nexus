@@ -8,14 +8,17 @@ import { ThemeContext } from "../../contexts/ThemeContext";
 import incomingRingtone from "../../assets/incomingRingtone.mp3";
 import socket from "../../utils/socket";
 
+import { TypingUser } from "../../types";
+
 interface ChatHeaderProps {
     name: string;
     avatarSrc: string[];
     online: boolean;
     conversationType: string;
+    typingUsers?: TypingUser[];
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conversationType }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conversationType, typingUsers = [] }) => {
     const navigate = useNavigate();
     const { id } = useParams();
 
@@ -118,7 +121,20 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
                                 {name || "Conversation"}
                             </h2>
                             <div className="flex items-center space-x-1.5 text-[11px] sm:text-xs text-muted-foreground truncate">
-                                {isGroup ? (
+                                {typingUsers.length > 0 ? (
+                                    <span className="text-primary font-medium flex items-center gap-1.5 animate-in fade-in duration-150">
+                                        <span className="flex gap-0.5 items-center">
+                                            <span className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+                                            <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
+                                            <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
+                                        </span>
+                                        <span className="font-semibold">
+                                            {isGroup
+                                                ? `${typingUsers[0].userName.split(' ')[0]} is typing...`
+                                                : 'typing...'}
+                                        </span>
+                                    </span>
+                                ) : isGroup ? (
                                     <span>{avatarSrc.length} members</span>
                                 ) : online ? (
                                     <span className="text-emerald-500 font-medium flex items-center gap-1">

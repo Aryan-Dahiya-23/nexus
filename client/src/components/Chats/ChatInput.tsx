@@ -37,6 +37,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
     const [message, setMessage] = useState<Record<string, unknown>>({});
     const [showEmojis, setShowEmojis] = useState<boolean>(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isTypingRef = useRef<boolean>(false);
 
     const [cloudName] = useState(import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
     const [uploadPreset] = useState(import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
@@ -49,12 +51,49 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         multiple: false,
     });
 
+    const emitStopTyping = useCallback(() => {
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = null;
+        }
+        if (isTypingRef.current && conversationId) {
+            isTypingRef.current = false;
+            socket.emit('stop typing', conversationId);
+        }
+    }, [conversationId]);
+
+    const emitTyping = useCallback(() => {
+        if (!conversationId || !user?._id) return;
+        if (!isTypingRef.current) {
+            isTypingRef.current = true;
+            socket.emit('typing', conversationId, {
+                userName: user.fullName,
+                userPicture: user.picture
+            });
+        }
+
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+            emitStopTyping();
+        }, 2500);
+    }, [conversationId, user, emitStopTyping]);
+
     const handleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         const textarea = event.target;
-        setText(textarea.value);
+        const val = textarea.value;
+        setText(val);
 
         textarea.style.height = 'auto';
         textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+
+        if (val.trim().length > 0) {
+            emitTyping();
+        } else {
+            emitStopTyping();
+        }
     };
 
     const updateUser = useCallback((msgToSend: Message) => {
@@ -161,6 +200,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
     const handleMessageSend = useCallback((content: string, type: string) => {
         if (!user || content.trim() === '' || type === '' || status === 'pending') return;
 
+        emitStopTyping();
         setText('');
         setMessageUrl('');
         setMessageType('');
@@ -176,7 +216,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         };
 
         setMessage(newMessage);
-    }, [user, status, setMessageUrl, setMessageType]);
+    }, [user, status, setMessageUrl, setMessageType, emitStopTyping]);
 
     useEffect(() => {
         if (message && Object.keys(message).length > 0)
@@ -198,16 +238,27 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
     useEffect(() => {
         setText('');
+        emitStopTyping();
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
         }
-    }, [id]);
+    }, [id, emitStopTyping]);
+
+    useEffect(() => {
+        return () => {
+            emitStopTyping();
+        };
+    }, [conversationId, emitStopTyping]);
 
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
     const handleEmojiClick = (emoji: { emoji: string }) => {
-        setText((prevMessage) => prevMessage + emoji.emoji);
+        setText((prevMessage) => {
+            const next = prevMessage + emoji.emoji;
+            return next;
+        });
+        emitTyping();
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
             textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;

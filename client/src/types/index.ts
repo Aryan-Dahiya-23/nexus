@@ -44,3 +44,9 @@ export interface User {
     createdAt?: string;
     updatedAt?: string;
 }
+
+export interface TypingUser {
+    userId: string;
+    userName: string;
+    userPicture?: string;
+}

@@ -40,7 +40,8 @@ const UsersItems: React.FC<UsersItemsProps> = ({
     const { id: activeId } = useParams<{ id?: string }>();
     const isSelected = activeId === conversationId;
 
-    const { user } = useContext(AuthContext);
+    const { user, typingUsers } = useContext(AuthContext);
+    const activeTyping = typingUsers[conversationId];
 
     const navigateToChat = () => {
         navigate(`/chats/${conversationId}`);
@@ -144,34 +145,47 @@ const UsersItems: React.FC<UsersItemsProps> = ({
 
                 {/* Message Preview & Unread Badge Row */}
                 <div className="flex items-center justify-between gap-2 mt-1">
-                    <div className="flex items-center gap-1 min-w-0 text-xs text-muted-foreground">
-                        {/* Sent checkmark status for user's own sent messages */}
-                        {isSentByMe && (
-                            <span className="shrink-0">
-                                {isSeenByRecipient ? (
-                                    <CheckCheck className="h-3.5 w-3.5 text-cyan-500 dark:text-cyan-400" />
-                                ) : (
-                                    <Check className="h-3.5 w-3.5 text-muted-foreground/70" />
-                                )}
+                    {activeTyping && activeTyping.length > 0 ? (
+                        <div className="flex items-center gap-1.5 min-w-0 text-xs text-primary font-medium animate-in fade-in duration-150">
+                            <span className="flex gap-0.5 items-center shrink-0">
+                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.2s]" />
+                                <span className="h-1 w-1 rounded-full bg-primary animate-pulse [animation-delay:0.4s]" />
                             </span>
-                        )}
+                            <p className="truncate font-semibold text-primary text-xs">
+                                {type === 'group' ? `${activeTyping[0].userName.split(' ')[0]} is typing...` : 'typing...'}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1 min-w-0 text-xs text-muted-foreground">
+                            {/* Sent checkmark status for user's own sent messages */}
+                            {isSentByMe && (
+                                <span className="shrink-0">
+                                    {isSeenByRecipient ? (
+                                        <CheckCheck className="h-3.5 w-3.5 text-cyan-500 dark:text-cyan-400" />
+                                    ) : (
+                                        <Check className="h-3.5 w-3.5 text-muted-foreground/70" />
+                                    )}
+                                </span>
+                            )}
 
-                        {/* Media type icon */}
-                        {mediaType === 'image' && (
-                            <ImageIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        )}
-                        {mediaType === 'video' && (
-                            <VideoIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        )}
+                            {/* Media type icon */}
+                            {mediaType === 'image' && (
+                                <ImageIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            )}
+                            {mediaType === 'video' && (
+                                <VideoIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            )}
 
-                        <p className={`truncate text-xs ${
-                            messageUnseen
-                                ? "text-foreground font-semibold dark:text-primary"
-                                : "text-muted-foreground/90 group-hover:text-foreground/80"
-                        }`}>
-                            {lastMessage}
-                        </p>
-                    </div>
+                            <p className={`truncate text-xs ${
+                                messageUnseen
+                                    ? "text-foreground font-semibold dark:text-primary"
+                                    : "text-muted-foreground/90 group-hover:text-foreground/80"
+                            }`}>
+                                {lastMessage}
+                            </p>
+                        </div>
+                    )}
 
                     {/* Unread Status Pill / Dot */}
                     {messageUnseen && (

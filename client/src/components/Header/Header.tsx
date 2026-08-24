@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
     const { videoCallUserId, setVideoCallUserId } = useContext(ThemeContext);
     const { outgoingCall } = useContext(ThemeContext);
 
-    const { user, setUser, userConnected, setUserConnected, setConnectedUsers } = useContext(AuthContext);
+    const { user, setUser, userConnected, setUserConnected, setConnectedUsers, setTypingUsers } = useContext(AuthContext);
 
     const { data, isSuccess } = useQuery<User>({
         queryKey: ['user'],
@@ -105,8 +105,43 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
                     };
                 });
 
+                setTypingUsers((prev) => {
+                    const currentList = prev[conversationId] || [];
+                    const updatedList = currentList.filter((u) => u.userId !== senderUserId);
+                    return {
+                        ...prev,
+                        [conversationId]: updatedList,
+                    };
+                });
+
                 handleChatMessage(user!, newMessage, conversationId);
             }
+        });
+
+        socket.on('user typing', (conversationId: string, typingUser: { userId: string; userName: string; userPicture?: string }) => {
+            if (typingUser.userId !== user?._id) {
+                setTypingUsers((prev) => {
+                    const currentList = prev[conversationId] || [];
+                    if (currentList.some((u) => u.userId === typingUser.userId)) {
+                        return prev;
+                    }
+                    return {
+                        ...prev,
+                        [conversationId]: [...currentList, typingUser],
+                    };
+                });
+            }
+        });
+
+        socket.on('user stop typing', (conversationId: string, typingUserId: string) => {
+            setTypingUsers((prev) => {
+                const currentList = prev[conversationId] || [];
+                const updatedList = currentList.filter((u) => u.userId !== typingUserId);
+                return {
+                    ...prev,
+                    [conversationId]: updatedList,
+                };
+            });
         });
 
         socket.on('message sent', (senderUserId: string, conversationId: string) => {
@@ -148,6 +183,8 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
         return () => {
             socket.off('connected users');
             socket.off('chat message');
+            socket.off('user typing');
+            socket.off('user stop typing');
             socket.off('message sent');
             socket.off('seen message');
             socket.off('new conversation');
@@ -159,6 +196,7 @@ const Header: React.FC<HeaderProps> = ({ message }) => {
         userConnected,
         setUserConnected,
         setConnectedUsers,
+        setTypingUsers,
         id,
         setUser,
         location.pathname,

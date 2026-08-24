@@ -1,5 +1,5 @@
 import React, { createContext, useState, ReactNode, Dispatch, SetStateAction } from 'react';
-import { User } from '../types';
+import { User, TypingUser } from '../types';
 
 interface AuthContextProps {
     loggedIn: boolean;
@@ -22,6 +22,8 @@ interface AuthContextProps {
     setMessageType: Dispatch<SetStateAction<string>>;
     messageSeenStatus: string;
     setMessageSeenStatus: Dispatch<SetStateAction<string>>;
+    typingUsers: Record<string, TypingUser[]>;
+    setTypingUsers: Dispatch<SetStateAction<Record<string, TypingUser[]>>>;
 }
 
 const defaultAuthContext: AuthContextProps = {
@@ -45,6 +47,8 @@ const defaultAuthContext: AuthContextProps = {
     setMessageType: () => { },
     messageSeenStatus: "idle",
     setMessageSeenStatus: () => { },
+    typingUsers: {},
+    setTypingUsers: () => { },
 };
 
 export const AuthContext = createContext<AuthContextProps>(defaultAuthContext);
@@ -60,13 +64,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [messageUrl, setMessageUrl] = useState<string>("");
     const [messageType, setMessageType] = useState<string>("");
     const [messageSeenStatus, setMessageSeenStatus] = useState<string>("idle");
+    const [typingUsers, setTypingUsers] = useState<Record<string, TypingUser[]>>({});
 
     return (
         <AuthContext.Provider
             value={{
                 loggedIn, setLoggedIn, user, setUser, userEmail, setUserEmail, userId, setUserId, receiverId, setReceiverId,
                 connectedUsers, setConnectedUsers, userConnected, setUserConnected, messageUrl, setMessageUrl, messageType, setMessageType,
-                messageSeenStatus, setMessageSeenStatus
+                messageSeenStatus, setMessageSeenStatus, typingUsers, setTypingUsers
             }}
         >
             {children}

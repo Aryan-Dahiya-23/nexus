@@ -5,11 +5,12 @@ import { ArrowDown, Loader2 } from "lucide-react";
 import ChatHeader from "./ChatHeader";
 import ChatBubble from "./ChatBubble";
 import ChatInput from "./ChatInput";
+import TypingBubble from "./TypingBubble";
 import NexusLogo from "../UI/NexusLogo";
 import { AuthContext } from "../../contexts/AuthContext";
 import { queryClient, verify } from "../../api/auth";
 import { getConversation, readMessage, fetchConversationMessages } from "../../api/conversation";
-import { Conversation, Message, Participant, User, UserConversationRef } from "../../types";
+import { Conversation, Message, Participant, User, UserConversationRef, TypingUser } from "../../types";
 import socket from "../../utils/socket";
 
 function formatMessageDate(dateString: string): string {
@@ -70,6 +71,59 @@ const Chats: React.FC = () => {
             setHasMore(Boolean(conversation.hasMore));
         }
     }, [conversation, id]);
+
+    const [activeTypingUsers, setActiveTypingUsers] = useState<TypingUser[]>([]);
+
+    useEffect(() => {
+        setActiveTypingUsers([]);
+    }, [id]);
+
+    useEffect(() => {
+        const handleTyping = (convId: string, userPayload: TypingUser) => {
+            if (convId === id && userPayload.userId !== userId) {
+                setActiveTypingUsers((prev) => {
+                    if (prev.some((u) => u.userId === userPayload.userId)) return prev;
+                    return [...prev, userPayload];
+                });
+            }
+        };
+
+        const handleStopTyping = (convId: string, typingUserId: string) => {
+            if (convId === id) {
+                setActiveTypingUsers((prev) => prev.filter((u) => u.userId !== typingUserId));
+            }
+        };
+
+        const handleChatMessageClear = (senderUserId: string, _msg: Message, convId: string) => {
+            if (convId === id) {
+                setActiveTypingUsers((prev) => prev.filter((u) => u.userId !== senderUserId));
+            }
+        };
+
+        socket.on('typing', handleTyping);
+        socket.on('stop typing', handleStopTyping);
+        socket.on('chat message', handleChatMessageClear);
+
+        return () => {
+            socket.off('typing', handleTyping);
+            socket.off('stop typing', handleStopTyping);
+            socket.off('chat message', handleChatMessageClear);
+        };
+    }, [id, userId]);
+
+    // Auto-scroll when typing indicator appears if near bottom
+    useEffect(() => {
+        if (activeTypingUsers.length > 0 && chatContainerRef.current) {
+            const { scrollHeight, scrollTop, clientHeight } = chatContainerRef.current;
+            const isNearBottom = scrollHeight - (scrollTop + clientHeight) < 200;
+            if (isNearBottom) {
+                chatContainerRef.current.scrollTo({
+                    top: scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }, [activeTypingUsers]);
 
     useEffect(() => {
         if (id) {
@@ -269,6 +323,7 @@ const Chats: React.FC = () => {
                         avatarSrc={receiverAvatarSrc}
                         online={receiverOnline}
                         conversationType={conversationType}
+                        typingUsers={activeTypingUsers}
                     />
 
                     {/* Messages Scroll Area */}
@@ -333,11 +388,11 @@ const Chats: React.FC = () => {
                                 return (
                                     <React.Fragment key={message?._id || index}>
                                         {showDateSeparator && (
-                                            <div className="sticky top-2 z-10 flex justify-center my-3">
-                                                <span className="px-3 py-1 text-[11px] font-semibold text-muted-foreground bg-card/85 backdrop-blur-md border border-border/80 rounded-full shadow-xs select-none">
-                                                    {formatMessageDate(message.createdAt || new Date().toISOString())}
-                                                </span>
-                                            </div>
+                                             <div className="sticky top-2 z-10 flex justify-center my-3">
+                                                 <span className="px-3 py-1 text-[11px] font-semibold text-muted-foreground bg-card/85 backdrop-blur-md border border-border/80 rounded-full shadow-xs select-none">
+                                                     {formatMessageDate(message.createdAt || new Date().toISOString())}
+                                                 </span>
+                                             </div>
                                         )}
 
                                         <ChatBubble
@@ -357,6 +412,12 @@ const Chats: React.FC = () => {
                                 );
                             })
                         }
+
+                        {/* Live Typing Indicator Bubble */}
+                        <TypingBubble
+                            typingUsers={activeTypingUsers}
+                            conversationType={conversation?.type || conversationType}
+                        />
                     </div>
 
                     {/* Floating Scroll to Bottom Button */}
