@@ -203,29 +203,42 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
         }
     }, [id]);
 
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
+    const emojiButtonRef = useRef<HTMLButtonElement>(null);
+
     const handleEmojiClick = (emoji: { emoji: string }) => {
         setText((prevMessage) => prevMessage + emoji.emoji);
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+        }
     };
 
     useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            const emojisElement = document.getElementById('emojis');
-            const emojiIconElement = document.getElementById('emojiIcon');
+        if (!showEmojis) return;
+
+        const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+            const target = e.target as Node | null;
+            if (!target) return;
 
             if (
-                (emojisElement && !emojisElement.contains(e.target as Node)) &&
-                (emojiIconElement && !emojiIconElement.contains(e.target as Node))
+                emojiPickerRef.current &&
+                !emojiPickerRef.current.contains(target) &&
+                emojiButtonRef.current &&
+                !emojiButtonRef.current.contains(target)
             ) {
                 setShowEmojis(false);
             }
         };
 
-        window.addEventListener('click', handleClick);
+        document.addEventListener('mousedown', handlePointerDown);
+        document.addEventListener('touchstart', handlePointerDown, { passive: true });
 
         return () => {
-            window.removeEventListener('click', handleClick);
+            document.removeEventListener('mousedown', handlePointerDown);
+            document.removeEventListener('touchstart', handlePointerDown);
         };
-    }, []);
+    }, [showEmojis]);
 
     const isDark = theme === 'dark';
 
@@ -234,15 +247,20 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
             {/* Emoji Picker Popover */}
             {showEmojis && (
                 <div
-                    className="absolute bottom-20 left-2 sm:left-6 z-50 max-w-[calc(100vw-20px)] sm:max-w-none shadow-2xl rounded-2xl overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200"
+                    ref={emojiPickerRef}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    className="absolute bottom-[calc(100%+0.5rem)] left-2 sm:left-4 z-50 w-[calc(100vw-1rem)] max-w-[360px] sm:w-[350px] shadow-2xl rounded-2xl overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-150 bg-card"
                     id="emojis"
                 >
-                    <Suspense fallback={<div className="p-4 bg-card text-card-foreground text-xs">Loading emojis...</div>}>
+                    <Suspense fallback={<div className="p-4 bg-card text-card-foreground text-xs flex items-center justify-center">Loading emojis...</div>}>
                         <EmojiPicker
                             onEmojiClick={handleEmojiClick}
+                            autoFocusSearch={false}
                             lazyLoadEmojis
-                            width={typeof window !== 'undefined' && window.innerWidth < 380 ? Math.min(window.innerWidth - 30, 320) : 340}
-                            height={380}
+                            previewConfig={{ showPreview: false }}
+                            width="100%"
+                            height={350}
                             theme={isDark ? ('dark' as EmojiTheme) : ('light' as EmojiTheme)}
                         />
                     </Suspense>
@@ -255,10 +273,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
 
                 {/* Emoji Trigger */}
                 <button
+                    ref={emojiButtonRef}
                     type="button"
                     id="emojiIcon"
                     onClick={() => setShowEmojis(!showEmojis)}
-                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer"
+                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center transition-colors shrink-0 cursor-pointer ${
+                        showEmojis ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                    }`}
                     aria-label="Toggle emoji picker"
                 >
                     <Smile className="h-5 w-5" />
