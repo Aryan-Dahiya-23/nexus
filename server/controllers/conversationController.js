@@ -73,6 +73,7 @@ export const getZegoToken = async (req, res) => {
             error: false,
             token,
             appID,
+            serverSecret,
             roomId,
             userId: currentUserId.toString(),
             userName

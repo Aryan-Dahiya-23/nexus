@@ -26,19 +26,33 @@ const Room = () => {
                 ZegoUIKitPrebuilt.core = undefined;
 
                 const response = await apiClient.get(`/conversation/zego-token/${targetRoomId}`);
-                const { token, appID, userId, userName } = response.data;
+                const { token, appID, serverSecret, userId, userName } = response.data;
 
-                if (!token || !appID) {
-                    throw new Error(response.data?.message || "Failed to obtain valid token from server");
+                if (!appID || (!token && !serverSecret)) {
+                    throw new Error(response.data?.message || "Failed to obtain valid credentials from server");
                 }
 
-                const kitToken = ZegoUIKitPrebuilt.generateKitTokenForProduction(
-                    Number(appID),
-                    token,
-                    targetRoomId,
-                    userId || "nexus_user",
-                    userName || "Nexus User"
-                );
+                const cleanUserId = String(userId || "nexus_user").trim();
+                const cleanUserName = String(userName || "Nexus User").trim();
+
+                let kitToken: string;
+                if (serverSecret) {
+                    kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+                        Number(appID),
+                        serverSecret,
+                        String(targetRoomId),
+                        cleanUserId,
+                        cleanUserName
+                    );
+                } else {
+                    kitToken = ZegoUIKitPrebuilt.generateKitTokenForProduction(
+                        Number(appID),
+                        token,
+                        String(targetRoomId),
+                        cleanUserId,
+                        cleanUserName
+                    );
+                }
 
                 zcInstance = ZegoUIKitPrebuilt.create(kitToken);
                 setIsLoading(false);
