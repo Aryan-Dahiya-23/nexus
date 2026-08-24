@@ -1,10 +1,9 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Image as ImageIcon, Video as VideoIcon, Users as GroupIcon, CheckCheck, Check, Ban, Trash2 } from "lucide-react";
+import { Image as ImageIcon, Video as VideoIcon, Users as GroupIcon, CheckCheck, Check, Ban } from "lucide-react";
 import OfflineAvatar from "../Avatar/OfflineAvatar";
 import OnlineAvatar from "../Avatar/OnlineAvatar";
 import { AuthContext } from "../../contexts/AuthContext";
-import { ThemeContext } from "../../contexts/ThemeContext";
 import { queryClient } from "../../api/auth";
 import { getConversation } from "../../api/conversation";
 
@@ -44,7 +43,6 @@ const UsersItems: React.FC<UsersItemsProps> = ({
     const isSelected = activeId === conversationId;
 
     const { user, typingUsers } = useContext(AuthContext);
-    const { openDeleteConversationModal } = useContext(ThemeContext);
     const activeTyping = typingUsers[conversationId];
 
     const navigateToChat = () => {
@@ -65,11 +63,6 @@ const UsersItems: React.FC<UsersItemsProps> = ({
             e.preventDefault();
             navigateToChat();
         }
-    };
-
-    const handleDeleteClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        openDeleteConversationModal({ id: conversationId, name: username });
     };
 
     return (
@@ -132,7 +125,7 @@ const UsersItems: React.FC<UsersItemsProps> = ({
 
             {/* Conversation Content Details */}
             <div className="flex flex-col flex-1 min-w-0 justify-center py-0.5">
-                {/* Name & Timestamp / Action Row */}
+                {/* Name & Timestamp Row */}
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                         {type === 'group' && (
@@ -146,22 +139,11 @@ const UsersItems: React.FC<UsersItemsProps> = ({
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`text-[11px] font-medium transition-opacity ${
+                        <span className={`text-[11px] font-medium ${
                             messageUnseen ? "text-primary font-bold" : "text-muted-foreground"
-                        } group-hover:hidden sm:group-hover:inline sm:group-hover:opacity-0 group-hover:opacity-0`}>
+                        }`}>
                             {lastMessageTime}
                         </span>
-
-                        {/* Quick Delete Conversation Button */}
-                        <button
-                            type="button"
-                            onClick={handleDeleteClick}
-                            className="hidden group-hover:flex items-center justify-center p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all cursor-pointer"
-                            title="Delete conversation"
-                            aria-label={`Delete conversation with ${username}`}
-                        >
-                            <Trash2 className="h-3.5 w-3.5" />
-                        </button>
                     </div>
                 </div>
 
