@@ -2,8 +2,7 @@ import { useContext, useEffect, useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
-import { toast } from "react-toastify";
-import { Users, X, Search, Check, Loader2, Hash, Sparkles, UserPlus } from "lucide-react";
+import { Users, X, Search, Check, Loader2, Hash, Sparkles, UserPlus, AlertCircle } from "lucide-react";
 import { AuthContext } from "../../contexts/AuthContext";
 import { ThemeContext } from "../../contexts/ThemeContext";
 import { fetchPeople, queryClient } from "../../api/auth";
@@ -26,6 +25,8 @@ const GroupChatWidget = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearch = useDebounce(searchQuery, 300);
     const [selectedMembers, setSelectedMembers] = useState<SelectedMember[]>([]);
+    const [nameError, setNameError] = useState<string | null>(null);
+    const [membersError, setMembersError] = useState<string | null>(null);
 
     const isOpen = groupChatWidget || true;
 
@@ -86,7 +87,7 @@ const GroupChatWidget = () => {
         },
         onError: (err) => {
             console.error("Error creating group:", err);
-            toast.error("Failed to create group channel");
+            setNameError("Failed to create group channel. Please try again.");
         }
     });
 
@@ -106,10 +107,14 @@ const GroupChatWidget = () => {
         if (isSelected) {
             setSelectedMembers(prev => prev.filter(m => m.id !== person._id));
         } else {
-            setSelectedMembers(prev => [
-                ...prev,
+            const nextMembers = [
+                ...selectedMembers,
                 { id: person._id, fullName: person.fullName, picture: person.picture }
-            ]);
+            ];
+            setSelectedMembers(nextMembers);
+            if (membersError && nextMembers.length >= 2) {
+                setMembersError(null);
+            }
         }
     };
 
@@ -126,13 +131,25 @@ const GroupChatWidget = () => {
 
         if (status === 'pending') return;
 
+        let hasError = false;
         if (groupName.trim().length === 0) {
-            toast.error('Enter a channel name');
-            return;
-        } else if (selectedMembers.length < 2) {
-            toast.error('Select at least 2 members for a group chat');
-            return;
+            setNameError("Channel name is required");
+            hasError = true;
+        } else if (groupName.trim().length < 3) {
+            setNameError("Channel name must be at least 3 characters");
+            hasError = true;
+        } else {
+            setNameError(null);
         }
+
+        if (selectedMembers.length < 2) {
+            setMembersError("Please select at least 2 members to create a group");
+            hasError = true;
+        } else {
+            setMembersError(null);
+        }
+
+        if (hasError) return;
 
         mutate();
     };
@@ -177,7 +194,7 @@ const GroupChatWidget = () => {
                 </div>
 
                 {/* Scrollable Form Body */}
-                <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                <form noValidate onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
                     <div className="p-4 sm:p-6 space-y-3.5 sm:space-y-4 overflow-y-auto custom-scrollbar flex-1">
                         {/* Channel Name Field */}
                         <div>
@@ -189,18 +206,55 @@ const GroupChatWidget = () => {
                                     {groupName.length}/50
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2.5 px-3.5 h-11 rounded-xl bg-background border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                                <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <div className={`flex items-center gap-2.5 px-3.5 h-11 rounded-xl bg-background border transition-all ${
+                                nameError
+                                    ? "border-destructive focus-within:ring-2 focus-within:ring-destructive/30 focus-within:border-destructive"
+                                    : "border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+                            }`}>
+                                <Hash className={`h-4 w-4 shrink-0 ${nameError ? "text-destructive" : "text-muted-foreground"}`} />
                                 <input
                                     type="text"
                                     maxLength={50}
                                     value={groupName}
-                                    onChange={(e) => setGroupName(e.target.value)}
+                                    onChange={(e) => {
+                                        setGroupName(e.target.value);
+                                        if (nameError && e.target.value.trim().length >= 3) {
+                                            setNameError(null);
+                                        }
+                                    }}
                                     placeholder="core-engineering or design-sync"
                                     className="w-full bg-transparent text-base sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                                 />
                             </div>
+                            <AnimatePresence>
+                                {nameError && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: -4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -4 }}
+                                        className="text-[11px] font-medium text-destructive mt-1.5 ml-1 flex items-center gap-1"
+                                    >
+                                        <AlertCircle className="h-3 w-3 shrink-0" />
+                                        <span>{nameError}</span>
+                                    </motion.p>
+                                )}
+                            </AnimatePresence>
                         </div>
+
+                        {/* Selected Members Error Indicator if validation fails */}
+                        <AnimatePresence>
+                            {membersError && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    className="p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium flex items-center gap-1.5"
+                                >
+                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                                    <span>{membersError}</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Selected Members Chips */}
                         {selectedMembers.length > 0 && (

@@ -444,6 +444,7 @@ export const LandingPage: React.FC = () => {
 
                                         {/* Interactive Chat Input Dock */}
                                         <form
+                                            noValidate
                                             onSubmit={(e) => {
                                                 e.preventDefault();
                                                 handleSendMessage();

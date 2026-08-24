@@ -32,6 +32,10 @@ const Login: React.FC = () => {
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
 
+    // Field-level error and touched tracking
+    const [errors, setErrors] = useState<{ fullName?: string; email?: string; password?: string }>({});
+    const [touched, setTouched] = useState<{ fullName?: boolean; email?: boolean; password?: boolean }>({});
+
     const backendUrl = import.meta.env.VITE_URL || "http://localhost:4000";
 
     // Social Auth Handlers
@@ -43,32 +47,82 @@ const Login: React.FC = () => {
         window.open(`${backendUrl}/auth/facebook`, "_self");
     }, [backendUrl]);
 
+    const validateField = (field: "fullName" | "email" | "password", value: string, mode: "signin" | "signup" = authMode) => {
+        let error = "";
+        if (field === "fullName" && mode === "signup") {
+            if (!value.trim()) {
+                error = "Full name is required";
+            } else if (value.trim().length < 2) {
+                error = "Full name must be at least 2 characters";
+            }
+        }
+        if (field === "email") {
+            if (!value.trim()) {
+                error = "Email address is required";
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+                error = "Please enter a valid email address";
+            }
+        }
+        if (field === "password") {
+            if (!value) {
+                error = "Password is required";
+            } else if (mode === "signup" && value.length < 6) {
+                error = "Password must be at least 6 characters";
+            }
+        }
+        return error;
+    };
+
+    const validateAll = () => {
+        const newErrors: { fullName?: string; email?: string; password?: string } = {};
+        if (authMode === "signup") {
+            const fnErr = validateField("fullName", fullName, "signup");
+            if (fnErr) newErrors.fullName = fnErr;
+        }
+        const emailErr = validateField("email", email, authMode);
+        if (emailErr) newErrors.email = emailErr;
+
+        const passErr = validateField("password", password, authMode);
+        if (passErr) newErrors.password = passErr;
+
+        setErrors(newErrors);
+        setTouched({ fullName: true, email: true, password: true });
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleBlur = (field: "fullName" | "email" | "password") => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+        const val = field === "fullName" ? fullName : field === "email" ? email : password;
+        const err = validateField(field, val);
+        setErrors((prev) => ({ ...prev, [field]: err || undefined }));
+    };
+
+    const handleChange = (field: "fullName" | "email" | "password", val: string) => {
+        if (field === "fullName") setFullName(val);
+        if (field === "email") setEmail(val);
+        if (field === "password") setPassword(val);
+
+        if (touched[field]) {
+            const err = validateField(field, val);
+            setErrors((prev) => ({ ...prev, [field]: err || undefined }));
+        }
+    };
+
+    const switchAuthMode = (mode: "signin" | "signup") => {
+        setAuthMode(mode);
+        setErrorMessage(null);
+        setErrors({});
+        setTouched({});
+    };
+
     // Submit handler
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMessage(null);
 
-        // Validation
-        if (!email.trim()) {
-            setErrorMessage("Please enter your email address.");
-            return;
-        }
-
-        if (!password) {
-            setErrorMessage("Please enter your password.");
-            return;
-        }
-
-        if (authMode === "signup") {
-            if (!fullName.trim()) {
-                setErrorMessage("Please enter your full name.");
-                return;
-            }
-            if (password.length < 6) {
-                setErrorMessage("Password must be at least 6 characters long.");
-                return;
-            }
-        }
+        // Perform custom field validation
+        const isValid = validateAll();
+        if (!isValid) return;
 
         try {
             setLoading(true);
@@ -180,10 +234,7 @@ const Login: React.FC = () => {
                     <div className="flex p-1 rounded-2xl bg-muted/70 border border-border mb-6">
                         <button
                             type="button"
-                            onClick={() => {
-                                setAuthMode("signin");
-                                setErrorMessage(null);
-                            }}
+                            onClick={() => switchAuthMode("signin")}
                             className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all ${
                                 authMode === "signin"
                                     ? "bg-card text-foreground shadow-xs"
@@ -194,10 +245,7 @@ const Login: React.FC = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => {
-                                setAuthMode("signup");
-                                setErrorMessage(null);
-                            }}
+                            onClick={() => switchAuthMode("signup")}
                             className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all ${
                                 authMode === "signup"
                                     ? "bg-card text-foreground shadow-xs"
@@ -208,7 +256,7 @@ const Login: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* Error Banner */}
+                    {/* Server Error Banner */}
                     <AnimatePresence>
                         {errorMessage && (
                             <motion.div
@@ -223,8 +271,8 @@ const Login: React.FC = () => {
                         )}
                     </AnimatePresence>
 
-                    {/* Auth Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                    {/* Auth Form (noValidate disables browser native error bubbles) */}
+                    <form noValidate onSubmit={handleSubmit} className="space-y-4 text-left">
                         {/* Full Name Input (Signup Mode Only) */}
                         {authMode === "signup" && (
                             <div>
@@ -233,18 +281,35 @@ const Login: React.FC = () => {
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-                                        <UserIcon className="h-4 w-4" />
+                                        <UserIcon className={`h-4 w-4 ${errors.fullName ? "text-destructive" : ""}`} />
                                     </div>
                                     <input
                                         type="text"
                                         value={fullName}
-                                        onChange={(e) => setFullName(e.target.value)}
+                                        onChange={(e) => handleChange("fullName", e.target.value)}
+                                        onBlur={() => handleBlur("fullName")}
                                         placeholder="Aryan Dahiya"
-                                        required
                                         disabled={loading}
-                                        className="h-11 w-full pl-10 pr-4 rounded-2xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                                        className={`h-11 w-full pl-10 pr-4 rounded-2xl bg-background border text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none transition-all ${
+                                            errors.fullName
+                                                ? "border-destructive focus:ring-2 focus:ring-destructive/30 focus:border-destructive"
+                                                : "border-input focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                        }`}
                                     />
                                 </div>
+                                <AnimatePresence>
+                                    {errors.fullName && (
+                                        <motion.p
+                                            initial={{ opacity: 0, y: -4 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -4 }}
+                                            className="text-[11px] font-medium text-destructive mt-1.5 ml-1 flex items-center gap-1"
+                                        >
+                                            <AlertCircle className="h-3 w-3 shrink-0" />
+                                            <span>{errors.fullName}</span>
+                                        </motion.p>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         )}
 
@@ -255,18 +320,35 @@ const Login: React.FC = () => {
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-                                    <Mail className="h-4 w-4" />
+                                    <Mail className={`h-4 w-4 ${errors.email ? "text-destructive" : ""}`} />
                                 </div>
                                 <input
                                     type="email"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => handleChange("email", e.target.value)}
+                                    onBlur={() => handleBlur("email")}
                                     placeholder="aryan@example.com"
-                                    required
                                     disabled={loading}
-                                    className="h-11 w-full pl-10 pr-4 rounded-2xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                                    className={`h-11 w-full pl-10 pr-4 rounded-2xl bg-background border text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none transition-all ${
+                                        errors.email
+                                            ? "border-destructive focus:ring-2 focus:ring-destructive/30 focus:border-destructive"
+                                            : "border-input focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                    }`}
                                 />
                             </div>
+                            <AnimatePresence>
+                                {errors.email && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: -4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -4 }}
+                                        className="text-[11px] font-medium text-destructive mt-1.5 ml-1 flex items-center gap-1"
+                                    >
+                                        <AlertCircle className="h-3 w-3 shrink-0" />
+                                        <span>{errors.email}</span>
+                                    </motion.p>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         {/* Password Input */}
@@ -281,16 +363,20 @@ const Login: React.FC = () => {
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-                                    <Lock className="h-4 w-4" />
+                                    <Lock className={`h-4 w-4 ${errors.password ? "text-destructive" : ""}`} />
                                 </div>
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) => handleChange("password", e.target.value)}
+                                    onBlur={() => handleBlur("password")}
                                     placeholder={authMode === "signup" ? "Create a strong password" : "Enter your password"}
-                                    required
                                     disabled={loading}
-                                    className="h-11 w-full pl-10 pr-11 rounded-2xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                                    className={`h-11 w-full pl-10 pr-11 rounded-2xl bg-background border text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:outline-none transition-all ${
+                                        errors.password
+                                            ? "border-destructive focus:ring-2 focus:ring-destructive/30 focus:border-destructive"
+                                            : "border-input focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                    }`}
                                 />
                                 <button
                                     type="button"
@@ -305,6 +391,19 @@ const Login: React.FC = () => {
                                     )}
                                 </button>
                             </div>
+                            <AnimatePresence>
+                                {errors.password && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: -4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -4 }}
+                                        className="text-[11px] font-medium text-destructive mt-1.5 ml-1 flex items-center gap-1"
+                                    >
+                                        <AlertCircle className="h-3 w-3 shrink-0" />
+                                        <span>{errors.password}</span>
+                                    </motion.p>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         {/* Submit Button */}
