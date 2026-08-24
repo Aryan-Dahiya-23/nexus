@@ -113,7 +113,7 @@ const UsersItems: React.FC<UsersItemsProps> = ({
                             </span>
                         </div>
                     ) : (
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 via-cyan-500/15 to-primary/5 border border-primary/20 flex items-center justify-center text-primary font-bold shadow-xs">
+                        <div className="w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground font-bold shadow-xs">
                             <GroupIcon className="h-5 w-5" />
                         </div>
                     )}

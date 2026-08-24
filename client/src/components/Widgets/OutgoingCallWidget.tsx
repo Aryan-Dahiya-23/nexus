@@ -23,34 +23,24 @@ const OutgoingCallWidget: React.FC<OutgoingCallWidgetProps> = ({ name, imgSrc, o
     const isGroup = imgSrc.length > 1;
 
     const widgetContent = (
-        <div className="fixed inset-0 z-[100] flex flex-col justify-between items-center py-10 sm:py-12 px-4 bg-slate-950/95 text-white backdrop-blur-2xl animate-in fade-in duration-200 overflow-hidden h-[100dvh]">
-            {/* Ambient Background Glow Orbs */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
-            <div className="absolute bottom-1/3 left-1/2 -translate-x-1/2 translate-y-1/2 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
-
+        <div className="fixed inset-0 z-[100] flex flex-col justify-between items-center py-10 sm:py-12 px-4 bg-background/95 text-foreground backdrop-blur-2xl animate-in fade-in duration-200 overflow-hidden h-[100dvh]">
             {/* Top Status Header */}
             <div className="flex flex-col items-center text-center space-y-2 mt-2 sm:mt-4 z-10">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-                    <Shield className="h-3.5 w-3.5" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs font-semibold">
+                    <Shield className="h-3.5 w-3.5 text-emerald-500" />
                     <span>Encrypted Video Call</span>
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mt-2 max-w-md truncate">
+                <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground mt-2 max-w-md truncate">
                     {name}
                 </h2>
-                <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm font-medium">
-                    <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+                <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm font-medium">
+                    <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                     <span>Calling & ringing...</span>
                 </div>
             </div>
 
-            {/* Central Radar Avatar Display */}
+            {/* Central Avatar Display */}
             <div className="relative my-auto flex items-center justify-center z-10">
-                {/* Concentric Radar Rings */}
-                <div className="absolute w-64 h-64 sm:w-80 sm:h-80 rounded-full border border-cyan-500/20 animate-ping opacity-40" style={{ animationDuration: '3s' }} />
-                <div className="absolute w-52 h-52 sm:w-64 sm:h-64 rounded-full border border-sky-400/25 animate-pulse" />
-                <div className="absolute w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-cyan-500/10 blur-xl" />
-
-                {/* Avatar / Stack */}
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -64,7 +54,7 @@ const OutgoingCallWidget: React.FC<OutgoingCallWidgetProps> = ({ name, imgSrc, o
                                     key={idx}
                                     src={src || DEFAULT_AVATAR}
                                     alt=""
-                                    className="h-20 w-20 sm:h-32 sm:w-32 rounded-3xl object-cover ring-4 ring-slate-900 shadow-2xl border border-cyan-500/40"
+                                    className="h-20 w-20 sm:h-32 sm:w-32 rounded-3xl object-cover ring-4 ring-background shadow-xl border border-border"
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
                                     }}
@@ -75,7 +65,7 @@ const OutgoingCallWidget: React.FC<OutgoingCallWidgetProps> = ({ name, imgSrc, o
                         <img
                             src={imgSrc[0] || DEFAULT_AVATAR}
                             alt={name}
-                            className="h-24 w-24 sm:h-36 sm:w-36 rounded-3xl object-cover ring-4 ring-cyan-500/50 shadow-2xl shadow-cyan-500/20"
+                            className="h-24 w-24 sm:h-36 sm:w-36 rounded-3xl object-cover ring-4 ring-border shadow-xl"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
                             }}

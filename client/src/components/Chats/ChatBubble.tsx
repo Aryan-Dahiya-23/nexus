@@ -116,11 +116,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                             className={`relative text-sm sm:text-[15px] leading-relaxed break-words shadow-sm transition-all ${
                                 isMedia
                                     ? isRight
-                                        ? "p-1 sm:p-1.5 bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600 rounded-2xl rounded-br-sm shadow-md"
-                                        : "p-1 sm:p-1.5 bg-card border border-border/80 rounded-2xl rounded-bl-sm shadow-xs"
+                                        ? "p-1 sm:p-1.5 bg-primary rounded-2xl rounded-br-sm shadow-sm"
+                                        : "p-1 sm:p-1.5 bg-card border border-border rounded-2xl rounded-bl-sm shadow-xs"
                                     : isRight
-                                        ? "px-4 py-2.5 bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-cyan-500/10"
-                                        : "px-4 py-2.5 bg-card text-card-foreground border border-border/80 rounded-2xl rounded-bl-sm shadow-xs"
+                                        ? "px-4 py-2.5 bg-primary text-primary-foreground rounded-2xl rounded-br-sm shadow-sm"
+                                        : "px-4 py-2.5 bg-card text-card-foreground border border-border rounded-2xl rounded-bl-sm shadow-xs"
                             }`}
                         >
                             {/* --- TEXT MESSAGE --- */}
@@ -131,15 +131,15 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                                     {/* Inline Timestamp & Seen Status */}
                                     <div
                                         className={`flex items-center justify-end gap-1 text-[10px] font-medium select-none pt-0.5 ${
-                                            isRight ? "text-cyan-100/85" : "text-muted-foreground/80"
+                                            isRight ? "text-primary-foreground/80" : "text-muted-foreground/80"
                                         }`}
                                     >
                                         <span>{formattedTime}</span>
                                         {isRight && (
                                             messageSeen ? (
-                                                <CheckCheck className="h-3.5 w-3.5 text-white stroke-[2.5]" />
+                                                <CheckCheck className="h-3.5 w-3.5 text-primary-foreground stroke-[2.5]" />
                                             ) : (
-                                                <Check className="h-3.5 w-3.5 text-cyan-200/90 stroke-[2.5]" />
+                                                <Check className="h-3.5 w-3.5 text-primary-foreground/75 stroke-[2.5]" />
                                             )
                                         )}
                                     </div>

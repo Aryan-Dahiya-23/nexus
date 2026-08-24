@@ -81,7 +81,7 @@ const Drawer: React.FC<DrawerProps> = ({ name, avatarSrc }) => {
                             <div className="flex flex-col items-center text-center mt-2">
                                 <div className="relative mb-3">
                                     {isGroup ? (
-                                        <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-primary/30 flex items-center justify-center shadow-lg">
+                                        <div className="h-20 w-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
                                             <Users className="h-10 w-10 text-primary" />
                                         </div>
                                     ) : (

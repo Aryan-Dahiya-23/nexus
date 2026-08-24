@@ -78,7 +78,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ name, avatarSrc, online, conver
                         {/* Avatar */}
                         <div className="relative shrink-0">
                             {isGroup ? (
-                                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-sky-500/20 border border-border flex items-center justify-center overflow-hidden">
+                                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-muted border border-border flex items-center justify-center overflow-hidden">
                                     <div className="flex -space-x-2">
                                         {avatarSrc.slice(0, 2).map((src, i) => (
                                             <img

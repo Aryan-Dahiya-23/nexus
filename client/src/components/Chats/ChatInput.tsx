@@ -285,7 +285,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ data, conversationId }) => {
                     type="button"
                     disabled={!text.trim() || status === 'pending'}
                     onClick={() => handleMessageSend(text, 'text')}
-                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-sm shadow-cyan-500/20 active:scale-95 transition-all shrink-0 cursor-pointer"
+                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:pointer-events-none text-primary-foreground shadow-xs active:scale-95 transition-all shrink-0 cursor-pointer"
                     aria-label="Send message"
                 >
                     <Send className="h-4 w-4" />

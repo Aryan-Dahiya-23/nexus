@@ -13,7 +13,7 @@ export const NexusLogo: React.FC<NexusLogoProps> = ({
     size,
     showText = false,
     textClassName = 'text-xl font-extrabold tracking-tight',
-    animated = false,
+    animated: _animated = false,
 }) => {
     const sizeStyle = size ? { width: size, height: size } : undefined;
 
@@ -31,13 +31,9 @@ export const NexusLogo: React.FC<NexusLogoProps> = ({
                 >
                     <defs>
                         <linearGradient id="nexusCompGrad" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stop-color="#00D5FA" />
-                            <stop offset="50%" stop-color="#0284c7" />
-                            <stop offset="100%" stop-color="#2563eb" />
+                            <stop offset="0%" stopColor="#3b82f6" />
+                            <stop offset="100%" stopColor="#1d4ed8" />
                         </linearGradient>
-                        <filter id="nexusDrop" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00D5FA" flood-opacity="0.5" />
-                        </filter>
                     </defs>
 
                     {/* Outer Rounded Container */}
@@ -46,16 +42,16 @@ export const NexusLogo: React.FC<NexusLogoProps> = ({
                         y="3"
                         width="94"
                         height="94"
-                        rx="26"
+                        rx="24"
                         fill="url(#nexusCompGrad)"
                         fillOpacity="0.12"
-                        stroke="#00D5FA"
-                        strokeWidth="2.5"
-                        strokeOpacity="0.35"
+                        stroke="#3b82f6"
+                        strokeWidth="2"
+                        strokeOpacity="0.25"
                     />
 
                     {/* Emblem Group */}
-                    <g filter="url(#nexusDrop)">
+                    <g>
                         {/* Left Pillar */}
                         <rect x="22" y="24" width="11.5" height="52" rx="5.75" fill="url(#nexusCompGrad)" />
 
@@ -66,21 +62,13 @@ export const NexusLogo: React.FC<NexusLogoProps> = ({
                         <path d="M22 28 L78 72" stroke="url(#nexusCompGrad)" strokeWidth="12" strokeLinecap="round" />
 
                         {/* Core Pulse Core */}
-                        <circle cx="50" cy="50" r="6.5" fill="#ffffff" />
-                        <circle
-                            cx="50"
-                            cy="50"
-                            r="10.5"
-                            fill="#00D5FA"
-                            fillOpacity="0.6"
-                            className={animated ? "animate-ping" : ""}
-                        />
+                        <circle cx="50" cy="50" r="5" fill="#ffffff" />
                     </g>
                 </svg>
             </div>
 
             {showText && (
-                <span className={`bg-gradient-to-r from-foreground via-foreground/90 to-primary bg-clip-text text-transparent ${textClassName}`}>
+                <span className={`text-foreground ${textClassName}`}>
                     Nexus
                 </span>
             )}

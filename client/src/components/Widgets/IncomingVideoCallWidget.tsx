@@ -88,20 +88,15 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="relative overflow-hidden bg-slate-900/95 dark:bg-slate-900/98 backdrop-blur-2xl text-slate-100 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-2xl shadow-cyan-500/10"
+                    className="relative overflow-hidden bg-card text-card-foreground border border-border rounded-3xl p-4 sm:p-5 shadow-2xl"
                 >
-                    {/* Top cyan pulse accent */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500 animate-pulse" />
-
                     <div className="flex items-center space-x-3 sm:space-x-4">
-                        {/* Radar Avatar with Pulsing Rings */}
+                        {/* Avatar */}
                         <div className="relative shrink-0 flex items-center justify-center">
-                            <span className="absolute h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-emerald-500/30 animate-ping" />
-                            <span className="absolute h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-cyan-500/20 animate-pulse" />
                             <img
                                 src={primaryAvatar || DEFAULT_AVATAR}
                                 alt={name}
-                                className="relative z-10 h-11 w-11 sm:h-13 sm:w-13 rounded-2xl object-cover ring-2 ring-emerald-400 shadow-md"
+                                className="relative z-10 h-11 w-11 sm:h-13 sm:w-13 rounded-2xl object-cover ring-2 ring-border shadow-sm"
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = DEFAULT_AVATAR;
                                 }}
@@ -110,25 +105,25 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
 
                         {/* Caller Info */}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1 text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">
-                                <Sparkles className="h-3 w-3 animate-spin" style={{ animationDuration: '4s' }} />
+                            <div className="flex items-center gap-1 text-emerald-500 font-bold text-[10px] uppercase tracking-wider mb-0.5">
+                                <Sparkles className="h-3 w-3" />
                                 <span>Incoming Video Call</span>
                             </div>
-                            <h4 className="text-sm sm:text-base font-extrabold text-white truncate tracking-tight">
+                            <h4 className="text-sm sm:text-base font-bold text-foreground truncate tracking-tight">
                                 {name}
                             </h4>
-                            <p className="text-xs text-slate-400 truncate mt-0.5">
-                                Encrypted WebRTC Stage
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                Video Call
                             </p>
                         </div>
                     </div>
 
                     {/* Action Controls */}
-                    <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center gap-2.5">
+                    <div className="mt-4 pt-3 border-t border-border flex items-center gap-2.5">
                         <button
                             type="button"
                             onClick={rejectCall}
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 font-semibold text-xs transition-all cursor-pointer active:scale-95"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-destructive/10 hover:bg-destructive text-destructive hover:text-destructive-foreground border border-destructive/20 font-semibold text-xs transition-all cursor-pointer active:scale-95"
                         >
                             <PhoneOff className="h-4 w-4" />
                             <span>Decline</span>
@@ -137,7 +132,7 @@ const IncomingVideoCallWidget: React.FC<IncomingVideoCallProps> = ({ name, avata
                         <button
                             type="button"
                             onClick={acceptCall}
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-xs shadow-lg shadow-emerald-500/25 transition-all cursor-pointer active:scale-95 animate-pulse"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-all cursor-pointer active:scale-95"
                         >
                             <Video className="h-4 w-4" />
                             <span>Accept</span>

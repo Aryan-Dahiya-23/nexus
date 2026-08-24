@@ -233,7 +233,7 @@ export const LandingPage: React.FC = () => {
                     {/* Bold, Elegant Typography */}
                     <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground leading-[1.08]">
                         Communication, <br className="hidden sm:inline" />
-                        <span className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 dark:from-cyan-400 dark:via-sky-400 dark:to-blue-400 bg-clip-text text-transparent">
+                        <span className="text-primary">
                             crafted for clarity.
                         </span>
                     </h1>
@@ -249,7 +249,7 @@ export const LandingPage: React.FC = () => {
                             variant="gradient"
                             size="lg"
                             onClick={handleCta}
-                            className="w-full sm:w-auto text-sm sm:text-base px-8 h-12 shadow-md shadow-primary/20 group cursor-pointer"
+                            className="w-full sm:w-auto text-sm sm:text-base px-8 h-12 shadow-sm group cursor-pointer"
                         >
                             <span>{loggedIn || user ? "Go to Conversations" : "Get Started Free"}</span>
                             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -386,8 +386,8 @@ export const LandingPage: React.FC = () => {
                                                         <div
                                                             className={`px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-2xl max-w-[88%] sm:max-w-md ${
                                                                 isMe
-                                                                    ? 'bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white rounded-tr-xs shadow-sm'
-                                                                    : 'bg-muted/80 text-foreground border border-border rounded-tl-xs'
+                                                                    ? 'bg-primary text-primary-foreground rounded-tr-xs shadow-xs'
+                                                                    : 'bg-muted text-foreground border border-border rounded-tl-xs'
                                                             }`}
                                                         >
                                                             <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
@@ -540,7 +540,7 @@ export const LandingPage: React.FC = () => {
 
                                                 <div className="my-auto flex flex-col items-center py-2">
                                                     <div className="relative">
-                                                        <div className="h-14 w-14 sm:h-20 sm:w-20 rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-cyan-500 via-sky-500 to-blue-600 flex items-center justify-center font-extrabold text-base sm:text-xl shadow-lg">
+                                                        <div className="h-14 w-14 sm:h-20 sm:w-20 rounded-2xl sm:rounded-3xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-base sm:text-xl shadow-sm">
                                                             YOU
                                                         </div>
                                                         <span className={`absolute -bottom-1 -right-1 p-1 rounded-full ${isMuted ? 'bg-destructive text-white' : 'bg-emerald-500 text-white'}`}>
@@ -626,7 +626,7 @@ export const LandingPage: React.FC = () => {
                                         <div className="space-y-2.5 sm:space-y-3">
                                             <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-muted/40 border border-border flex items-center justify-between hover:border-primary/40 transition-colors">
                                                 <div className="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0">
-                                                    <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-border flex items-center justify-center font-extrabold text-primary text-sm sm:text-base shrink-0">
+                                                    <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-muted border border-border flex items-center justify-center font-bold text-foreground text-sm sm:text-base shrink-0">
                                                         #
                                                     </div>
                                                     <div className="min-w-0">
@@ -642,7 +642,7 @@ export const LandingPage: React.FC = () => {
 
                                             <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-muted/40 border border-border flex items-center justify-between hover:border-primary/40 transition-colors">
                                                 <div className="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0">
-                                                    <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 border border-border flex items-center justify-center font-extrabold text-purple-500 text-sm sm:text-base shrink-0">
+                                                    <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl sm:rounded-2xl bg-muted border border-border flex items-center justify-center font-bold text-foreground text-sm sm:text-base shrink-0">
                                                         🎨
                                                     </div>
                                                     <div className="min-w-0">
@@ -707,15 +707,10 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Final High-Craft CTA Card */}
-                <div className="relative mt-20 sm:mt-28 rounded-3xl border border-border bg-card/90 backdrop-blur-2xl p-8 sm:p-14 text-center overflow-hidden shadow-2xl">
-                    {/* Ambient Radial Gradient Glows */}
-                    <div className="absolute -top-24 -left-24 w-72 h-72 bg-gradient-to-br from-cyan-500/20 via-sky-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-gradient-to-tl from-blue-600/20 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute inset-0 bg-dot-grid opacity-30 pointer-events-none" />
-
+                <div className="relative mt-20 sm:mt-28 rounded-3xl border border-border bg-card p-8 sm:p-14 text-center overflow-hidden shadow-xl">
                     <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
                         {/* Nexus Badge */}
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/25 bg-primary/10 text-primary text-xs font-semibold mb-6 shadow-xs">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border bg-muted text-foreground text-xs font-semibold mb-6 shadow-xs">
                             <Sparkles className="h-3.5 w-3.5 text-primary" />
                             <span>Instant Setup • Zero Configuration</span>
                         </div>
@@ -723,7 +718,7 @@ export const LandingPage: React.FC = () => {
                         {/* Heading */}
                         <h2 className="text-3xl sm:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
                             Experience clean communication, <br className="hidden sm:inline" />
-                            <span className="bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 dark:from-cyan-400 dark:via-sky-400 dark:to-blue-400 bg-clip-text text-transparent">
+                            <span className="text-primary">
                                 engineered for speed.
                             </span>
                         </h2>
@@ -739,7 +734,7 @@ export const LandingPage: React.FC = () => {
                                 variant="gradient"
                                 size="lg"
                                 onClick={handleCta}
-                                className="w-full sm:w-auto h-12 px-9 text-sm sm:text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all cursor-pointer group"
+                                className="w-full sm:w-auto h-12 px-9 text-sm sm:text-base font-semibold shadow-sm hover:shadow transition-all cursor-pointer group"
                             >
                                 <span>{loggedIn || user ? "Open Your Workspace" : "Get Started with Google or Meta"}</span>
                                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

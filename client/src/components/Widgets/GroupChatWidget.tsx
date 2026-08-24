@@ -149,13 +149,10 @@ const GroupChatWidget = () => {
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className="w-full max-w-md bg-card text-card-foreground border border-border/80 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden flex flex-col my-auto max-h-[90dvh]"
             >
-                {/* Top cyan gradient accent bar */}
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 z-10" />
-
                 {/* Modal Header */}
                 <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 flex items-center justify-between shrink-0 bg-card/80">
                     <div className="flex items-center space-x-2.5 sm:space-x-3">
-                        <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-sky-500/15 to-blue-600/20 border border-primary/25 flex items-center justify-center text-primary shrink-0 shadow-xs">
+                        <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-xs">
                             <Users className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                         </div>
                         <div>
@@ -405,7 +402,7 @@ const GroupChatWidget = () => {
                             <button
                                 type="submit"
                                 disabled={isPending || remainingNeeded > 0 || groupName.trim().length === 0}
-                                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-xs shadow-md shadow-cyan-500/20 hover:shadow-lg hover:shadow-cyan-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 {isPending ? (
                                     <>

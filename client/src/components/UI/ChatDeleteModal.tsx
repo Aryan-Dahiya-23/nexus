@@ -62,8 +62,6 @@ const ChatDeleteModal: React.FC = () => {
                 className="w-full max-w-md bg-card text-card-foreground border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Top danger accent bar */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-red-500 to-amber-500" />
 
                 <button
                     type="button"

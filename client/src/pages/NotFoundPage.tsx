@@ -11,9 +11,6 @@ const NotFoundPage: React.FC = () => {
             {/* Subtle Dot Grid Background */}
             <div className="absolute inset-0 bg-dot-grid pointer-events-none opacity-50 dark:opacity-30 -z-10" />
 
-            {/* Ambient Multi-Gradient Glow Orbs */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-gradient-to-tr from-cyan-500/15 via-sky-500/10 to-blue-600/15 blur-3xl pointer-events-none -z-10 rounded-full" />
-
             {/* Top Navigation Bar */}
             <div className="w-full max-w-5xl flex items-center justify-between z-10">
                 <Link to="/" className="flex items-center space-x-2.5 group">
@@ -38,13 +35,13 @@ const NotFoundPage: React.FC = () => {
                     <span>Error 404 • Channel Not Found</span>
                 </div>
 
-                {/* Big Gradient 404 Headline */}
-                <h1 className="text-7xl sm:text-9xl font-black tracking-tighter bg-gradient-to-b from-foreground via-foreground/70 to-foreground/20 bg-clip-text text-transparent select-none leading-none">
+                {/* 404 Headline */}
+                <h1 className="text-7xl sm:text-9xl font-black tracking-tighter text-foreground select-none leading-none">
                     404
                 </h1>
 
                 <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight mt-4">
-                    Lost in Cyberspace?
+                    Channel Not Found
                 </h2>
                 <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
                     The conversation channel or frequency you are tuning into has vanished or does not exist.
@@ -54,7 +51,7 @@ const NotFoundPage: React.FC = () => {
                 <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
                     <Link
                         to="/chats"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-white text-sm font-semibold shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/30 transition-all cursor-pointer group"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold shadow-sm transition-all cursor-pointer group"
                     >
                         <MessageSquare className="h-4 w-4" />
                         <span>Go to Conversations</span>
