@@ -95,7 +95,7 @@ const ServerWarmup: React.FC<ServerWarmupProps> = ({ onServerReady, autoPoll = t
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
-                    The cloud server is starting up. This typically takes a few moments on initial connection. You will be connected automatically once ready.
+                    The cloud server is starting up. This typically takes ~30–40s on initial load. You will be connected automatically once ready.
                 </p>
 
                 {/* Progress Bar & Counter */}

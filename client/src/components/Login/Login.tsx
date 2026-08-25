@@ -290,7 +290,7 @@ const Login: React.FC = () => {
                                 className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-xs font-medium flex items-center gap-2 mb-3 shadow-2xs text-left"
                             >
                                 <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                                <span>Connecting to cloud server. Please hold on a moment...</span>
+                                <span>Cloud server is starting up (~30-40s). Please hold on...</span>
                             </motion.div>
                         )}
                     </AnimatePresence>
