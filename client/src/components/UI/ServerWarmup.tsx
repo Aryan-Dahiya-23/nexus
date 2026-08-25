@@ -95,7 +95,7 @@ const ServerWarmup: React.FC<ServerWarmupProps> = ({ onServerReady, autoPoll = t
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
-                    The backend instance is booting up from sleep mode (Render Free Tier). This typically takes ~30–45s on initial load. You will be connected automatically once ready.
+                    The cloud server is starting up. This typically takes a few moments on initial connection. You will be connected automatically once ready.
                 </p>
 
                 {/* Progress Bar & Counter */}
